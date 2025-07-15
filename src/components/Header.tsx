@@ -39,7 +39,6 @@ const Header = () => {
     },
     { name: "Summer Schools", href: "/summer-schools" },
     { name: "Host Application Form", href: "/host-application" },
-    { name: "Photo Archive", href: "/photo-archive" },
     { name: "FAQ", href: "/faq" },
     //{ name: "Blog", href: "/blog" },
     { name: "Contact Us", href: "/contact" },

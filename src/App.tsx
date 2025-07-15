@@ -9,13 +9,12 @@ import BecomeHost from "./pages/BecomeHost";
 import ForStudents from "./pages/ForStudents";
 import Locations from "./pages/Locations";
 import FAQ from "./pages/FAQ";
-import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import TermsConditions from "./pages/TermsConditions";
-import SummerSchools from "./pages/SummerSchools";
-import HostApplication from "./pages/HostApplication";
-import PhotoArchive from "./pages/PhotoArchive";
+import Education from "./pages/Education";
+import Travel from "./pages/Travel";
+import ScrollToTop from "@/components/ScrollToTop"; // <-- Your scroll handler
 
 const queryClient = new QueryClient();
 
@@ -25,6 +24,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        {/* Scroll to top on route change */}
+        <ScrollToTop />   {/* <-- Just add this here! */}
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
@@ -33,11 +34,9 @@ const App = () => (
           <Route path="/become-host" element={<BecomeHost />} />
           <Route path="/locations" element={<Locations />} />
           <Route path="/locations/:location" element={<Locations />} />
-          <Route path="/summer-schools" element={<SummerSchools />} />
-          <Route path="/host-application" element={<HostApplication />} />
-          <Route path="/photo-archive" element={<PhotoArchive />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/travel" element={<Travel />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

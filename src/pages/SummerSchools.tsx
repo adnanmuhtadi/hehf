@@ -1,183 +1,81 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, BookOpen, Star, Clock } from "lucide-react";
+import Hero from "@/components/Hero";
+import { Calendar } from "lucide-react";
+import { lazy, Suspense } from "react";
 
-const SummerSchools = () => {
-  const programs = [
-    {
-      title: "Intensive English Plus",
-      duration: "2-4 weeks",
-      ages: "14-18 years",
-      location: "Watford Campus",
-      description: "Comprehensive English language program with cultural activities and weekend excursions to London landmarks.",
-      features: ["25 hours/week English lessons", "Afternoon activities", "Weekend trips", "Certificate of completion"],
-      price: "£850/week"
-    },
-    {
-      title: "Academic Preparation",
-      duration: "3-6 weeks", 
-      ages: "16-19 years",
-      location: "St Albans Centre",
-      description: "Prepare for UK university entry with academic English, study skills, and IELTS preparation courses.",
-      features: ["Academic writing skills", "Presentation training", "IELTS preparation", "University visit program"],
-      price: "£950/week"
-    },
-    {
-      title: "Cultural Immersion",
-      duration: "1-3 weeks",
-      ages: "12-17 years", 
-      location: "Multiple locations",
-      description: "Experience British culture through homestay living, local activities, and cultural workshops.",
-      features: ["Cultural workshops", "Local family placement", "Heritage site visits", "Traditional activities"],
-      price: "£750/week"
-    }
-  ];
+// Dynamically import programme cards and testimonials for code splitting/future scalability
+const ProgrammeCards = lazy(() => import("@/components/ProgrammeCards")); // (Create this component as needed)
+const Testimonials = lazy(() => import("@/components/Testimonials"));     // (Optional)
 
-  const activities = [
-    { icon: <BookOpen className="h-6 w-6" />, title: "English Classes", description: "Professional teachers, small class sizes" },
-    { icon: <MapPin className="h-6 w-6" />, title: "London Excursions", description: "Tower Bridge, Museums, West End shows" },
-    { icon: <Users className="h-6 w-6" />, title: "Group Activities", description: "Sports, games, team building exercises" },
-    { icon: <Star className="h-6 w-6" />, title: "Cultural Events", description: "British traditions, festivals, celebrations" }
-  ];
+const HERO_IMAGE =
+  "https://plus.unsplash.com/premium_photo-1661290835495-9d1a6144c19c?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-  return (
-    <div className="min-h-screen">
-      <Header />
-      
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary to-primary-hover text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Summer Schools Programme</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-8">
-            Exceptional English language and cultural immersion programs with homestay accommodation
-          </p>
-          <Button size="lg" variant="secondary">
-            <Calendar className="mr-2 h-5 w-5" />
-            View 2024 Dates
-          </Button>
-        </div>
-      </section>
-
-      {/* Programs Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6">Our Summer Programmes</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Choose from our range of carefully designed programs to suit different ages, interests, and learning objectives
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {programs.map((program, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-primary mb-2">{program.title}</CardTitle>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      {program.duration}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      {program.ages}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      {program.location}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-muted-foreground">{program.description}</p>
-                  <ul className="space-y-2">
-                    {program.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pt-4 border-t">
-                    <div className="text-2xl font-bold text-primary mb-3">{program.price}</div>
-                    <Button className="w-full">
-                      Apply Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Activities Section */}
-      <section className="py-20 bg-muted">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-6">What's Included</h2>
-            <p className="text-xl text-muted-foreground">
-              A comprehensive program designed to maximize learning and cultural experience
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {activities.map((activity, index) => (
-              <Card key={index} className="text-center p-6">
-                <CardContent className="space-y-4">
-                  <div className="flex justify-center text-primary">{activity.icon}</div>
-                  <h3 className="text-xl font-semibold">{activity.title}</h3>
-                  <p className="text-muted-foreground">{activity.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Sample Schedule */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-foreground mb-6">Sample Weekly Schedule</h2>
-            </div>
-
-            <Card className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => (
-                  <div key={day} className="text-center">
-                    <h3 className="font-semibold text-primary mb-3">{day}</h3>
-                    <div className="space-y-2 text-sm">
-                      {index < 5 ? (
-                        <>
-                          <div className="bg-muted p-2 rounded">9:00-12:30<br/>English Classes</div>
-                          <div className="bg-primary/10 p-2 rounded">14:00-17:00<br/>Activities</div>
-                          <div className="bg-muted p-2 rounded">Evening<br/>Homestay</div>
-                        </>
-                      ) : index === 5 ? (
-                        <>
-                          <div className="bg-success/10 p-2 rounded">Full Day<br/>London Trip</div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="bg-warning/10 p-2 rounded">Family Time<br/>& Rest Day</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <Footer />
-    </div>
-  );
+const heroContent = {
+  heading: "Summer Schools Programme",
+  subheading: "Exceptional English language and cultural immersion programmes with homestay accommodation",
+  buttonText: (
+    <>
+      <Calendar className="mr-2 h-5 w-5 inline" />
+      View 2024 Dates
+    </>
+  ),
+  buttonHref: "#dates",
+  bgImage: HERO_IMAGE,
 };
+
+const intro = {
+  heading: "Make This Summer Unforgettable—Become a Host!",
+  body: (
+    <>
+      Ready to open your door to a world of adventure, culture, and new friendships?{" "}
+      <span className="font-semibold text-primary">
+        Every summer, thousands of international students flock to the UK
+      </span>{" "}
+      for our exciting Summer School programmes—and you can be the warm welcome they remember for years to come.
+      <br /><br />
+      Picture it: your home filled with stories and laughter from across the globe. Students spend their days out discovering Britain’s best, then return in the evenings to share meals, experiences, and a true slice of British life with you and your family.
+      <br /><br />
+      You keep your freedom and routine, while gaining new perspectives, making meaningful connections, and helping shape memories that last a lifetime. Hosting is more than accommodation—it’s about friendship, culture, and a summer you’ll never forget!
+    </>
+  ),
+};
+
+const SummerSchools = () => (
+  <div className="min-h-screen flex flex-col">
+    <Header />
+
+    {/* Consistent Hero section, all props are centralised in heroContent */}
+    <Hero
+      bgImage={heroContent.bgImage}
+      heading={heroContent.heading}
+      subheading={heroContent.subheading}
+      buttonText={heroContent.buttonText}
+      buttonHref={heroContent.buttonHref}
+    />
+
+    {/* Intro Section */}
+    <section className="py-12 bg-primary/10" aria-label="Summer School Hosting">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-4 text-primary">
+          {intro.heading}
+        </h2>
+        <p className="text-lg text-muted-foreground text-center">{intro.body}</p>
+      </div>
+    </section>
+
+    {/* Programme Cards Section – ready for dynamic data and lazy loading */}
+    <Suspense fallback={<div className="text-center my-12">Loading programmes…</div>}>
+      {/* <ProgrammeCards /> */}
+    </Suspense>
+
+    {/* Testimonials Section (optional for future) */}
+    {/* <Suspense fallback={null}>
+      <Testimonials />
+    </Suspense> */}
+
+    <Footer />
+  </div>
+);
 
 export default SummerSchools;
