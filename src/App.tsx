@@ -12,7 +12,6 @@ import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import TermsConditions from "./pages/TermsConditions";
-import Education from "./pages/Education";
 import Travel from "./pages/Travel";
 import ScrollToTop from "@/components/ScrollToTop"; // <-- Your scroll handler
 
@@ -34,7 +33,6 @@ const App = () => (
           <Route path="/become-host" element={<BecomeHost />} />
           <Route path="/locations" element={<Locations />} />
           <Route path="/locations/:location" element={<Locations />} />
-          <Route path="/education" element={<Education />} />
           <Route path="/travel" element={<Travel />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contact" element={<Contact />} />

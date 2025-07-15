@@ -15,14 +15,7 @@ const Header = () => {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { 
-      name: "About Us", 
-      href: "#",
-      dropdown: [
-        { name: "About Us", href: "/about" },
-        { name: "T&Cs", href: "/terms-conditions" }
-      ]
-    },
+    { name: "About Us", href: "/about" },
     { name: "For Students", href: "/for-students" },
     { name: "Become A Host", href: "/become-host" },
     { 
