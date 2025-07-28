@@ -1,4 +1,11 @@
-import { Phone, Mail, MapPin, Facebook, Instagram, Twitter } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Facebook,
+  Instagram,
+  Twitter
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -18,8 +25,9 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-sm opacity-80 leading-relaxed">
-              Providing quality homestay experiences for international students since 2000. 
-              We connect students with caring host families across Hertfordshire and Essex.
+              Providing quality homestay experiences for international students
+              since 2000. We connect students with caring host families across
+              Hertfordshire and Essex.
             </p>
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 opacity-60 hover:opacity-100 cursor-pointer transition-opacity" />
@@ -32,16 +40,54 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/about" className="opacity-80 hover:opacity-100 transition-opacity">About Us</Link></li>
-              <li><Link to="/become-host" className="opacity-80 hover:opacity-100 transition-opacity">Become a Host</Link></li>
-              <li><Link to="/for-students" className="opacity-80 hover:opacity-100 transition-opacity">For Students</Link></li>
-              <li><Link to="/locations" className="opacity-80 hover:opacity-100 transition-opacity">Our Locations</Link></li>
-              <li><Link to="/faq" className="opacity-80 hover:opacity-100 transition-opacity">FAQ</Link></li>
-              <li><Link to="/blog" className="opacity-80 hover:opacity-100 transition-opacity">Blog & News</Link></li>
-              <li><Link to="/terms-conditions" className="opacity-80 hover:opacity-100 transition-opacity">Terms & Conditions </Link></li>
-
-
-
+              <li>
+                <Link
+                  to="/about"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/become-host"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  Become a Host
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/for-students"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  For Students
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/locations"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  Our Locations
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/faq"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/terms-conditions"
+                  className="opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  Terms & Conditions{" "}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -91,13 +137,22 @@ const Footer = () => {
             © 2024 Herts & Essex Host Families. All rights reserved.
           </div>
           <div className="flex space-x-6 text-sm">
-            <Link to="/privacy" className="opacity-60 hover:opacity-100 transition-opacity">
+            <Link
+              to="/privacy"
+              className="opacity-60 hover:opacity-100 transition-opacity"
+            >
               Privacy Policy
             </Link>
-            <Link to="/terms" className="opacity-60 hover:opacity-100 transition-opacity">
+            <Link
+              to="/terms"
+              className="opacity-60 hover:opacity-100 transition-opacity"
+            >
               Terms of Service
             </Link>
-            <Link to="/cookies" className="opacity-60 hover:opacity-100 transition-opacity">
+            <Link
+              to="/cookies"
+              className="opacity-60 hover:opacity-100 transition-opacity"
+            >
               Cookie Policy
             </Link>
           </div>

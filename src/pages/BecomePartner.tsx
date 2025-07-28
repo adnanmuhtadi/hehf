@@ -7,7 +7,7 @@ const ForStudents = () => {
       <Header />
       <main className="py-20">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center mb-8">For Students</h1>
+          <h1 className="text-4xl font-bold text-center mb-8">For Partners</h1>
           <p className="text-xl text-center text-muted-foreground">
             Coming soon - Information and booking for international students.
           </p>
