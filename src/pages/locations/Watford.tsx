@@ -7,9 +7,12 @@ const Locations = () => {
       <Header />
       <main className="py-20">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center mb-8">Our Locations</h1>
+          <h1 className="text-4xl font-bold text-center mb-8">
+            Watford
+          </h1>
           <p className="text-xl text-center text-muted-foreground">
-            Coming soon - Interactive map of our coverage areas in Hertfordshire and Essex.
+            Coming soon - Interactive map of our coverage areas in
+            Hertfordshires and Essex.
           </p>
         </div>
       </main>

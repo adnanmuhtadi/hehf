@@ -38,15 +38,18 @@ const Header = () => {
       name: "Our Locations",
       href: "#",
       dropdown: [
-        { name: "Cheshunt", href: "/locations/cheshunt" },
+        { name: "Cheshunt", href: "/locations/Cheshunt" },
         {
           name: "Elstree & Borehamwood",
-          href: "/locations/elstree-borehamwood"
+          href: "/locations/Elstree-and-Borehamwood"
         },
-        { name: "St Albans", href: "/locations/st-albans" },
-        { name: "Southgate", href: "/locations/southgate" },
-        { name: "Waltham Abbey", href: "/locations/waltham-abbey" },
-        { name: "Watford", href: "/locations/watford" }
+        { name: "Chingford", href: "/locations/Chingford" },
+        { name: "Harrow", href: "/locations/Harrow" },
+        { name: "Hatch End", href: "/locations/Hatch-End" },
+        { name: "Harpenden", href: "/locations/Harpenden" },
+        { name: "Loughton", href: "/locations/Loughton" },
+        ,
+        { name: "Watford", href: "/locations/Watford" }
       ]
     },
     { name: "Summer Schools", href: "/summer-schools" },
