@@ -36,19 +36,6 @@ const Harrow = () => {
               attracting visitors, students, and families alike.
             </p>
           </div>
-
-          {/* Right: Optional Video Embed */}
-          <div className="w-full">
-            <div className="aspect-w-16 aspect-h-9">
-              <iframe
-                src="https://www.youtube.com/embed/VIDEO_ID"
-                title="Harrow Overview"
-                className="w-full h-full rounded-lg shadow"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
         </div>
 
         {/* Google Maps Embeds */}
@@ -57,19 +44,6 @@ const Harrow = () => {
           <div className="aspect-w-16 aspect-h-9">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d9921.444331897793!2d-0.334!3d51.580!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487613ad1a7eddd9%3A0x4e9cde0f3c2a2a0!2sHarrow!5e0!3m2!1sen!2suk!4v1699999999999!5m2!1sen!2suk"
-              width="100%"
-              height="350"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              className="rounded-lg shadow"
-            />
-          </div>
-
-          {/* Second Map */}
-          <div className="aspect-w-16 aspect-h-9">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d9921.444331897793!2d-0.34!3d51.582!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487613ad1a7eddd9%3A0x4e9cde0f3c2a2a0!2sHarrow%20on%20the%20Hill%20Station!5e0!3m2!1sen!2suk!4v1699999999999!5m2!1sen!2suk"
               width="100%"
               height="350"
               style={{ border: 0 }}
