@@ -1,4 +1,3 @@
-// src/pages/Index.tsx
 import { useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import HeroCarousel from "@/components/HeroCarousel";
-import { Helmet } from "react-helmet";
+import PageLayout from "@/layouts/PageLayout"; // <-- Use reusable layout
 
 const Index = () => {
   const { toast } = useToast();
@@ -63,39 +60,29 @@ const Index = () => {
     {
       name: "Saira - Bushey Herts",
       quote:
-        "Being accepted as a host through the agency has really blessed our family. We initially accepted this invitation offering due to financial benefits, but when my nephew experienced being treated so nicely by wonderful families..."
+        "Being accepted as a host through the agency has really blessed our family..."
     },
     {
       name: "Julia - Cheshunt",
       quote:
-        "We have hosted many students. The boys have made so many friends over many years that their experiences with students from different countries have brought so much joy to our lives. Our accommodations have never failed to impress."
+        "We have hosted many students. The boys have made so many friends..."
     },
     {
       name: "Amanda - Watford",
       quote:
-        "Being a host with the agency is one of the most rewarding things I do... Now I long for the next time we get more students. We will be in touch a great experience and we love what we do with such wonderful young people."
+        "Being a host with the agency is one of the most rewarding things I do..."
     }
   ];
 
   return (
-    <div className="min-h-screen">
-      <Helmet>
-        <title>
-          Herts & Essex Host Families | Homestay for International Students
-        </title>
-        <meta
-          name="description"
-          content="Providing loving host families for international students in Hertfordshire & Essex for over 20 years. Safe, welcoming, and unforgettable cultural experiences."
-        />
-        <meta
-          name="keywords"
-          content="host families, Hertfordshire, Essex, international students, homestay, cultural exchange"
-        />
-      </Helmet>
-
-      <Header />
+    <PageLayout
+      title="Herts & Essex Host Families | Homestay for International Students"
+      description="Providing loving host families for international students in Hertfordshire & Essex for over 20 years. Safe, welcoming, and unforgettable cultural experiences."
+    >
+      {/* Hero carousel */}
       <HeroCarousel />
 
+      {/* HOW IT WORKS Section */}
       <AnimatedSection>
         <section className="py-20 bg-muted">
           <div className="container mx-auto px-4">
@@ -125,6 +112,7 @@ const Index = () => {
         </section>
       </AnimatedSection>
 
+      {/* STATISTICS Section */}
       <AnimatedSection>
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
@@ -149,6 +137,7 @@ const Index = () => {
         </section>
       </AnimatedSection>
 
+      {/* TESTIMONIALS Section */}
       <AnimatedSection>
         <section className="py-20 bg-muted">
           <div className="container mx-auto px-4">
@@ -186,6 +175,7 @@ const Index = () => {
         </section>
       </AnimatedSection>
 
+      {/* QUICK ENQUIRY FORM Section */}
       <AnimatedSection>
         <section className="py-20 bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 text-center">
@@ -234,9 +224,7 @@ const Index = () => {
           </div>
         </section>
       </AnimatedSection>
-
-      <Footer />
-    </div>
+    </PageLayout>
   );
 };
 
