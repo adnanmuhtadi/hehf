@@ -32,18 +32,17 @@ const intro = {
   heading: "Make This Summer Unforgettable—Become a Host!",
   body: (
     <>
-      Ready to open your door to a world of adventure, culture, and new friendships?{" "}
+      Open your home to adventure, culture, and global connection.{" "}
       <span className="font-semibold text-primary">
-        Every summer, thousands of international students flock to the UK
+        Each summer, international students arrive in the UK for academic, touristic, or combined programme.  Your home and family could become the main attraction.
       </span>{" "}
-      for our exciting Summer School programmes—and you can be the warm welcome they remember for years to come.
+            <br />
+      <br />
+Students spend their days exploring and learning, then return each evening to share meals and stories with your family.
+
       <br />
       <br />
-      Picture it: your home filled with stories and laughter from across the globe. Students spend their days out discovering Britain’s best, then return in the evenings to share meals, experiences, and a true slice of British life with you and your family.
-      <br />
-      <br />
-      You keep your freedom and routine, while gaining new perspectives, making meaningful connections, and helping shape memories that last a lifetime. Hosting is more than accommodation—it’s about friendship, culture, and a summer you’ll never forget!
-    </>
+Hosting fits around your routine, offering new friendships, cultural exchange, and memories that last a lifetime.    </>
   ),
 };
 
