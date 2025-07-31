@@ -27,7 +27,7 @@ const BecomeHost = () => {
       <Hero
         bgImage={heroImage}
         heading="Become a Host Family"
-        subheading="Welcome the world into your home—create memories, earn rewards, and make a real difference with Herts & Essex Host Families."
+        subheading="Make lasting memories, inspire young people, and welcome students from across the globe into your home. Enjoy meaningful connections, new friendships, and tax-free income through the UK’s Rent a Room Scheme."
         buttonText="Register Your Interest"
         buttonHref="#enquiry"
       />

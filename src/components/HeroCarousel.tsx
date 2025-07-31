@@ -9,13 +9,13 @@ const slides = [
     image: "/images/hero1.jpg",
     title: "HERTS & ESSEX HOST FAMILIES",
     description:
-      "Creating unforgettable experiences for international students while providing loving homes and cultural exchange opportunities."
+      "Providing memorable homestay experiences and meaningful cultural exchanges for international students and host families alike."
   },
   {
     image: "/images/hero2.jpg",
     title: "BECOME A HOST FAMILY",
     description:
-      "Join our network of welcoming homes and make a difference in students' lives."
+      "Providing memorable homestay experiences and meaningful cultural exchanges for international students and host families alike."
   }
 ];
 

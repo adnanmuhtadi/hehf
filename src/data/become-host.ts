@@ -9,7 +9,7 @@ import {
     {
       icon: HeartHandshake,
       title: "Welcoming & Kind",
-      desc: "Create a warm, safe, and supportive space where students feel instantly at home."
+      desc: "Clean, fresh, engaging and supportive environments make students feel welcome and at home."
     },
     {
       icon: Globe,
@@ -19,7 +19,7 @@ import {
     {
       icon: Star,
       title: "Dependable & Trustworthy",
-      desc: "Provide secure accommodation and can be counted on for your care."
+      desc: "Forward planning, team engagement and regular communication."
     },
     {
       icon: Users,
@@ -36,13 +36,13 @@ import {
   export const howItWorks = [
     {
       icon: ClipboardList,
-      title: "Apply Online",
-      desc: "Fill out our easy application form to get started."
+      title: "Application Form",
+      desc: "Complete our application form to get started"
     },
     {
       icon: CalendarCheck,
       title: "Background Checks",
-      desc: "We’ll carry out a simple background check and home visit."
+      desc: "We’ll carry out a simple background check and arrange a home visit."
     },
     {
       icon: Home,

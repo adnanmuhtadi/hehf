@@ -27,7 +27,7 @@ const Index = () => {
   };
 
   const stats = [
-    { number: "18,000+", label: "Students Accommodated" },
+    { number: "30,000+", label: "Students Accommodated" },
     { number: "420+", label: "Global Schools Hosted" },
     { number: "90+", label: "Happy Host School Colleges" },
     { number: "300+", label: "Fulfilled Host Families" }
@@ -42,12 +42,12 @@ const Index = () => {
     {
       title: "Our Areas",
       description:
-        "We cover the whole of Hertfordshire and Essex, including Watford, Bushey, Harlow, Broxbourne, Cheshunt, Waltham Abbey, Enfield, Southgate."
+        "We cover the whole of Hertfordshire and Essex, including Borehamwood, Cheshunt, Chingford, Harrow, Hatch End, Harpenden, Loughton, Stevenage, and Watford."
     },
     {
       title: "Host Homes",
       description:
-        "If you are thinking of opening your home as an International Student Host you can rest assured we have been doing this for over 20 years."
+        "All our home-stay hosts are DBS checked and safeguarding trained, and each home is fully risk assessed for safety and insurance."
     },
     {
       title: "Student Options",
