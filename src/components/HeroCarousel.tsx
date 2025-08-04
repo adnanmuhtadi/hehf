@@ -16,6 +16,12 @@ const slides = [
     title: "BECOME A HOST FAMILY",
     description:
       "Providing memorable homestay experiences and meaningful cultural exchanges for international students and host families alike."
+  },
+  {
+    image: "/images/hero3.jpg",
+    title: "BECOME A HOST FAMILY",
+    description:
+      "Providing memorable homestay experiences and meaningful cultural exchanges for international students and host families alike."
   }
 ];
 

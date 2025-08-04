@@ -1,9 +1,9 @@
 // src/pages/BecomeHost.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 import PageLayout from "@/layouts/PageLayout";
 import Hero from "@/components/Hero";
+import { ChevronDown } from "lucide-react";
 import {
   qualities,
   howItWorks,
@@ -13,7 +13,17 @@ import {
   heroImage
 } from "@/data/become-host";
 
+/**
+ * BecomeHost Page
+ * -------------------------------------------
+ * - SEO meta via PageLayout
+ * - Animates each key section for engagement
+ * - Shows host benefits, process, and testimonials
+ * - Includes a sticky layout and consistent Hero
+ */
+
 const BecomeHost = () => {
+  // Simple form state for your "register interest" form
   const [enquiry, setEnquiry] = useState({ name: "", email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
@@ -181,7 +191,7 @@ const BecomeHost = () => {
         </div>
       </section>
 
-      {/* ENQUIRY FORM + PARTNERS sections remain unchanged */}
+      {/* Add your ENQUIRY FORM and PARTNERS sections here (as per your needs) */}
     </PageLayout>
   );
 };

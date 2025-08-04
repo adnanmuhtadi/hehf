@@ -1,43 +1,74 @@
 // src/pages/About.tsx
 import PageLayout from "@/layouts/PageLayout";
+import { motion } from "framer-motion";
+import {
+  heroImage,
+  heroHeading,
+  heroSubheading,
+  aboutSections
+} from "@/data/about";
 
-/**
- * About Page
- * -----------------------
- * - Wrapped in PageLayout to automatically include Header & Footer
- * - Sticky footer ensured by PageLayout (flexbox layout)
- * - SEO-ready (custom title & description passed as props)
- * - All content styled and centred for readability
- */
-const About = () => {
-  return (
-    <PageLayout
-      // SEO-friendly page title & description for <head>
-      title="About Us | Herts & Essex Host Families"
-      description="Learn more about Herts & Essex Host Families, our mission, and how we create unforgettable experiences for international students."
-      className="py-20" // Adds vertical padding to the content area
+const About = () =>
+  <PageLayout
+    title="About Us | Herts & Essex Host Families"
+    description="Learn more about Herts & Essex Host Families, our mission, and how we create unforgettable experiences for international students."
+    className="bg-background"
+  >
+    {/* HERO SECTION */}
+    <section
+      className="relative flex items-center justify-center min-h-[340px] md:min-h-[420px] py-20 overflow-hidden"
+      style={{ backgroundColor: "#3833a5" }}
     >
-      {/* Content Container */}
-      <div className="container mx-auto px-4">
-        {/* Page Heading */}
-        <h1 className="text-4xl font-bold text-center mb-8">About Us</h1>
-
-        {/* Main description paragraph */}
-        <p className="text-xl text-center text-muted-foreground space-y-4">
-          Our student visits are thoughtfully organised in collaboration with schools and colleges from across the globe. Each group travels with qualified staff and experienced educators, who act as dedicated chaperones throughout their stay in the UK, ensuring every student enjoys a safe and well-supported experience.
-          <br />
-          <br />
-          The programme itself is lively and immersive. Each morning, students set off for a packed day of trips to some of the UK’s most inspiring cultural and educational destinations from the historic halls of Oxford University to the iconic Houses of Parliament and beyond.
-          <br />
-          <br />
-          As a host, you’ll welcome two or more students into your home, offering them breakfast and dinner in a friendly family setting, and preparing a packed lunch for their adventures. With students out exploring most of the day, you’ll have plenty of time for your own activities.
-          <br />
-          <br />
-          Hosts receive a payment for each student, but the real benefit is the cultural exchange. Welcoming young people from different backgrounds into your home is a chance to share in new languages, traditions, and perspectives. It’s an opportunity for students to experience authentic British life, and for your household to gain something special in return. If you have children of a similar age, these connections often turn into lasting memories and friendships.
-        </p>
+      <img
+        src={heroImage}
+        alt="Group of international students"
+        className="absolute inset-0 w-full h-full object-cover brightness-70"
+        style={{ zIndex: 1 }}
+        draggable={false}
+      />
+      <div className="absolute inset-0 bg-primary/70" style={{ zIndex: 2 }} />
+      <div className="relative z-10 text-center px-4 w-full max-w-4xl">
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="font-black text-4xl md:text-6xl tracking-tight text-white drop-shadow-lg"
+        >
+          {heroHeading}
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
+          className="mt-6 max-w-2xl mx-auto text-xl md:text-2xl text-white/90"
+        >
+          {heroSubheading}
+        </motion.p>
       </div>
-    </PageLayout>
-  );
-};
+    </section>
+
+    {/* About Content Sections */}
+    <section className="py-16">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {aboutSections.map((section, idx) =>
+          <motion.div
+            key={section.heading}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.15, duration: 0.7 }}
+            className="mb-14 last:mb-0"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3 text-center">
+              {section.heading}
+            </h2>
+            <div className="text-lg md:text-xl text-muted-foreground text-center leading-relaxed">
+              {section.text}
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </section>
+  </PageLayout>;
 
 export default About;
