@@ -14,7 +14,7 @@ export const aboutSections = [
     text: (
       <>
         Our student visits are thoughtfully organised with schools and colleges worldwide. Every group is accompanied by professional staff and experienced educators, ensuring a safe and supportive experience in the UK.<br /><br />
-        The programme is lively and immersive. Mornings are filled with trips to Britain’s most inspiring cultural and educational destinations—from the historic halls of Oxford University to the Houses of Parliament and beyond.
+        The programme is lively and immersive. Mornings are filled with trips to Britain’s most inspiring cultural and educational destinations from the historic halls of Oxford University to the Houses of Parliament and beyond.
       </>
     ),
   },
@@ -31,7 +31,7 @@ export const aboutSections = [
     heading: "Why It Matters",
     text: (
       <>
-        Hosting allows students to experience authentic British life—and your household gains something special in return. If you have children of similar age, these connections often turn into lasting friendships and memories.
+        Hosting allows students to experience authentic British life and your household gains something special in return. If you have children of similar age, these connections often turn into lasting friendships and memories.
       </>
     ),
   },
