@@ -1,12 +1,13 @@
 // src/pages/Contact.tsx
 import PageLayout from "@/layouts/PageLayout";
+import QuickEnquiry from "@/components/QuickEnquiry"; // Import the reusable contact form
 
 /**
  * Contact Page
  * --------------------------------
  * - Uses PageLayout for consistent header, footer, and sticky layout
  * - Adds SEO metadata (title + description)
- * - Placeholder content for a future contact form and office details
+ * - Contact form is reused from QuickEnquiry
  */
 const Contact = () => {
   return (
@@ -17,12 +18,34 @@ const Contact = () => {
     >
       <div className="container mx-auto px-4">
         {/* Page Title */}
-        <h1 className="text-4xl font-bold text-center mb-8">Contact Us</h1>
+        <h1 className="text-4xl font-bold text-center mb-8"> </h1>
 
-        {/* Placeholder Content */}
-        <p className="text-xl text-center text-muted-foreground">
-          Coming soon — Complete contact form with map and office details.
-        </p>
+        {/* Contact Form */}
+        <div className="max-w-2xl mx-auto">
+          <QuickEnquiry />
+        </div>
+
+        {/* (Optional) Add office/map details below here */}
+        {/* <div className="mt-10">
+          <h2 className="text-2xl font-semibold text-center mb-4">Our Office</h2>
+          <p className="text-center text-muted-foreground mb-4">
+            Herts & Essex Host Families<br />
+            123 Main Street, Hertfordshire, UK<br />
+            info@hehf.co.uk | 01234 567890
+          </p>
+          <div className="aspect-w-16 aspect-h-9 mx-auto max-w-xl">
+            <iframe
+              src="YOUR_GOOGLE_MAPS_EMBED_URL"
+              width="100%"
+              height="300"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              title="Our Office Location"
+              className="rounded-lg shadow"
+            />
+          </div>
+        </div> */}
       </div>
     </PageLayout>
   );

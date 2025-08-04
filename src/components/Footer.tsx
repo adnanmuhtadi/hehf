@@ -66,14 +66,6 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/locations"
-                  className="opacity-80 hover:opacity-100 transition-opacity"
-                >
-                  Our Locations
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/faq"
                   className="opacity-80 hover:opacity-100 transition-opacity"
                 >

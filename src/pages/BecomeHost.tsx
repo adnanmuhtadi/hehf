@@ -1,9 +1,11 @@
 // src/pages/BecomeHost.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import PageLayout from "@/layouts/PageLayout";
 import Hero from "@/components/Hero";
-import { ChevronDown } from "lucide-react";
+import BecomeHostForm from "@/components/BecomeHostForm";
 import {
   qualities,
   howItWorks,
@@ -15,15 +17,8 @@ import {
 
 /**
  * BecomeHost Page
- * -------------------------------------------
- * - SEO meta via PageLayout
- * - Animates each key section for engagement
- * - Shows host benefits, process, and testimonials
- * - Includes a sticky layout and consistent Hero
  */
-
 const BecomeHost = () => {
-  // Simple form state for your "register interest" form
   const [enquiry, setEnquiry] = useState({ name: "", email: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
@@ -38,9 +33,19 @@ const BecomeHost = () => {
         bgImage={heroImage}
         heading="Become a Host Family"
         subheading="Make lasting memories, inspire young people, and welcome students from across the globe into your home. Enjoy meaningful connections, new friendships, and tax-free income through the UK’s Rent a Room Scheme."
-        buttonText="Register Your Interest"
-        buttonHref="#enquiry"
-      />
+      >
+        {/* Extra outlined button */}
+        <div className="mt-6 flex justify-center">
+          <Button
+            size="xl"
+            variant="outline"
+            className="bg-white text-primary hover:bg-white/90"
+            asChild
+          >
+            <a href="#enquiry">Register Your Interest</a>
+          </Button>
+        </div>
+      </Hero>
 
       {/* QUALITIES SECTION */}
       <section
@@ -191,7 +196,10 @@ const BecomeHost = () => {
         </div>
       </section>
 
-      {/* Add your ENQUIRY FORM and PARTNERS sections here (as per your needs) */}
+      {/* FORM SECTION */}
+      <section id="become-host-form" className="py-10">
+        <BecomeHostForm />
+      </section>
     </PageLayout>
   );
 };
