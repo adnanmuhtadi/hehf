@@ -1,24 +1,16 @@
 // src/components/Hero.tsx
-
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface HeroProps {
-  bgImage: string; // Background image URL
-  heading: string; // Main hero heading
-  subheading: string; // Hero subtitle
-  buttonText?: React.ReactNode; // CTA button content (icon + text or just text)
-  buttonHref?: string; // Link for CTA button
-  children?: React.ReactNode; // Any extra child elements below button
+  bgImage: string;
+  heading: string;
+  subheading: string;
+  buttonText?: React.ReactNode; // Only the button label or icon+label
+  buttonHref?: string;
+  children?: React.ReactNode;
 }
 
-/**
- * Hero Section Component
- * ------------------------------------------
- * - Visually striking hero with animated heading, subtitle, and optional CTA button
- * - Accepts background image and overlays for readability
- * - Fully responsive and ARIA accessible
- * - Easy to reuse across different landing pages
- */
 const Hero: React.FC<HeroProps> = ({
   bgImage,
   heading,
@@ -32,10 +24,10 @@ const Hero: React.FC<HeroProps> = ({
     aria-label={heading}
     style={{ backgroundColor: "#3833a5" }}
   >
-    {/* Background image with overlay for contrast */}
+    {/* Background image with overlay */}
     <img
       src={bgImage}
-      alt="" // Decorative, handled by heading/subheading for a11y
+      alt="" // Decorative background
       className="absolute inset-0 w-full h-full object-cover brightness-70 select-none"
       style={{ zIndex: 1 }}
       draggable={false}
@@ -60,21 +52,26 @@ const Hero: React.FC<HeroProps> = ({
       >
         {subheading}
       </motion.p>
-      {/* CTA Button (optional) */}
+      {/* Consistent CTA Button */}
       {buttonText &&
         buttonHref &&
-        <motion.a
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.7 }}
-          href={buttonHref}
-          className="inline-block mt-8 px-8 py-4 rounded-full font-bold bg-secondary text-primary hover:bg-secondary/80 transition focus:outline-none focus:ring-2 focus:ring-primary/50"
-          tabIndex={0}
-          aria-label={`Learn more: ${heading}`}
+          className="flex justify-center mt-8"
         >
-          {buttonText}
-        </motion.a>}
-      {/* Custom children (eg. extra content, quick links, etc) */}
+          <Button
+            asChild
+            size="xl"
+            className="bg-white text-primary hover:bg-white/90"
+          >
+            <a href={buttonHref} aria-label={`Learn more: ${heading}`}>
+              {buttonText}
+            </a>
+          </Button>
+        </motion.div>}
+      {/* Custom children (eg. quick links, extra CTAs) */}
       {children}
     </div>
   </section>;

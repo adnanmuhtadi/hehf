@@ -8,6 +8,7 @@ import {
   FOOTER_POLICIES
 } from "@/components/navConfig";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 /**
  * Footer component — all columns/links driven from navConfig.tsx.
@@ -20,9 +21,10 @@ const Footer = () =>
         {/* Company info and social */}
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <div className="bg-primary text-primary-foreground p-2 rounded-lg font-bold text-lg">
+            <img src={logo} alt="Herts & Essex Host Families" className="h-10 w-10 " />
+            {/* <div className="bg-primary text-primary-foreground p-2 rounded-lg font-bold text-lg">
               HEHF
-            </div>
+            </div>*/}
             <div>
               <div className="font-bold text-lg">Herts & Essex</div>
               <div className="text-sm opacity-80">Host Families</div>

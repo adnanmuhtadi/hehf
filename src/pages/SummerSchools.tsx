@@ -3,21 +3,24 @@ import { Calendar } from "lucide-react";
 import { lazy, Suspense } from "react";
 import PageLayout from "@/layouts/PageLayout"; // SEO-ready, sticky layout
 import Hero from "@/components/Hero";
+import { Button } from "@/components/ui/button"; // For use in hero button if needed
 
-// Dynamically import feature sections for future scalability
-const ProgrammeCards = lazy(() => import("@/components/ProgrammeCards")); // To implement
-const Testimonials = lazy(() => import("@/components/Testimonials")); // Optional
+// Dynamically import feature sections for scalability (uncomment as needed)
+const ProgrammeCards = lazy(() => import("@/components/ProgrammeCards"));
+const Testimonials = lazy(() => import("@/components/Testimonials"));
 
-// Hero section details (easy to update in one place)
+// Hero image for the page
 const HERO_IMAGE =
   "https://plus.unsplash.com/premium_photo-1661290835495-9d1a6144c19c?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
+// Hero content
 const heroContent = {
   heading: "Summer Schools Programme",
   subheading: "Exceptional English language and cultural immersion programmes with homestay accommodation.",
+  // Use a React node for the button if your <Hero /> supports this (recommended)
   buttonText: (
     <>
-      <Calendar className="mr-2 h-5 w-5 inline" />
+      <Calendar className="mr-2 h-5 w-5 inline" aria-hidden="true" />
       View 2024 Dates
     </>
   ),

@@ -1,3 +1,12 @@
+// src/data/about.tsx
+
+export const heroImage =
+  "https://images.unsplash.com/photo-1724120932024-07984b247ff1?q=80&w=1315&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
+export const heroHeading = "FAQs";
+export const heroSubheading =
+  "";
+
 export const faqs = [
     { q: "Do I need experience to become a host?", a: "No prior experience is needed—just a welcoming attitude and a willingness to help students settle in. We’ll guide you through every step." },
     { q: "Can I host for just a few weeks?", a: "Absolutely! You can host for short stays, long stays, or even just one-off visits, depending on your availability." },
