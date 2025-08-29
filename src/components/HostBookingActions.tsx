@@ -61,11 +61,10 @@ const HostBookingActions = () => {
 
       const assignedBookingIds = hostAssignments?.map(h => h.booking_id) || [];
 
-      // Get available bookings (not assigned to this host yet) for the location
+      // Get ALL available bookings (not assigned to this host yet) for the location - regardless of status
       let availableQuery = supabase
         .from('bookings')
-        .select('*')
-        .eq('status', 'pending');
+        .select('*');
 
       // Exclude already assigned bookings
       if (assignedBookingIds.length > 0) {
