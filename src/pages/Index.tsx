@@ -1,11 +1,12 @@
 // src/pages/index.tsx
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, LogIn } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/AnimatedSection";
 import HeroCarousel from "@/components/HeroCarousel";
 import PageLayout from "@/layouts/PageLayout";
-import QuickEnquiry from "@/components/QuickEnquiry"; // <-- New reusable component
+import QuickEnquiry from "@/components/QuickEnquiry";
+import { Link } from "react-router-dom";
 
 const stats = [
   { number: "30,000+", label: "Students Accommodated" },
@@ -62,6 +63,26 @@ const Index = () => {
     >
       {/* HERO CAROUSEL */}
       <HeroCarousel />
+
+      {/* PORTAL ACCESS SECTION */}
+      <AnimatedSection>
+        <section className="py-12 bg-primary">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+              Access Your Portal
+            </h2>
+            <p className="text-primary-foreground/90 mb-6 max-w-2xl mx-auto">
+              Admins and Hosts can access the booking management portal to manage student placements and accommodations.
+            </p>
+            <Link to="/auth">
+              <Button variant="secondary" size="lg">
+                <LogIn className="mr-2 h-5 w-5" />
+                Portal Login
+              </Button>
+            </Link>
+          </div>
+        </section>
+      </AnimatedSection>
 
       {/* HOW IT WORKS Section */}
       <AnimatedSection>
