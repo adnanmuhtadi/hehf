@@ -253,39 +253,65 @@ const BookingManagement = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Arrival Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {newBooking.arrival_date ? format(newBooking.arrival_date, 'PPP') : 'Select date'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={newBooking.arrival_date}
-                      onSelect={(date) => setNewBooking({ ...newBooking, arrival_date: date })}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="space-y-2">
+                  <Input
+                    type="date"
+                    value={newBooking.arrival_date ? newBooking.arrival_date.toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : undefined;
+                      setNewBooking({ ...newBooking, arrival_date: date });
+                    }}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">Or use date picker:</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newBooking.arrival_date ? format(newBooking.arrival_date, 'PPP') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={newBooking.arrival_date}
+                        onSelect={(date) => setNewBooking({ ...newBooking, arrival_date: date })}
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Departure Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {newBooking.departure_date ? format(newBooking.departure_date, 'PPP') : 'Select date'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={newBooking.departure_date}
-                      onSelect={(date) => setNewBooking({ ...newBooking, departure_date: date })}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="space-y-2">
+                  <Input
+                    type="date"
+                    value={newBooking.departure_date ? newBooking.departure_date.toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : undefined;
+                      setNewBooking({ ...newBooking, departure_date: date });
+                    }}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">Or use date picker:</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newBooking.departure_date ? format(newBooking.departure_date, 'PPP') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={newBooking.departure_date}
+                        onSelect={(date) => setNewBooking({ ...newBooking, departure_date: date })}
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
 
@@ -390,14 +416,16 @@ const BookingManagement = () => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewBooking(booking)}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`/booking/${booking.id}`, '_blank')}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

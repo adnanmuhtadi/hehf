@@ -25,6 +25,7 @@ import TermsConditions from "./pages/TermsConditions";
 import Travel from "./pages/Travel";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import BookingDetails from "./pages/BookingDetails";
 import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () =>
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/booking/:id" element={<BookingDetails />} />
             <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/become-partners" element={<BecomePartner />} />
             <Route path="/become-host" element={<BecomeHost />} />
