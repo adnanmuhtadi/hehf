@@ -53,14 +53,24 @@ const HostBookingActions = () => {
         assignedQuery = assignedQuery.eq('location', locationFilter);
       }
 
+      // Get all host assignments for this user to exclude from available bookings
+      const { data: hostAssignments } = await supabase
+        .from('booking_hosts')
+        .select('booking_id')
+        .eq('host_id', profile.user_id);
+
+      const assignedBookingIds = hostAssignments?.map(h => h.booking_id) || [];
+
       // Get available bookings (not assigned to this host yet) for the location
       let availableQuery = supabase
         .from('bookings')
-        .select(`
-          *
-        `)
-        .eq('status', 'pending')
-        .not('id', 'in', `(SELECT booking_id FROM booking_hosts WHERE host_id = '${profile.user_id}')`);
+        .select('*')
+        .eq('status', 'pending');
+
+      // Exclude already assigned bookings
+      if (assignedBookingIds.length > 0) {
+        availableQuery = availableQuery.not('id', 'in', `(${assignedBookingIds.join(',')})`);
+      }
 
       // Apply location filter for available bookings
       if (locationFilter === 'preferred' && profile.preferred_location) {
