@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 const ProfileSettings = () => {
   const { profile, user } = useAuth();
@@ -17,6 +19,7 @@ const ProfileSettings = () => {
     email: '',
     phone: '',
     address: '',
+    preferred_location: '',
   });
 
   useEffect(() => {
@@ -26,6 +29,7 @@ const ProfileSettings = () => {
         email: profile.email || '',
         phone: profile.phone || '',
         address: profile.address || '',
+        preferred_location: profile.preferred_location || '',
       });
     }
   }, [profile]);
@@ -43,6 +47,7 @@ const ProfileSettings = () => {
           full_name: profileData.full_name,
           phone: profileData.phone,
           address: profileData.address,
+          preferred_location: profileData.preferred_location,
         })
         .eq('user_id', user.id);
 
@@ -134,6 +139,32 @@ const ProfileSettings = () => {
                 rows={3}
               />
             </div>
+
+            {profile?.role === 'host' && (
+              <div className="space-y-2">
+                <Label htmlFor="preferred_location">Preferred Location</Label>
+                <Select
+                  value={profileData.preferred_location}
+                  onValueChange={(value) =>
+                    setProfileData({ ...profileData, preferred_location: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your preferred location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose your preferred location to receive relevant booking assignments.
+                </p>
+              </div>
+            )}
 
             <Button type="submit" disabled={loading}>
               {loading ? (

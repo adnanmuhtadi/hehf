@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import HostBookings from '@/components/HostBookings';
 import HostCalendar from '@/components/HostCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
+import HostBookingActions from '@/components/HostBookingActions';
 
 const HostDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -62,7 +63,21 @@ const HostDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available Bookings</CardTitle>
+                    <CardDescription>
+                      Review and respond to booking assignments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <HostBookingActions />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="space-y-6">
               {/* Host Rating Widget */}
               <Card>
                 <CardHeader>
@@ -145,6 +160,7 @@ const HostDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             </div>
 
             {/* Recent Activity */}
