@@ -184,7 +184,7 @@ const Header = () => {
             {isLoggedIn ? (
               <Button asChild variant="outline"><Link to="/account">My Account</Link></Button>
             ) : (
-              <Button asChild variant="outline"><Link to="/login">Login</Link></Button>
+              <Button asChild variant="outline"><Link to="/auth">Login</Link></Button>
             )}
           </div>
 
