@@ -18,7 +18,7 @@ interface Booking {
   country_of_students: string;
   number_of_students: number;
   status: string;
-  duration: string;
+  number_of_nights?: number;
   booking_hosts?: {
     response: string;
     students_assigned: number;
@@ -31,6 +31,14 @@ const HostBookingActions = () => {
   const [loading, setLoading] = useState(true);
   const [locationFilter, setLocationFilter] = useState<string>('preferred');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Helper function to calculate nights
+  const calculateNights = (arrivalDate: string, departureDate: string): number => {
+    const arrival = new Date(arrivalDate);
+    const departure = new Date(departureDate);
+    const diffTime = Math.abs(departure.getTime() - arrival.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
 
   const fetchBookings = async () => {
     if (!profile) return;
@@ -219,7 +227,7 @@ const HostBookingActions = () => {
                   {getResponseBadge(booking.booking_hosts?.[0]?.response || 'pending')}
                 </div>
                 <CardDescription>
-                  {booking.country_of_students} • {booking.duration}
+                  {booking.country_of_students} • {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights
                 </CardDescription>
               </CardHeader>
               <CardContent>

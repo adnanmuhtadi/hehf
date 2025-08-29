@@ -144,7 +144,6 @@ const BookingManagement = () => {
         booking_reference: newBooking.booking_reference || generateBookingReference(),
         arrival_date: newBooking.arrival_date.toISOString().split('T')[0],
         departure_date: newBooking.departure_date.toISOString().split('T')[0],
-        number_of_nights: nights,
         created_by: user.id,
       };
 
