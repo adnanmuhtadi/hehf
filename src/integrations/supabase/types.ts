@@ -14,7 +14,239 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      booking_hosts: {
+        Row: {
+          assigned_at: string | null
+          booking_id: string
+          created_at: string | null
+          host_id: string
+          id: string
+          responded_at: string | null
+          response: Database["public"]["Enums"]["booking_response"] | null
+          students_assigned: number | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          booking_id: string
+          created_at?: string | null
+          host_id: string
+          id?: string
+          responded_at?: string | null
+          response?: Database["public"]["Enums"]["booking_response"] | null
+          students_assigned?: number | null
+        }
+        Update: {
+          assigned_at?: string | null
+          booking_id?: string
+          created_at?: string | null
+          host_id?: string
+          id?: string
+          responded_at?: string | null
+          response?: Database["public"]["Enums"]["booking_response"] | null
+          students_assigned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_hosts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_hosts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          arrival_date: string
+          booking_reference: string
+          country_of_students: string
+          created_at: string | null
+          created_by: string
+          departure_date: string
+          duration: string | null
+          id: string
+          location: string
+          notes: string | null
+          number_of_nights: number | null
+          number_of_students: number | null
+          status: Database["public"]["Enums"]["booking_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          arrival_date: string
+          booking_reference: string
+          country_of_students: string
+          created_at?: string | null
+          created_by: string
+          departure_date: string
+          duration?: string | null
+          id?: string
+          location: string
+          notes?: string | null
+          number_of_nights?: number | null
+          number_of_students?: number | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          arrival_date?: string
+          booking_reference?: string
+          country_of_students?: string
+          created_at?: string | null
+          created_by?: string
+          departure_date?: string
+          duration?: string | null
+          id?: string
+          location?: string
+          notes?: string | null
+          number_of_nights?: number | null
+          number_of_students?: number | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      host_ratings: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          feedback: string | null
+          host_id: string
+          id: string
+          rated_by: string
+          rating: number
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          feedback?: string | null
+          host_id: string
+          id?: string
+          rated_by: string
+          rating: number
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          feedback?: string | null
+          host_id?: string
+          id?: string
+          rated_by?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_ratings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "host_ratings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          handbook_downloaded: boolean | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          rating: number | null
+          rating_count: number | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          handbook_downloaded?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          handbook_downloaded?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          rating?: number | null
+          rating_count?: number | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +255,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_response: "pending" | "accepted" | "ignored"
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      user_role: "admin" | "host"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +384,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_response: ["pending", "accepted", "ignored"],
+      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      user_role: ["admin", "host"],
+    },
   },
 } as const
