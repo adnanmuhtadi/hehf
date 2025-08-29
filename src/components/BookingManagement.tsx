@@ -41,7 +41,11 @@ interface BookingHost {
   };
 }
 
-const BookingManagement = () => {
+interface BookingManagementProps {
+  onViewBooking: (bookingId: string) => void;
+}
+
+const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
@@ -420,7 +424,7 @@ const BookingManagement = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`/booking/${booking.id}`, '_blank')}
+                      onClick={() => onViewBooking(booking.id)}
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       View Details

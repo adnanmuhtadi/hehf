@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import BookingManagement from '@/components/BookingManagement';
+import BookingDetailsView from '@/components/BookingDetailsView';
 import BookingCalendar from '@/components/BookingCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
 import HostManagement from '@/components/HostManagement';
@@ -16,10 +17,27 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { stats } = useDashboardStats();
   const [activeTab, setActiveTab] = useState('bookings');
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [bookingView, setBookingView] = useState<'list' | 'details'>('list');
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleViewBooking = (bookingId: string) => {
+    setSelectedBookingId(bookingId);
+    setBookingView('details');
+  };
+
+  const handleBackToBookings = () => {
+    setBookingView('list');
+    setSelectedBookingId(null);
+  };
+
+  const handleBookingUpdated = () => {
+    // Refresh stats when booking is updated
+    // The stats hook will automatically refetch
   };
 
   const dashboardStats = [
@@ -92,14 +110,18 @@ const AdminDashboard = () => {
                       Create and manage student bookings and host assignments
                     </CardDescription>
                   </div>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Booking
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <BookingManagement />
+                {bookingView === 'list' ? (
+                  <BookingManagement onViewBooking={handleViewBooking} />
+                ) : selectedBookingId ? (
+                  <BookingDetailsView 
+                    bookingId={selectedBookingId} 
+                    onBack={handleBackToBookings}
+                    onBookingUpdated={handleBookingUpdated}
+                  />
+                ) : null}
               </CardContent>
             </Card>
           </TabsContent>
