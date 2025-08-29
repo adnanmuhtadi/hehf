@@ -48,9 +48,9 @@ const HostBookingActions = () => {
 
       // Apply location filter for assigned bookings
       if (locationFilter === 'preferred' && profile.preferred_location) {
-        assignedQuery = assignedQuery.eq('location', profile.preferred_location);
+        assignedQuery = assignedQuery.ilike('location', `%${profile.preferred_location.trim()}%`);
       } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
-        assignedQuery = assignedQuery.eq('location', locationFilter);
+        assignedQuery = assignedQuery.ilike('location', `%${locationFilter.trim()}%`);
       }
 
       // Get all host assignments for this user to exclude from available bookings
@@ -74,9 +74,9 @@ const HostBookingActions = () => {
 
       // Apply location filter for available bookings
       if (locationFilter === 'preferred' && profile.preferred_location) {
-        availableQuery = availableQuery.eq('location', profile.preferred_location);
+        availableQuery = availableQuery.ilike('location', `%${profile.preferred_location.trim()}%`);
       } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
-        availableQuery = availableQuery.eq('location', locationFilter);
+        availableQuery = availableQuery.ilike('location', `%${locationFilter.trim()}%`);
       }
 
       const [assignedResult, availableResult] = await Promise.all([
