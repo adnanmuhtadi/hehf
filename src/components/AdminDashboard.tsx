@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, Calendar, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Plus, Users, Calendar, BookOpen, Settings, LogOut, UserCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import BookingManagement from '@/components/BookingManagement';
 import BookingCalendar from '@/components/BookingCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
+import HostManagement from '@/components/HostManagement';
 
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { stats } = useDashboardStats();
   const [activeTab, setActiveTab] = useState('bookings');
 
   const handleSignOut = async () => {
@@ -19,10 +22,10 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  const stats = [
-    { title: 'Total Bookings', value: '24', icon: BookOpen },
-    { title: 'Active Hosts', value: '18', icon: Users },
-    { title: 'Pending Responses', value: '7', icon: Calendar },
+  const dashboardStats = [
+    { title: 'Total Bookings', value: stats.loading ? '...' : stats.totalBookings.toString(), icon: BookOpen },
+    { title: 'Active Hosts', value: stats.loading ? '...' : stats.activeHosts.toString(), icon: Users },
+    { title: 'Pending Responses', value: stats.loading ? '...' : stats.pendingResponses.toString(), icon: Calendar },
   ];
 
   return (
@@ -52,7 +55,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => {
+          {dashboardStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <Card key={index}>
@@ -72,9 +75,10 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="bookings">Booking Management</TabsTrigger>
             <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+            <TabsTrigger value="hosts">Host Management</TabsTrigger>
             <TabsTrigger value="profile">Profile Settings</TabsTrigger>
           </TabsList>
 
@@ -112,6 +116,10 @@ const AdminDashboard = () => {
                 <BookingCalendar />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="hosts" className="mt-6">
+            <HostManagement />
           </TabsContent>
 
           <TabsContent value="profile" className="mt-6">
