@@ -70,7 +70,6 @@ export type Database = {
           created_at: string | null
           created_by: string
           departure_date: string
-          duration: string | null
           id: string
           location: string
           notes: string | null
@@ -86,7 +85,6 @@ export type Database = {
           created_at?: string | null
           created_by: string
           departure_date: string
-          duration?: string | null
           id?: string
           location: string
           notes?: string | null
@@ -102,7 +100,6 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           departure_date?: string
-          duration?: string | null
           id?: string
           location?: string
           notes?: string | null
