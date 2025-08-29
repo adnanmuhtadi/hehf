@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
@@ -53,11 +54,19 @@ const BookingManagement = () => {
     arrival_date: undefined as Date | undefined,
     departure_date: undefined as Date | undefined,
     location: '',
-    duration: '',
     country_of_students: '',
     number_of_students: 1,
     notes: '',
   });
+
+  // Calculate nights automatically
+  const calculateNights = (arrival: Date | undefined, departure: Date | undefined): number => {
+    if (!arrival || !departure) return 0;
+    const diffTime = Math.abs(departure.getTime() - arrival.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const nights = calculateNights(newBooking.arrival_date, newBooking.departure_date);
 
   useEffect(() => {
     fetchBookings();
@@ -135,6 +144,7 @@ const BookingManagement = () => {
         booking_reference: newBooking.booking_reference || generateBookingReference(),
         arrival_date: newBooking.arrival_date.toISOString().split('T')[0],
         departure_date: newBooking.departure_date.toISOString().split('T')[0],
+        number_of_nights: nights,
         created_by: user.id,
       };
 
@@ -155,7 +165,6 @@ const BookingManagement = () => {
         arrival_date: undefined,
         departure_date: undefined,
         location: '',
-        duration: '',
         country_of_students: '',
         number_of_students: 1,
         notes: '',
@@ -227,13 +236,18 @@ const BookingManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  placeholder="e.g., London, Cambridge"
-                  value={newBooking.location}
-                  onChange={(e) => setNewBooking({ ...newBooking, location: e.target.value })}
-                  required
-                />
+                <Select value={newBooking.location} onValueChange={(value) => setNewBooking({ ...newBooking, location: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -276,7 +290,7 @@ const BookingManagement = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="country">Country of Students</Label>
                 <Input
@@ -298,17 +312,18 @@ const BookingManagement = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="nights">Nights</Label>
+                <Input
+                  id="nights"
+                  type="number"
+                  value={nights}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration (optional)</Label>
-              <Input
-                id="duration"
-                placeholder="e.g., 2 weeks, 1 month"
-                value={newBooking.duration}
-                onChange={(e) => setNewBooking({ ...newBooking, duration: e.target.value })}
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
