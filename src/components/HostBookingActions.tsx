@@ -37,7 +37,8 @@ const HostBookingActions = () => {
     
     setLoading(true);
     try {
-      let query = supabase
+      // First get bookings with existing assignments for this host
+      let assignedQuery = supabase
         .from('bookings')
         .select(`
           *,
@@ -45,17 +46,45 @@ const HostBookingActions = () => {
         `)
         .eq('booking_hosts.host_id', profile.user_id);
 
-      // Filter by location
+      // Apply location filter for assigned bookings
       if (locationFilter === 'preferred' && profile.preferred_location) {
-        query = query.eq('location', profile.preferred_location);
+        assignedQuery = assignedQuery.eq('location', profile.preferred_location);
       } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
-        query = query.eq('location', locationFilter);
+        assignedQuery = assignedQuery.eq('location', locationFilter);
       }
 
-      const { data, error } = await query;
+      // Get available bookings (not assigned to this host yet) for the location
+      let availableQuery = supabase
+        .from('bookings')
+        .select(`
+          *
+        `)
+        .eq('status', 'pending')
+        .not('id', 'in', `(SELECT booking_id FROM booking_hosts WHERE host_id = '${profile.user_id}')`);
+
+      // Apply location filter for available bookings
+      if (locationFilter === 'preferred' && profile.preferred_location) {
+        availableQuery = availableQuery.eq('location', profile.preferred_location);
+      } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
+        availableQuery = availableQuery.eq('location', locationFilter);
+      }
+
+      const [assignedResult, availableResult] = await Promise.all([
+        assignedQuery,
+        availableQuery
+      ]);
       
-      if (error) throw error;
-      setBookings(data || []);
+      if (assignedResult.error) throw assignedResult.error;
+      if (availableResult.error) throw availableResult.error;
+
+      // Combine assigned and available bookings
+      const assignedBookings = assignedResult.data || [];
+      const availableBookings = (availableResult.data || []).map(booking => ({
+        ...booking,
+        booking_hosts: [{ response: 'available', students_assigned: 0 }]
+      }));
+
+      setBookings([...assignedBookings, ...availableBookings]);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -72,16 +101,40 @@ const HostBookingActions = () => {
     
     setActionLoading(bookingId);
     try {
-      const { error } = await supabase
+      // Check if booking_host record exists
+      const { data: existingRecord } = await supabase
         .from('booking_hosts')
-        .update({ 
-          response,
-          responded_at: new Date().toISOString()
-        })
+        .select('id')
         .eq('booking_id', bookingId)
-        .eq('host_id', profile.user_id);
+        .eq('host_id', profile.user_id)
+        .single();
 
-      if (error) throw error;
+      if (existingRecord) {
+        // Update existing record
+        const { error } = await supabase
+          .from('booking_hosts')
+          .update({ 
+            response,
+            responded_at: new Date().toISOString()
+          })
+          .eq('booking_id', bookingId)
+          .eq('host_id', profile.user_id);
+
+        if (error) throw error;
+      } else {
+        // Create new record for available booking
+        const { error } = await supabase
+          .from('booking_hosts')
+          .insert({
+            booking_id: bookingId,
+            host_id: profile.user_id,
+            response,
+            responded_at: new Date().toISOString(),
+            assigned_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
@@ -110,6 +163,8 @@ const HostBookingActions = () => {
         return <Badge className="bg-green-100 text-green-800">Accepted</Badge>;
       case 'ignored':
         return <Badge variant="destructive">Declined</Badge>;
+      case 'available':
+        return <Badge variant="secondary">Available</Badge>;
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
@@ -176,7 +231,7 @@ const HostBookingActions = () => {
                   </div>
                 </div>
 
-                {booking.booking_hosts?.[0]?.response === 'pending' && (
+                {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') && (
                   <div className="flex gap-2">
                     <Button
                       size="sm"
