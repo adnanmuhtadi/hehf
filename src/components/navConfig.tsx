@@ -10,7 +10,7 @@ import {
   Building2,
   School2,
   Globe,
-    Star,
+  Star,
   MapPin
 } from "lucide-react";
 import { ReactNode } from "react";
@@ -46,7 +46,7 @@ export const SOCIAL_LINKS = [
     icon: <Instagram className="h-4 w-4" />,
     href: "#",
     label: "Instagram"
-  },
+  }
 ];
 
 /**
@@ -151,12 +151,15 @@ export const FOOTER_ADDRESS = [
     icon: MapPin,
     text: (
       <>
-        123 Main Street<br />
-        Watford, Hertfordshire<br />
+        123 Main Street
+        <br />
+        Watford, Hertfordshire
+        <br />
         WD18 0PH, UK
       </>
     )
   }
+];
 
 // Policy/Legal links
 export const FOOTER_POLICIES = [
