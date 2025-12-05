@@ -21,6 +21,7 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     message: ""
   });
 
@@ -30,7 +31,7 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
       title: "Thank you for your enquiry!",
       description: "We'll get back to you within 24 hours."
     });
-    setFormData({ name: "", email: "", message: "" });
+    setFormData({ name: "", email: "", phone: "", message: "" });
   };
 
   return (
@@ -61,6 +62,14 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
                 onChange={e =>
                   setFormData({ ...formData, email: e.target.value })}
                 required
+                className="h-12"
+              />
+              <Input
+                type="tel"
+                placeholder="Your Phone Number"
+                value={formData.phone}
+                onChange={e =>
+                  setFormData({ ...formData, phone: e.target.value })}
                 className="h-12"
               />
               <Textarea
