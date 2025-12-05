@@ -145,6 +145,21 @@ export const FOOTER_SERVICES = [
   "24/7 Support"
 ];
 
+];
+
+// Contact (already in CONTACT_INFO, but you can add opening hours/address if you want)
+export const FOOTER_ADDRESS = [
+  {
+    icon: MapPin,
+    text: (
+      <>
+        123 Main Street<br />
+        Watford, Hertfordshire<br />
+        WD18 0PH, UK
+      </>
+    )
+  }
+
 // Policy/Legal links
 export const FOOTER_POLICIES = [
   // { name: "Privacy Policy", href: "/privacy" },
