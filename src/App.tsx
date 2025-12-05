@@ -26,6 +26,7 @@ import Travel from "./pages/Travel";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ScrollToTop from "@/components/ScrollToTop";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () =>
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <ScrollToTopButton />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
