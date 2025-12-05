@@ -4,7 +4,6 @@ import {
   SOCIAL_LINKS,
   FOOTER_LINKS,
   FOOTER_SERVICES,
-  FOOTER_ADDRESS,
   FOOTER_POLICIES
 } from "@/components/navConfig";
 import { Link } from "react-router-dom";
@@ -94,14 +93,6 @@ const Footer = () =>
                 >
                   {item.text}
                 </a>
-              </div>
-            )}
-            {FOOTER_ADDRESS.map((item, i) =>
-              <div className="flex items-start space-x-2" key={i}>
-                <item.icon className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <div>
-                  {item.text}
-                </div>
               </div>
             )}
           </div>

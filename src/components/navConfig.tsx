@@ -145,7 +145,6 @@ export const FOOTER_SERVICES = [
   "24/7 Support"
 ];
 
-
 // Policy/Legal links
 export const FOOTER_POLICIES = [
   // { name: "Privacy Policy", href: "/privacy" },
