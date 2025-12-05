@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const initialState = {
   name: "",
@@ -11,6 +18,8 @@ const initialState = {
   city: "",
   county: "",
   postcode: "",
+  propertyType: "",
+  numberOfRooms: "",
   contactMethod: "",
   comments: "",
   captcha: ""
@@ -23,8 +32,18 @@ const formFields = [
   { name: "city", type: "text", placeholder: "City *", required: true },
   { name: "county", type: "text", placeholder: "County *", required: true },
   { name: "postcode", type: "text", placeholder: "Postcode *", required: true },
-  { name: "contactMethod", type: "text", placeholder: "Preferred Method of Contact: (Phone/Email) *", required: true },
 ];
+
+const propertyTypes = [
+  "Detached House",
+  "Semi-Detached House",
+  "Terraced House",
+  "Bungalow",
+  "Flat/Apartment",
+  "Other"
+];
+
+const roomOptions = ["1", "2", "3", "4", "5+"];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -105,6 +124,57 @@ const BecomeHostForm = () => {
             onChange={handleChange}
           />
         ))}
+        
+        {/* Property Type Select */}
+        <motion.div variants={itemVariants}>
+          <Select
+            value={form.propertyType}
+            onValueChange={(value) => setForm({ ...form, propertyType: value })}
+          >
+            <SelectTrigger className="w-full border rounded p-3 h-auto focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+              <SelectValue placeholder="Type of Property *" />
+            </SelectTrigger>
+            <SelectContent>
+              {propertyTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </motion.div>
+
+        {/* Number of Rooms Select */}
+        <motion.div variants={itemVariants}>
+          <Select
+            value={form.numberOfRooms}
+            onValueChange={(value) => setForm({ ...form, numberOfRooms: value })}
+          >
+            <SelectTrigger className="w-full border rounded p-3 h-auto focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+              <SelectValue placeholder="Number of Rooms Available *" />
+            </SelectTrigger>
+            <SelectContent>
+              {roomOptions.map((num) => (
+                <SelectItem key={num} value={num}>
+                  {num} {num === "1" ? "Room" : "Rooms"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </motion.div>
+
+        {/* Preferred Contact Method */}
+        <motion.input
+          variants={itemVariants}
+          type="text"
+          name="contactMethod"
+          required
+          placeholder="Preferred Method of Contact: (Phone/Email) *"
+          className="w-full border rounded p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          value={form.contactMethod}
+          onChange={handleChange}
+        />
+
         <motion.textarea
           variants={itemVariants}
           name="comments"
