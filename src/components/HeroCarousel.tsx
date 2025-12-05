@@ -4,6 +4,7 @@ import "keen-slider/keen-slider.min.css";
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const slides = [
   {
@@ -88,15 +89,21 @@ const HeroCarousel = () => {
               <Button
                 size="xl"
                 className="bg-white text-primary hover:bg-white/90"
+                asChild
               >
-                <Mail className="mr-2 h-5 w-5" /> Contact Us
+                <Link to="/contact">
+                  <Mail className="mr-2 h-5 w-5" /> Contact Us
+                </Link>
               </Button>
               <Button
                 size="xl"
                 variant="outline"
                 className="bg-white text-primary hover:bg-white/90"
+                asChild
               >
-                <Users className="mr-2 h-5 w-5" /> Become a Host
+                <Link to="/become-host">
+                  <Users className="mr-2 h-5 w-5" /> Become a Host
+                </Link>
               </Button>
             </div>
           </div>

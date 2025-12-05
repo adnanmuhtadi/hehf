@@ -41,7 +41,6 @@ const Contact = () => {
     name: "",
     email: "",
     phone: "",
-    subject: "",
     message: ""
   });
 
@@ -51,7 +50,7 @@ const Contact = () => {
       title: "Thank you for your enquiry!",
       description: "We'll get back to you within 24 hours."
     });
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    setFormData({ name: "", email: "", phone: "", message: "" });
   };
 
   return (
@@ -177,32 +176,17 @@ const Contact = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Phone Number
-                        </label>
-                        <Input
-                          type="tel"
-                          placeholder="+44 123 456 7890"
-                          value={formData.phone}
-                          onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                          className="h-12"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Subject *
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="How can we help?"
-                          value={formData.subject}
-                          onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                          required
-                          className="h-12"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Phone Number
+                      </label>
+                      <Input
+                        type="tel"
+                        placeholder="+44 123 456 7890"
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                        className="h-12"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
