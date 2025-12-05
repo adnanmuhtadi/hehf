@@ -1,7 +1,7 @@
 // src/pages/BecomeHost.tsx
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Users, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/layouts/PageLayout";
 import Hero from "@/components/Hero";
@@ -19,10 +19,43 @@ import {
  * BecomeHost Page
  */
 const BecomeHost = () => {
-  const [enquiry, setEnquiry] = useState({ name: "", email: "", message: "" });
-  const [submitted, setSubmitted] = useState(false);
+  const [showFloatingCTA, setShowFloatingCTA] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show floating button after scrolling past the hero section (approx 500px)
+      setShowFloatingCTA(window.scrollY > 500);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
+    <>
+      {/* Floating CTA Button */}
+      <AnimatePresence>
+        {showFloatingCTA && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              size="lg"
+              className="shadow-lg hover:shadow-xl transition-shadow"
+              asChild
+            >
+              <a href="#become-host-form" className="flex items-center gap-2">
+                <ChevronUp className="h-4 w-4" />
+                Register Interest
+              </a>
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     <PageLayout
       title="Become a Host Family | Herts & Essex Host Families"
       description="Become a host family with Herts & Essex Host Families. Welcome international students, earn up to £7,500 tax-free, and make a real difference in a young person's life."
@@ -201,6 +234,7 @@ const BecomeHost = () => {
         <BecomeHostForm />
       </section>
     </PageLayout>
+    </>
   );
 };
 
