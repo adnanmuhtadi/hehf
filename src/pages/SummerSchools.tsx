@@ -211,7 +211,7 @@ const SummerSchools = () => (
           >
             <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1740&auto=format&fit=crop"
+                src="/images/summer-activity.jpg"
                 alt="Students enjoying summer programme activities"
                 className="w-full h-full object-cover"
               />
