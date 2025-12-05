@@ -42,7 +42,7 @@ const BecomeHost = () => {
             className="bg-white text-primary hover:bg-white/90"
             asChild
           >
-            <a href="#enquiry">Register Your Interest</a>
+            <a href="#become-host-form">Register Your Interest</a>
           </Button>
         </div>
       </Hero>
