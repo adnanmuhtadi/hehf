@@ -22,8 +22,8 @@ import { ReactNode } from "react";
 export const CONTACT_INFO = [
   {
     icon: Phone,
-    text: "+44 1923 123456",
-    href: "tel:+441923123456"
+    text: "+44 7826 541868",
+    href: "tel:+447826541868"
   },
   {
     icon: Mail,
