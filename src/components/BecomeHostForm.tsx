@@ -131,10 +131,10 @@ const BecomeHostForm = () => {
             value={form.propertyType}
             onValueChange={(value) => setForm({ ...form, propertyType: value })}
           >
-            <SelectTrigger className="w-full border rounded p-3 h-auto focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+            <SelectTrigger className="w-full border border-input bg-background rounded p-3 h-[50px] text-base focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all [&>span]:text-muted-foreground [&>span]:data-[placeholder]:text-muted-foreground">
               <SelectValue placeholder="Type of Property *" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border border-input">
               {propertyTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
@@ -150,10 +150,10 @@ const BecomeHostForm = () => {
             value={form.numberOfRooms}
             onValueChange={(value) => setForm({ ...form, numberOfRooms: value })}
           >
-            <SelectTrigger className="w-full border rounded p-3 h-auto focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+            <SelectTrigger className="w-full border border-input bg-background rounded p-3 h-[50px] text-base focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all [&>span]:text-muted-foreground [&>span]:data-[placeholder]:text-muted-foreground">
               <SelectValue placeholder="Number of Rooms Available *" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border border-input">
               {roomOptions.map((num) => (
                 <SelectItem key={num} value={num}>
                   {num} {num === "1" ? "Room" : "Rooms"}
