@@ -95,7 +95,7 @@ const TermsConditions = () => {
         <div className="absolute inset-0 bg-primary/60" style={{ zIndex: 2 }} />
         <div className="relative z-10 container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white drop-shadow">
-            Terms & Conditions
+            Terms & Conditions for Partners
           </h1>
           <p className="text-xl opacity-90 max-w-3xl mx-auto text-white drop-shadow">
             Please read our terms carefully. By booking with Herts & Essex Host

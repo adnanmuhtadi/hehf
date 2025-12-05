@@ -130,7 +130,7 @@ export const NAVIGATION: NavigationItem[] = [
 export const FOOTER_LINKS = [
   { name: "About Us", href: "/about" },
   { name: "Become a Host", href: "/become-host" },
-  { name: "For Students", href: "/for-students" },
+  { name: "Become A Partner", href: "/become-partner" },
   { name: "FAQ", href: "/faq" },
   { name: "Terms & Conditions", href: "/terms-conditions" }
 ];
@@ -141,7 +141,7 @@ export const FOOTER_SERVICES = [
   "Student Accommodation",
   "Group Bookings",
   "Language School Partnerships",
-  "Airport Transfers",
+  "Summer Schools",
   "24/7 Support"
 ];
 
