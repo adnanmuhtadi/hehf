@@ -9,31 +9,28 @@ const termsSections = [
   {
     title: "Options and Schedules of Interest",
     content: `
-Provisional dates for the next academic year (September–August) may be submitted as early as March. These dates will be held on a provisional basis until the end of October of that same year.
-To secure any dates beyond October, confirmation and a deposit will be required.
+Provisional dates for the next year   may be submitted as early as March. These dates will be held on a provisional basis until the end of October of that same year. To secure any dates beyond October, confirmation and a deposit will be required.
     `.trim()
   },
   {
     title: "Advanced Bookings and Confirmation",
     content: `
-Advance bookings will only be confirmed once both the agent’s confirmation letter and completed booking form have been received. A deposit must be paid by the deadline stated in your confirmation email. Deposits will be required. Please review your documentation carefully to ensure all payment deadlines are met and to avoid any misunderstandings.
-    `.trim()
+Advance bookings will only be confirmed once both the agent’s confirmation letter and completed booking form have been received. A deposit must be paid by the deadline stated in your confirmation email. Deposits will be required. Please review your documentation carefully to ensure all payment deadlines are met and to avoid any misunderstandings.    `.trim()
   },
   {
     title: "Late Notice Bookings (Less Than 6 Weeks Notice)",
     content: `
-Late bookings may be accepted where availability permits. An additional discretionary fee may apply to cover administrative and host coordination costs. Full payment will be required prior to confirmation of the booking.
-    `.trim()
+Late bookings may be accepted where availability permits. An additional discretionary fee may apply to cover administrative and host coordination costs. Full payment will be required prior to confirmation of the booking.    `.trim()
   },
   {
     title: "Deposit Payments",
     content: `
 Deposits for bookings should be paid to the bank account details provided below:
 
-Sort code: 60 10 05
-Account number: 84416467
-IBAN: GB90NWBK60100584416467
-Swift number:  NWBKGB2L
+Sort code: 60 10 05 
+Account number: 84416467 
+IBAN: GB90NWBK60100584416467 
+Swift number: NWBKGB2L
 
 Once payment has been made, please notify us promptly by emailing us at info@hehf.co.uk. A receipt will be issued within 48 hours of the funds being received into our account.
     `.trim()
@@ -41,8 +38,7 @@ Once payment has been made, please notify us promptly by emailing us at info@heh
   {
     title: "Damage and Late Arrival Deposits",
     content: `
-A discretionary deposit may be requested to cover minor damages incurred during group visits.
-In the event of any such damage, a documented and proportionate deduction will be made. Where no damage occurs, the full deposit will be refunded to the client immediately after the group visit concludes.
+A discretionary deposit may be requested to cover minor damages incurred during group visits. In the event of any such damage, a documented and proportionate deduction will be made. Where no damage occurs, the full deposit will be refunded to the client immediately after the group visit concludes.
 
 A discretionary deposit may be requested to cover additional ‘inconvenience’ payments to hosts where guests arrive at destinations after 9pm.
     `.trim()
@@ -50,9 +46,7 @@ A discretionary deposit may be requested to cover additional ‘inconvenience’
   {
     title: "Full and Final Payments",
     content: `
-Final payment must be received no later than three weeks prior to the group’s scheduled arrival.
-If payment is not received at least two weeks before arrival, the booking will be treated as a late cancellation, and the cancellation policy may be applied at our discretion.
-    `.trim()
+Final payment must be received no later than three weeks prior to the group’s scheduled arrival. If payment is not received at least two weeks before arrival, the booking will be treated as a late cancellation, and the cancellation policy may be applied at our discretion.    `.trim()
   },
   {
     title: "Cancellation Policy",
