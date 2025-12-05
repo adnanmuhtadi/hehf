@@ -92,7 +92,6 @@ export const NAVIGATION: NavigationItem[] = [
         items: [
           { name: "Cheshunt", href: "/locations/Cheshunt" },
           { name: "Harpenden", href: "/locations/Harpenden" },
-          { name: "Hatch End", href: "/locations/Hatch-End" },
           { name: "Stevenage", href: "/locations/Stevenage" },
           { name: "Watford", href: "/locations/Watford" },
           {
@@ -111,7 +110,9 @@ export const NAVIGATION: NavigationItem[] = [
       },
       {
         heading: "Greater London",
-        items: [{ name: "Harrow", href: "/locations/Harrow" }]
+        items: [{ name: "Harrow", href: "/locations/Harrow" },
+          { name: "Hatch End", href: "/locations/Hatch-End" }]
+
       }
     ]
   },
@@ -141,20 +142,6 @@ export const FOOTER_SERVICES = [
   "Language School Partnerships",
   "Airport Transfers",
   "24/7 Support"
-];
-
-// Contact (already in CONTACT_INFO, but you can add opening hours/address if you want)
-export const FOOTER_ADDRESS = [
-  {
-    icon: MapPin,
-    text: (
-      <>
-        123 Main Street<br />
-        Watford, Hertfordshire<br />
-        WD18 0PH, UK
-      </>
-    )
-  }
 ];
 
 // Policy/Legal links

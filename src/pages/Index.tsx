@@ -24,7 +24,7 @@ const howItWorks = [
   {
     title: "Our Areas",
     description:
-      "We cover the whole of Hertfordshire and Essex, including Borehamwood, Cheshunt, Chingford, Harrow, Hatch End, Harpenden, Loughton, Stevenage, and Watford."
+      "We cover the whole of Hertfordshire and Essex, including Borehamwood, Cheshunt, Chingford, Harrow/Hatch End, Harpenden, Loughton, Stevenage, and Watford."
   },
   {
     title: "Host Homes",

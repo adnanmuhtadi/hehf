@@ -25,27 +25,7 @@ const Contact = () => {
           <QuickEnquiry />
         </div>
 
-        {/* (Optional) Add office/map details below here */}
-        {/* <div className="mt-10">
-          <h2 className="text-2xl font-semibold text-center mb-4">Our Office</h2>
-          <p className="text-center text-muted-foreground mb-4">
-            Herts & Essex Host Families<br />
-            123 Main Street, Hertfordshire, UK<br />
-            info@hehf.co.uk | 01234 567890
-          </p>
-          <div className="aspect-w-16 aspect-h-9 mx-auto max-w-xl">
-            <iframe
-              src="YOUR_GOOGLE_MAPS_EMBED_URL"
-              width="100%"
-              height="300"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              title="Our Office Location"
-              className="rounded-lg shadow"
-            />
-          </div>
-        </div> */}
+        
       </div>
     </PageLayout>
   );
