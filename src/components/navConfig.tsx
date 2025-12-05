@@ -110,9 +110,10 @@ export const NAVIGATION: NavigationItem[] = [
       },
       {
         heading: "Greater London",
-        items: [{ name: "Harrow", href: "/locations/Harrow" },
-          { name: "Hatch End", href: "/locations/Hatch-End" }]
-
+        items: [
+          { name: "Harrow", href: "/locations/Harrow" },
+          { name: "Hatch End", href: "/locations/Hatch-End" }
+        ]
       }
     ]
   },
