@@ -145,8 +145,6 @@ export const FOOTER_SERVICES = [
   "24/7 Support"
 ];
 
-];
-
 // Contact (already in CONTACT_INFO, but you can add opening hours/address if you want)
 export const FOOTER_ADDRESS = [
   {
