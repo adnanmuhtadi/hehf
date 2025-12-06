@@ -5,11 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuickEnquiryProps {
   title?: string;
   description?: string;
-  bgClassName?: string; // Allows you to customise background if needed
+  bgClassName?: string;
 }
 
 const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
@@ -24,14 +25,40 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
     phone: "",
     message: ""
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Thank you for your enquiry!",
-      description: "We'll get back to you within 24 hours."
-    });
-    setFormData({ name: "", email: "", phone: "", message: "" });
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: {
+          formType: "enquiry",
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Thank you for your enquiry!",
+        description: "We'll get back to you within 24 hours."
+      });
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again or contact us directly at info@hehf.co.uk",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -80,9 +107,9 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
                 required
                 rows={6}
               />
-              <Button type="submit" size="lg" className="w-full">
-                Send Enquiry
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+                {submitting ? "Sending..." : "Send Enquiry"}
+                {!submitting && <ArrowRight className="ml-2 h-5 w-5" />}
               </Button>
             </form>
           </Card>

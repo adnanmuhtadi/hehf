@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -13,16 +15,13 @@ const initialState = {
   name: "",
   email: "",
   telephone: "",
-  address: "",
-  street: "",
   city: "",
   county: "",
   postcode: "",
   propertyType: "",
   numberOfRooms: "",
   contactMethod: "",
-  comments: "",
-  captcha: ""
+  comments: ""
 };
 
 const formFields = [
@@ -69,6 +68,7 @@ const BecomeHostForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { toast } = useToast();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -76,16 +76,45 @@ const BecomeHostForm = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    // TODO: Implement actual submission logic here (API, EmailJS, etc)
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: {
+          formType: "host",
+          name: form.name,
+          email: form.email,
+          phone: form.telephone,
+          city: form.city,
+          county: form.county,
+          postcode: form.postcode,
+          propertyType: form.propertyType,
+          numberOfRooms: form.numberOfRooms,
+          contactMethod: form.contactMethod,
+          comments: form.comments
+        }
+      });
+
+      if (error) throw error;
+
       setSubmitted(true);
-      setSubmitting(false);
       setForm(initialState);
-    }, 1300);
+      toast({
+        title: "Application submitted!",
+        description: "We'll be in touch soon."
+      });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error submitting application",
+        description: "Please try again or contact us directly at info@hehf.co.uk",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

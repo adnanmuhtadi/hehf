@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const initialState = {
   companyName: "",
@@ -20,6 +22,7 @@ const BecomePartnerForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,15 +32,41 @@ const BecomePartnerForm = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    // Simulated submission - replace with actual API call
-    setTimeout(() => {
-      setSubmitting(false);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: {
+          formType: "partner",
+          name: form.contactName,
+          email: form.email,
+          phone: form.telephone,
+          organization: form.companyName,
+          partnerType: form.agencyType,
+          message: `Website: ${form.website || "Not provided"}\nStudents Per Year: ${form.studentsPerYear || "Not specified"}\n\n${form.message}`
+        }
+      });
+
+      if (error) throw error;
+
       setSubmitted(true);
       setForm(initialState);
-    }, 1200);
+      toast({
+        title: "Partnership enquiry submitted!",
+        description: "Our partnerships team will be in touch within 2 business days."
+      });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error submitting enquiry",
+        description: "Please try again or contact us directly at info@hehf.co.uk",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {

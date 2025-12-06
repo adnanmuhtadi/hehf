@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const contactInfo = [
   {
@@ -43,14 +44,40 @@ const Contact = () => {
     phone: "",
     message: ""
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Thank you for your enquiry!",
-      description: "We'll get back to you within 24 hours."
-    });
-    setFormData({ name: "", email: "", phone: "", message: "" });
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-email", {
+        body: {
+          formType: "contact",
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Thank you for your enquiry!",
+        description: "We'll get back to you within 24 hours."
+      });
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again or contact us directly at info@hehf.co.uk",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -201,9 +228,9 @@ const Contact = () => {
                         className="resize-none"
                       />
                     </div>
-                    <Button type="submit" size="lg" className="w-full h-12 text-base">
-                      Send Message
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                    <Button type="submit" size="lg" className="w-full h-12 text-base" disabled={submitting}>
+                      {submitting ? "Sending..." : "Send Message"}
+                      {!submitting && <ArrowRight className="ml-2 h-5 w-5" />}
                     </Button>
                   </form>
                 </Card>
