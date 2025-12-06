@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -21,13 +20,12 @@ const Auth = () => {
     password: '',
   });
 
-  // Sign Up form state
+  // Sign Up form state - all new users are hosts (admins assigned via database only)
   const [signUpData, setSignUpData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     fullName: '',
-    role: 'host' as 'admin' | 'host',
   });
 
   // Redirect if already authenticated
@@ -91,11 +89,12 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
+      // All new users are assigned 'host' role for security
       const { error } = await signUp(
         signUpData.email,
         signUpData.password,
         signUpData.fullName,
-        signUpData.role
+        'host'
       );
       
       if (error) {
@@ -213,9 +212,9 @@ const Auth = () => {
           <TabsContent value="signup">
             <Card>
               <CardHeader>
-                <CardTitle>Create Account</CardTitle>
+                <CardTitle>Create Host Account</CardTitle>
                 <CardDescription>
-                  Create a new account to access the portal
+                  Register as a host family to access the portal
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -244,23 +243,6 @@ const Auth = () => {
                       }
                       required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select
-                      value={signUpData.role}
-                      onValueChange={(value: 'admin' | 'host') =>
-                        setSignUpData({ ...signUpData, role: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="host">Host</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
