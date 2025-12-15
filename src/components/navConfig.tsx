@@ -39,7 +39,7 @@ export const CONTACT_INFO = [
 export const SOCIAL_LINKS = [
   {
     icon: <Facebook className="h-4 w-4" />,
-    href: "#",
+    href: "https://www.facebook.com/HertsEssexHostFamilies",
     label: "Facebook"
   },
   {
