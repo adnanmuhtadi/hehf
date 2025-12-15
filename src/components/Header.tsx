@@ -45,9 +45,14 @@ const Header = () => {
               </a>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {SOCIAL_LINKS.map((social, i) => (
-              <a key={i} href={social.href} aria-label={social.label} className="hover:opacity-80">
+              <a 
+                key={i} 
+                href={social.href} 
+                aria-label={social.label} 
+                className="transition-all duration-300 hover:scale-125 hover:opacity-80"
+              >
                 {social.icon}
                 <span className="sr-only">{social.label}</span>
               </a>
@@ -275,7 +280,12 @@ const Header = () => {
               </div>
               <div className="flex justify-center gap-4 py-6">
                 {SOCIAL_LINKS.map((social, i) => (
-                  <a key={i} href={social.href} aria-label={social.label} className="hover:opacity-80">
+                  <a 
+                    key={i} 
+                    href={social.href} 
+                    aria-label={social.label} 
+                    className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-primary-foreground"
+                  >
                     {social.icon}
                   </a>
                 ))}
