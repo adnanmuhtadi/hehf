@@ -175,7 +175,7 @@ const Contact = () => {
                         key={i}
                         href={social.href}
                         aria-label={social.label}
-                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300"
+                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-all duration-300 hover:scale-110 hover:bg-primary hover:text-primary-foreground hover:shadow-lg"
                       >
                         <span className="scale-125">{social.icon}</span>
                       </a>
