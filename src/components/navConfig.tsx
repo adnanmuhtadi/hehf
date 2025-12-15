@@ -44,7 +44,7 @@ export const SOCIAL_LINKS = [
   },
   {
     icon: <Instagram className="h-4 w-4" />,
-    href: "https://www.instagram.com/hehf.international?igsh=MWZ4aHY5anQ0Y2Nwcg==",
+    href: "https://www.instagram.com/hehf.international?igsh=cjIzbTFtZmU2Z2Zj",
     label: "Instagram"
   },
   {
