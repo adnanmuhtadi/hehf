@@ -41,20 +41,17 @@ const Header = () => {
             {CONTACT_INFO.map((info, i) => (
               <a key={i} href={info.href} className="flex items-center gap-1 hover:underline">
                 <info.icon className="h-4 w-4" />
-                <span>{info.text}</span>
+                <span className="hidden sm:inline">{info.text}</span>
               </a>
             ))}
           </div>
-          <div className="hidden md:flex items-center gap-4">
-            <span></span>
-            <div className="flex items-center gap-2">
-              {SOCIAL_LINKS.map((social, i) => (
-                <a key={i} href={social.href} aria-label={social.label} className="hover:opacity-80">
-                  {social.icon}
-                  <span className="sr-only">{social.label}</span>
-                </a>
-              ))}
-            </div>
+          <div className="flex items-center gap-2">
+            {SOCIAL_LINKS.map((social, i) => (
+              <a key={i} href={social.href} aria-label={social.label} className="hover:opacity-80">
+                {social.icon}
+                <span className="sr-only">{social.label}</span>
+              </a>
+            ))}
           </div>
         </div>
       </div>

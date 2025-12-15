@@ -1,6 +1,7 @@
 import PageLayout from "@/layouts/PageLayout";
 import { useState } from "react";
-import { ArrowRight, Mail, Phone, MapPin, Clock } from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin, Clock, Facebook, Instagram } from "lucide-react";
+import { SOCIAL_LINKS } from "@/components/navConfig";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -162,6 +163,23 @@ const Contact = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                     <span className="text-foreground">Expert guidance</span>
+                  </div>
+                </div>
+
+                {/* Social Media Links */}
+                <div className="mt-8 pt-6 border-t border-border">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Connect With Us</h3>
+                  <div className="flex items-center gap-4">
+                    {SOCIAL_LINKS.map((social, i) => (
+                      <a
+                        key={i}
+                        href={social.href}
+                        aria-label={social.label}
+                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300"
+                      >
+                        <span className="scale-125">{social.icon}</span>
+                      </a>
+                    ))}
                   </div>
                 </div>
               </motion.div>
