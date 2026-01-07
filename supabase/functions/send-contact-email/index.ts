@@ -231,7 +231,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to info@hehf.co.uk
     const emailResponse = await resend.emails.send({
-      from: "HEHF Website <onboarding@resend.dev>",
+      from: "HEHF Website <noreply@hehf.co.uk>",
       to: ["info@hehf.co.uk"],
       replyTo: data.email,
       subject: subject,
@@ -242,8 +242,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the user (using sanitized name)
     const confirmationResponse = await resend.emails.send({
-      from: "Herts & Essex Host Families <onboarding@resend.dev>",
+      from: "Herts & Essex Host Families <noreply@hehf.co.uk>",
       to: [data.email],
+      replyTo: "info@hehf.co.uk",
       subject: "Thank you for contacting Herts & Essex Host Families",
       html: `
         <h2>Thank you for contacting us, ${data.name}!</h2>
