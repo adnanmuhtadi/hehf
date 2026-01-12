@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Star, Calendar, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Download, Star, Calendar, BookOpen, Settings, LogOut, PoundSterling } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -167,6 +167,29 @@ const HostDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Potential Earnings Widget */}
+              {((profile as any)?.rate_per_student_per_night > 0 && (profile as any)?.max_students_capacity > 0) && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PoundSterling className="h-5 w-5 text-primary" />
+                      Potential Earnings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">
+                      £{stats.loading ? '...' : stats.totalPotentialEarnings.toFixed(2)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Total from all upcoming bookings in your preferred locations
+                    </p>
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      Based on {(profile as any)?.max_students_capacity} students × £{(profile as any)?.rate_per_student_per_night}/night
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               </div>
             </div>
 
