@@ -205,8 +205,10 @@ export type Database = {
           handbook_downloaded: boolean | null
           id: string
           is_active: boolean | null
+          max_students_capacity: number | null
           phone: string | null
           preferred_locations: string[] | null
+          rate_per_student_per_night: number | null
           rating: number | null
           rating_count: number | null
           role: Database["public"]["Enums"]["user_role"]
@@ -221,8 +223,10 @@ export type Database = {
           handbook_downloaded?: boolean | null
           id?: string
           is_active?: boolean | null
+          max_students_capacity?: number | null
           phone?: string | null
           preferred_locations?: string[] | null
+          rate_per_student_per_night?: number | null
           rating?: number | null
           rating_count?: number | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -237,8 +241,10 @@ export type Database = {
           handbook_downloaded?: boolean | null
           id?: string
           is_active?: boolean | null
+          max_students_capacity?: number | null
           phone?: string | null
           preferred_locations?: string[] | null
+          rate_per_student_per_night?: number | null
           rating?: number | null
           rating_count?: number | null
           role?: Database["public"]["Enums"]["user_role"]

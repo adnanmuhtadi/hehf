@@ -214,25 +214,41 @@ const ProfileSettings = () => {
           </div>
 
           {profile.role === 'host' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
-                <p className="text-sm">
-                  {profile.rating?.toFixed(1) || '0.0'} / 5.0
-                  {profile.rating_count > 0 && (
-                    <span className="text-muted-foreground ml-1">
-                      ({profile.rating_count} reviews)
-                    </span>
-                  )}
-                </p>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
+                  <p className="text-sm">
+                    {profile.rating?.toFixed(1) || '0.0'} / 5.0
+                    {profile.rating_count > 0 && (
+                      <span className="text-muted-foreground ml-1">
+                        ({profile.rating_count} reviews)
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Handbook</Label>
+                  <p className="text-sm">
+                    {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Handbook</Label>
-                <p className="text-sm">
-                  {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Rate per Student per Night</Label>
+                  <p className="text-sm font-medium">
+                    £{((profile as any).rate_per_student_per_night || 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Max Students Capacity</Label>
+                  <p className="text-sm font-medium">
+                    {(profile as any).max_students_capacity || 0} students
+                  </p>
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           <div>
