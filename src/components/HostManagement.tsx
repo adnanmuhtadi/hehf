@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
@@ -38,6 +38,7 @@ const HostManagement = () => {
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -68,8 +69,15 @@ const HostManagement = () => {
       result = result.filter(h => h.preferred_locations?.includes(locationFilter));
     }
     
+    // Filter by status
+    if (statusFilter === 'active') {
+      result = result.filter(h => h.is_active);
+    } else if (statusFilter === 'disabled') {
+      result = result.filter(h => !h.is_active);
+    }
+    
     return result;
-  }, [hosts, locationFilter, searchQuery]);
+  }, [hosts, locationFilter, statusFilter, searchQuery]);
 
   const toggleLocation = (location: string) => {
     setFormData(prev => ({
@@ -195,14 +203,48 @@ const HostManagement = () => {
     }
   };
 
-  const handleDeleteHost = async (hostId: string) => {
+  const handleToggleHostStatus = async (host: Host) => {
     try {
-      const { error } = await supabase
+      const newStatus = !host.is_active;
+      const { data, error } = await supabase
         .from('profiles')
-        .delete()
-        .eq('id', hostId);
+        .update({ is_active: newStatus })
+        .eq('id', host.id)
+        .select('id');
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Update blocked (no rows affected). Check admin permissions.');
+      }
+
+      toast({
+        title: "Success",
+        description: `Host ${newStatus ? 'enabled' : 'disabled'} successfully`,
+      });
+
+      fetchHosts();
+    } catch (error: any) {
+      console.error('Error toggling host status:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update host status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteHost = async (hostId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', hostId)
+        .select('id');
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Delete blocked (no rows affected). Check admin permissions.');
+      }
 
       toast({
         title: "Success",
@@ -372,8 +414,8 @@ const HostManagement = () => {
                 </CardDescription>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-sm">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative flex-1 min-w-[200px] max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
@@ -384,8 +426,21 @@ const HostManagement = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="disabled">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
                 <Select value={locationFilter} onValueChange={setLocationFilter}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by location" />
                   </SelectTrigger>
                   <SelectContent>
@@ -471,13 +526,45 @@ const HostManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => openEditDialog(host)}
+                        title="Edit host"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant={host.is_active ? "outline" : "default"} 
+                            size="sm"
+                            title={host.is_active ? "Disable host" : "Enable host"}
+                          >
+                            <Power className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {host.is_active ? 'Disable Host' : 'Enable Host'}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to {host.is_active ? 'disable' : 'enable'} {host.full_name}? 
+                              {host.is_active 
+                                ? ' They will no longer be able to receive new bookings.' 
+                                : ' They will be able to receive new bookings again.'}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleToggleHostStatus(host)}>
+                              {host.is_active ? 'Disable' : 'Enable'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" title="Delete host">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
