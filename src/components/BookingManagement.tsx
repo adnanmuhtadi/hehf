@@ -29,6 +29,8 @@ interface Booking {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes?: string;
   created_at: string;
+  hosts_registered?: number;
+  hosts_available?: number;
 }
 
 interface BookingHost {
@@ -78,13 +80,46 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
   const fetchBookings = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('arrival_date', { ascending: true });
 
-      if (error) throw error;
-      setBookings(data || []);
+      if (bookingsError) throw bookingsError;
+
+      // Fetch all profiles to count hosts per location
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('preferred_locations')
+        .eq('role', 'host')
+        .eq('is_active', true);
+
+      // Fetch all booking_hosts to count available responses
+      const { data: bookingHostsData } = await supabase
+        .from('booking_hosts')
+        .select('booking_id, response');
+
+      // Enrich bookings with host stats
+      const enrichedBookings = (bookingsData || []).map(booking => {
+        // Count hosts registered for this location
+        const hostsRegistered = (profilesData || []).filter(profile => 
+          profile.preferred_locations?.includes(booking.location)
+        ).length;
+
+        // Count hosts who marked themselves as available for this booking
+        const hostsAvailable = (bookingHostsData || []).filter(
+          bh => bh.booking_id === booking.id && bh.response === 'accepted'
+        ).length;
+
+        return {
+          ...booking,
+          hosts_registered: hostsRegistered,
+          hosts_available: hostsAvailable,
+        };
+      });
+
+      setBookings(enrichedBookings);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -384,7 +419,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               <TableHead>Reference</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Dates</TableHead>
-              <TableHead>Students</TableHead>
+              <TableHead>Hosts</TableHead>
               <TableHead>Country</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -409,9 +444,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">
-                    {booking.number_of_students}
-                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      <span className="font-medium text-green-600">{booking.hosts_available || 0}</span>
+                      <span className="text-muted-foreground"> / {booking.hosts_registered || 0}</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">available / registered</p>
                 </TableCell>
                 <TableCell>{booking.country_of_students}</TableCell>
                 <TableCell>
