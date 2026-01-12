@@ -20,6 +20,7 @@ interface Host {
   full_name: string;
   phone?: string;
   address?: string;
+  preferred_location?: string;
   rating: number;
   rating_count: number;
   is_active: boolean;
@@ -301,6 +302,7 @@ const HostManagement = () => {
               <TableRow>
                 <TableHead>Host Details</TableHead>
                 <TableHead>Contact</TableHead>
+                <TableHead>Preferred Location</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -333,6 +335,13 @@ const HostManagement = () => {
                         </p>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {host.preferred_location ? (
+                      <Badge variant="outline">{host.preferred_location}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Not set</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">

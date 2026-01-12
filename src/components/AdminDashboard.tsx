@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Users, Calendar, BookOpen, Settings, LogOut, UserCheck } from 'lucide-react';
+import { Users, Calendar, BookOpen, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import BookingManagement from '@/components/BookingManagement';
 import BookingDetailsView from '@/components/BookingDetailsView';
 import BookingCalendar from '@/components/BookingCalendar';
-import ProfileSettings from '@/components/ProfileSettings';
 import HostManagement from '@/components/HostManagement';
-
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -57,10 +55,6 @@ const AdminDashboard = () => {
               <p className="text-muted-foreground">Welcome back, {profile?.full_name}</p>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => setActiveTab('profile')}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Button>
               <Button variant="outline" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -93,11 +87,10 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="bookings">Booking Management</TabsTrigger>
             <TabsTrigger value="calendar">Calendar View</TabsTrigger>
             <TabsTrigger value="hosts">Host Management</TabsTrigger>
-            <TabsTrigger value="profile">Profile Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="bookings" className="mt-6">
@@ -142,20 +135,6 @@ const AdminDashboard = () => {
 
           <TabsContent value="hosts" className="mt-6">
             <HostManagement />
-          </TabsContent>
-
-          <TabsContent value="profile" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>
-                  Manage your account details and preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProfileSettings />
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
