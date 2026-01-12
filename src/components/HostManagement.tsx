@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 interface Host {
   id: string;
@@ -34,14 +36,22 @@ const HostManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [locationFilter, setLocationFilter] = useState<string>('all');
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
     phone: '',
     address: '',
+    preferred_location: '',
     is_active: true,
   });
   const { toast } = useToast();
+
+  const filteredHosts = useMemo(() => {
+    if (locationFilter === 'all') return hosts;
+    if (locationFilter === 'not_set') return hosts.filter(h => !h.preferred_location);
+    return hosts.filter(h => h.preferred_location === locationFilter);
+  }, [hosts, locationFilter]);
 
   const fetchHosts = async () => {
     try {
@@ -105,7 +115,7 @@ const HostManagement = () => {
         });
 
         setIsDialogOpen(false);
-        setFormData({ email: '', full_name: '', phone: '', address: '', is_active: true });
+        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_location: '', is_active: true });
         fetchHosts();
       }
     } catch (error: any) {
@@ -129,6 +139,7 @@ const HostManagement = () => {
           full_name: formData.full_name,
           phone: formData.phone || null,
           address: formData.address || null,
+          preferred_location: formData.preferred_location || null,
           is_active: formData.is_active,
         })
         .eq('id', selectedHost.id);
@@ -180,7 +191,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', full_name: '', phone: '', address: '', is_active: true });
+    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_location: '', is_active: true });
     setIsDialogOpen(true);
   };
 
@@ -191,6 +202,7 @@ const HostManagement = () => {
       full_name: host.full_name,
       phone: host.phone || '',
       address: host.address || '',
+      preferred_location: host.preferred_location || '',
       is_active: host.is_active,
     });
     setIsDialogOpen(true);
@@ -268,14 +280,34 @@ const HostManagement = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={3}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="preferred_location">Preferred Location</Label>
+                  <Select 
+                    value={formData.preferred_location} 
+                    onValueChange={(value) => setFormData({ ...formData, preferred_location: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_LOCATIONS.map((location) => (
+                        <SelectItem key={location} value={location}>
+                          {location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-2">
@@ -293,8 +325,35 @@ const HostManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Hosts ({hosts.length})</CardTitle>
-          <CardDescription>Complete list of hosts in the system</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Hosts ({filteredHosts.length})</CardTitle>
+              <CardDescription>
+                {locationFilter === 'all' 
+                  ? 'Complete list of hosts in the system' 
+                  : locationFilter === 'not_set'
+                    ? 'Hosts without a preferred location'
+                    : `Hosts in ${locationFilter}`}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  <SelectItem value="not_set">Not Set</SelectItem>
+                  {AVAILABLE_LOCATIONS.map((location) => (
+                    <SelectItem key={location} value={location}>
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -309,7 +368,7 @@ const HostManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {hosts.map((host) => (
+              {filteredHosts.map((host) => (
                 <TableRow key={host.id}>
                   <TableCell>
                     <div>
@@ -393,9 +452,11 @@ const HostManagement = () => {
             </TableBody>
           </Table>
 
-          {hosts.length === 0 && (
+          {filteredHosts.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              No hosts found. Click "Add New Host" to create one.
+              {hosts.length === 0 
+                ? 'No hosts found. Click "Add New Host" to create one.'
+                : 'No hosts match the selected filter.'}
             </div>
           )}
         </CardContent>
