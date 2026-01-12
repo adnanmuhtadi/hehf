@@ -163,33 +163,6 @@ const HostDashboard = () => {
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Your latest booking updates and notifications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                    <div className="h-2 w-2 bg-primary rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">New booking assignment</p>
-                      <p className="text-xs text-muted-foreground">2 students from Spain - Ref: BK2024001</p>
-                    </div>
-                    <Badge variant="outline">New</Badge>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Booking confirmed</p>
-                      <p className="text-xs text-muted-foreground">Students from Italy - Ref: BK2024002</p>
-                    </div>
-                    <Badge variant="secondary">Confirmed</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="bookings" className="mt-6">

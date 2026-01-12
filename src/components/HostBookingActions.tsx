@@ -105,7 +105,12 @@ const HostBookingActions = () => {
         booking_hosts: [{ response: 'available', students_assigned: 0 }]
       }));
 
-      setBookings([...assignedBookings, ...availableBookings]);
+      // Combine and sort by arrival_date (earliest first)
+      const allBookings = [...assignedBookings, ...availableBookings].sort((a, b) => 
+        new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime()
+      );
+
+      setBookings(allBookings);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -256,22 +261,23 @@ const HostBookingActions = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
+                      variant="success"
                       onClick={() => handleBookingResponse(booking.id, 'accepted')}
                       disabled={actionLoading === booking.id}
                       className="flex items-center gap-2"
                     >
                       <CheckCircle className="h-4 w-4" />
-                      Accept Booking
+                      Available
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="destructive"
                       onClick={() => handleBookingResponse(booking.id, 'ignored')}
                       disabled={actionLoading === booking.id}
                       className="flex items-center gap-2"
                     >
                       <XCircle className="h-4 w-4" />
-                      Decline Booking
+                      Unavailable
                     </Button>
                   </div>
                 )}
