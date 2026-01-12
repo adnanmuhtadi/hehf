@@ -190,11 +190,21 @@ const Header = () => {
             )}
           </div>
 
-          {/* Mobile Hamburger */}
-          <div className="lg:hidden">
+          {/* Mobile actions */}
+          <div className="lg:hidden flex items-center gap-2">
+            {isLoggedIn ? (
+              <Button asChild variant="outline" size="sm" className="h-9 px-3">
+                <Link to="/account">Account</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline" size="sm" className="h-9 px-3">
+                <Link to="/auth">Login</Link>
+              </Button>
+            )}
+
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               aria-label={isMobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileOpen}
               onClick={() => setMobileOpen(open => !open)}
@@ -209,7 +219,7 @@ const Header = () => {
           <>
             <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setMobileOpen(false)} aria-hidden="true"/>
             <nav
-              className="fixed right-0 top-0 h-full w-80 bg-background border-l shadow-2xl z-50 transition-transform"
+              className="fixed right-0 top-0 h-full w-80 bg-background border-l shadow-2xl z-50 transition-transform flex flex-col"
               aria-label="Mobile navigation"
             >
               <div className="flex items-center justify-between px-6 py-4 border-b">
@@ -218,70 +228,82 @@ const Header = () => {
                   <X className="h-7 w-7" />
                 </Button>
               </div>
-              <ul className="flex flex-col gap-2 px-6 pt-4">
-                {NAVIGATION.map(item =>
-                  item.dropdown ? (
-                    <li key={item.name}>
-                      <details>
-                        <summary className="flex items-center cursor-pointer gap-2 py-2 px-2 rounded hover:bg-secondary">{item.name}<ChevronDown className="h-4 w-4" /></summary>
-                        <ul className="pl-4">
-                          {item.dropdown.map(sub => (
-                            <li key={sub.name}>
+
+              <div className="flex-1 overflow-y-auto">
+                <ul className="flex flex-col gap-2 px-6 pt-4 pb-6">
+                  {NAVIGATION.map(item =>
+                    item.dropdown ? (
+                      <li key={item.name}>
+                        <details>
+                          <summary className="flex items-center cursor-pointer gap-2 py-2 px-2 rounded hover:bg-secondary">{item.name}<ChevronDown className="h-4 w-4" /></summary>
+                          <ul className="pl-4">
+                            {item.dropdown.map(sub => (
+                              <li key={sub.name}>
+                                <Link
+                                  to={sub.href}
+                                  className="block py-2 px-2 hover:bg-primary/10 rounded"
+                                  onClick={() => setMobileOpen(false)}
+                                >
+                                  {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      </li>
+                    ) : item.mega ? (
+                      <li key={item.name}>
+                        <span className="block px-3 py-2 font-medium">{item.name}</span>
+                        {item.mega.map(section =>
+                          <div key={section.heading} className="pl-4">
+                            <div className="font-bold">{section.heading}</div>
+                            {section.items.map(loc => (
                               <Link
-                                to={sub.href}
+                                key={loc.name}
+                                to={loc.href}
                                 className="block py-2 px-2 hover:bg-primary/10 rounded"
                                 onClick={() => setMobileOpen(false)}
                               >
-                                {sub.name}
+                                {loc.name}
                               </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
-                    </li>
-                  ) : item.mega ? (
-                    <li key={item.name}>
-                      <span className="block px-3 py-2 font-medium">{item.name}</span>
-                      {item.mega.map(section =>
-                        <div key={section.heading} className="pl-4">
-                          <div className="font-bold">{section.heading}</div>
-                          {section.items.map(loc => (
-                            <Link
-                              key={loc.name}
-                              to={loc.href}
-                              className="block py-2 px-2 hover:bg-primary/10 rounded"
-                              onClick={() => setMobileOpen(false)}
-                            >
-                              {loc.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </li>
-                  ) : (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className={`block py-2 px-2 rounded hover:bg-secondary ${
-                          isActive(item.href, location.pathname) ? "text-primary font-bold" : ""
-                        }`}
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  )
+                            ))}
+                          </div>
+                        )}
+                      </li>
+                    ) : (
+                      <li key={item.name}>
+                        <Link
+                          to={item.href}
+                          className={`block py-2 px-2 rounded hover:bg-secondary ${
+                            isActive(item.href, location.pathname) ? "text-primary font-bold" : ""
+                          }`}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+
+              <div className="border-t px-6 py-4 space-y-3 bg-background">
+                {isLoggedIn ? (
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account" onClick={() => setMobileOpen(false)}>My Account</Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/auth" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                  </Button>
                 )}
-              </ul>
-              <div className="px-6 mt-6 space-y-3">
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/auth" onClick={() => setMobileOpen(false)}>Sign In</Link>
-                </Button>
+
                 <Button asChild className="w-full">
                   <Link to="/contact" onClick={() => setMobileOpen(false)}>Get Started</Link>
                 </Button>
               </div>
-              <div className="flex justify-center gap-4 py-6">
+
+              <div className="border-t flex justify-center gap-4 py-6">
                 {SOCIAL_LINKS.map((social, i) => (
                   <a 
                     key={i} 
