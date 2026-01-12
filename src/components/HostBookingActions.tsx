@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { MapPin, Users, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2 } from 'lucide-react';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 interface Booking {
@@ -257,7 +257,8 @@ const HostBookingActions = () => {
                   </div>
                 </div>
 
-                {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') && (
+                {/* Show action buttons based on current response status */}
+                {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') ? (
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -280,7 +281,35 @@ const HostBookingActions = () => {
                       Unavailable
                     </Button>
                   </div>
-                )}
+                ) : booking.booking_hosts?.[0]?.response === 'accepted' ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-green-600 font-medium">✓ You marked yourself as available</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleBookingResponse(booking.id, 'ignored')}
+                      disabled={actionLoading === booking.id}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Change to Unavailable
+                    </Button>
+                  </div>
+                ) : booking.booking_hosts?.[0]?.response === 'ignored' ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">You marked yourself as unavailable</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleBookingResponse(booking.id, 'accepted')}
+                      disabled={actionLoading === booking.id}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Change to Available
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           ))}
