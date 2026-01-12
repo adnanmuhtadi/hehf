@@ -1,60 +1,66 @@
-# Welcome to the HEHF Website Project
+# Welcome to the Herts & Essex Host Families Website Project
 
 ## Project info
 
 **Live URL**: https://hehf.co.uk/  
-**Business**: HEHF  
-**Service Type**: Charity / Community Support Organisation  
-**Location**: United Kingdom  
+**Organisation**: Herts & Essex Host Families (HEHF)  
+**Service Type**: Host Family Accommodation & Support Organisation  
+**Location**: Hertfordshire & Essex, United Kingdom  
 
-This repository contains the source code and configuration for the HEHF public website.  
-The website is designed to communicate the mission, activities, and support channels of HEHF, and to provide community resources and contact pathways for visitors.
+This repository contains the source code and configuration for the public-facing website of Herts & Essex Host Families.  
+The website provides information about hosting services, support for host families and guests, and clear contact and enquiry pathways.
 
 ---
 
-## About HEHF
+## About Herts & Essex Host Families (HEHF)
 
-HEHF (Helping Everyone Health & Families) is a charity and community support organisation focused on delivering services, support, and resources to individuals, families, and communities in need. The site presents HEHF’s vision, programmes, outreach efforts, and how visitors can engage or donate.
+Herts & Essex Host Families (HEHF) is an organisation that provides safe, welcoming, and supportive host family accommodation across Hertfordshire and Essex. The organisation works with individuals, families, councils, and partner organisations to place guests in suitable host homes.
 
-The goal of the website is to be welcoming, informative, and easy to navigate for people seeking help, partners, or supporters.
+The website is designed to clearly communicate:
+- What host family accommodation is  
+- Who HEHF supports  
+- How to become a host family  
+- How to make referrals or enquiries  
+
+Accessibility, clarity, and trust are core principles of the site.
 
 ---
 
 ## Services & Focus Areas
 
-### Community Support
-- Local assistance and outreach programmes
-- Volunteer engagement
-- Partnership with local agencies
+### Host Family Accommodation
+- Placement of guests into approved host family homes
+- Short-term and longer-term hosting arrangements
+- Support throughout the placement lifecycle
 
-### Health & Wellbeing
-- Public health resources
-- Family support workshops
-- Awareness and education campaigns
+### Host Family Support
+- Guidance and onboarding for host families
+- Ongoing support and communication
+- Safeguarding and welfare focus
 
-### Engagement & Outreach
-- Community events
-- Fundraising activities
-- Information and contact services
+### Referrals & Partnerships
+- Local authority referrals
+- Organisational and community partnerships
+- Clear enquiry and referral processes
 
 ---
 
 ## How can I edit this code?
 
-There are a few ways you can edit and maintain this project.
+There are several ways to edit and maintain this project.
 
 ---
 
 ### Use your preferred IDE
 
-Work locally using your chosen development tools.
+You can work locally using your own development environment.
 
 #### Prerequisites
 - Node.js (LTS recommended)
 - npm
 - Git
 
-We recommend installing Node.js using nvm if you don’t already have it:  
+Node.js can be installed using nvm:  
 https://github.com/nvm-sh/nvm#installing-and-updating
 
 #### Steps
