@@ -160,7 +160,7 @@ const HostManagement = () => {
     if (!selectedHost) return;
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.full_name,
@@ -169,9 +169,13 @@ const HostManagement = () => {
           preferred_locations: formData.preferred_locations,
           is_active: formData.is_active,
         })
-        .eq('id', selectedHost.id);
+        .eq('id', selectedHost.id)
+        .select('id');
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Update blocked (no rows updated). Check admin RLS permissions.');
+      }
 
       toast({
         title: "Success",
