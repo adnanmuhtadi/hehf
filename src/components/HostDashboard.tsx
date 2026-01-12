@@ -32,206 +32,185 @@ const HostDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Host Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, {profile?.full_name}</p>
+      <header className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">Host Dashboard</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 sm:gap-2">
               <NotificationDropdown />
-              <Button variant="outline" onClick={() => setActiveTab('profile')}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+              <Button variant="outline" size="sm" onClick={() => setActiveTab('profile')} className="hidden sm:flex">
+                <Settings className="h-4 w-4 sm:mr-2" />
+                <span className="hidden md:inline">Settings</span>
               </Button>
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+              <Button variant="ghost" size="sm" onClick={() => setActiveTab('profile')} className="sm:hidden">
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bookings">My Bookings</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap">Bookings</TabsTrigger>
+              <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap">Calendar</TabsTrigger>
+              <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap">Profile</TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="overview" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              {/* Quick Stats Row - Mobile First */}
+              <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                {/* Host Rating - Compact */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span className="text-xs text-muted-foreground">Rating</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{profile?.rating?.toFixed(1) || '0.0'}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{profile?.rating_count || 0} reviews</p>
+                  </CardContent>
+                </Card>
+
+                {/* Pending Bookings */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Pending</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.pendingBookings}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">bookings</p>
+                  </CardContent>
+                </Card>
+
+                {/* Upcoming Arrivals */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Upcoming</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.upcomingArrivals}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">arrivals</p>
+                  </CardContent>
+                </Card>
+
+                {/* Total Students */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Hosted</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.totalStudentsHosted}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">students</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Available Bookings */}
               <div className="lg:col-span-2">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Available Bookings</CardTitle>
-                    <CardDescription>
-                      Review and respond to booking assignments
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Review and respond to assignments
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-3 sm:p-6 pt-0">
                     <HostBookingActions />
                   </CardContent>
                 </Card>
               </div>
-              <div className="space-y-6">
-              {/* Host Rating Widget */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-yellow-500" />
-                    Your Rating
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-foreground mb-2">
-                      {profile?.rating?.toFixed(1) || '0.0'}
+
+              {/* Sidebar */}
+              <div className="space-y-4">
+                {/* Host Handbook */}
+                <Card>
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">Host Handbook</span>
                     </div>
-                    <div className="flex justify-center gap-1 mb-2">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(profile?.rating || 0)
-                              ? 'text-yellow-500 fill-current'
-                              : 'text-muted-foreground'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Based on {profile?.rating_count || 0} reviews
-                    </p>
-                    <Button variant="outline" size="sm">
-                      View Feedback
+                    <Button onClick={handleDownloadHandbook} size="sm" className="w-full">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Host Handbook */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    Host Handbook
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Download your comprehensive host guide and resources
-                  </p>
-                  <Button onClick={handleDownloadHandbook} className="w-full">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Handbook
-                  </Button>
-                  {profile?.handbook_downloaded && (
-                    <Badge variant="secondary" className="text-xs">
-                      Previously downloaded
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Quick Stats */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 W-5 text-primary" />
-                    Quick Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Pending Bookings</span>
-                    <Badge variant="outline">
-                      {stats.loading ? '...' : stats.pendingBookings}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Upcoming Arrivals</span>
-                    <Badge variant="outline">
-                      {stats.loading ? '...' : stats.upcomingArrivals}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Total Students Hosted</span>
-                    <Badge variant="outline">
-                      {stats.loading ? '...' : stats.totalStudentsHosted}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Potential Earnings Widget */}
-              {((profile as any)?.rate_per_student_per_night > 0 && (profile as any)?.max_students_capacity > 0) && (
-                <Card className="border-primary/20 bg-primary/5">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <PoundSterling className="h-5 w-5 text-primary" />
-                      Potential Earnings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      £{stats.loading ? '...' : stats.totalPotentialEarnings.toFixed(2)}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Total from all upcoming bookings in your preferred locations
-                    </p>
-                    <div className="mt-3 text-xs text-muted-foreground">
-                      Based on {(profile as any)?.max_students_capacity} students × £{(profile as any)?.rate_per_student_per_night}/night
-                    </div>
                   </CardContent>
                 </Card>
-              )}
+
+                {/* Potential Earnings Widget */}
+                {((profile as any)?.rate_per_student_per_night > 0 && (profile as any)?.max_students_capacity > 0) && (
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PoundSterling className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Potential Earnings</span>
+                      </div>
+                      <div className="text-xl sm:text-2xl font-bold text-primary">
+                        £{stats.loading ? '...' : stats.totalPotentialEarnings.toFixed(2)}
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                        {(profile as any)?.max_students_capacity} students × £{(profile as any)?.rate_per_student_per_night}/night
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
 
           </TabsContent>
 
-          <TabsContent value="bookings" className="mt-6">
+          <TabsContent value="bookings" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle>My Bookings</CardTitle>
-                <CardDescription>
-                  View and respond to booking assignments
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">My Bookings</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  View and respond to assignments
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 pt-0">
                 <HostBookings />
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-6">
+          <TabsContent value="calendar" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle>My Calendar</CardTitle>
-                <CardDescription>
-                  View your upcoming and confirmed bookings
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">My Calendar</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Your upcoming bookings
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 pt-0">
                 <HostCalendar />
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
+          <TabsContent value="profile" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>
-                  Manage your account details and preferences
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Profile Settings</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Manage your account
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 pt-0">
                 <ProfileSettings />
               </CardContent>
             </Card>

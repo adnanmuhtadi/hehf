@@ -47,38 +47,36 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, {profile?.full_name}</p>
+      <header className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">Admin Dashboard</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {/* Stats Overview - Compact on mobile */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-4 sm:mb-8">
           {dashboardStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-4 pb-1 sm:pb-2">
+                  <CardTitle className="text-[10px] sm:text-sm font-medium text-muted-foreground truncate pr-1">
                     {stat.title}
                   </CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <CardContent className="p-2 sm:p-4 pt-0">
+                  <div className="text-lg sm:text-2xl font-bold text-foreground">{stat.value}</div>
                 </CardContent>
               </Card>
             );
@@ -95,19 +93,15 @@ const AdminDashboard = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="bookings" className="mt-6">
+          <TabsContent value="bookings" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Booking Management</CardTitle>
-                    <CardDescription>
-                      Create and manage student bookings and host assignments
-                    </CardDescription>
-                  </div>
-                </div>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Booking Management</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Manage student bookings and host assignments
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 pt-0">
                 {bookingView === 'list' ? (
                   <BookingManagement onViewBooking={handleViewBooking} />
                 ) : selectedBookingId ? (
@@ -121,21 +115,21 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-6">
+          <TabsContent value="calendar" className="mt-4 sm:mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Calendar View</CardTitle>
-                <CardDescription>
-                  View all bookings by date with filtering options
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Calendar View</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  View bookings by date
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-6 pt-0">
                 <BookingCalendar />
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="hosts" className="mt-6">
+          <TabsContent value="hosts" className="mt-4 sm:mt-6">
             <HostManagement />
           </TabsContent>
         </Tabs>

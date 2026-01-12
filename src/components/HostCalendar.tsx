@@ -140,20 +140,20 @@ const HostCalendar = () => {
   const pendingDates = getPendingDates();
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Calendar */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              My Booking Calendar
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
+              My Calendar
             </CardTitle>
-            <CardDescription>
-              Green dates: Accepted bookings | Orange dates: Pending responses
+            <CardDescription className="text-xs sm:text-sm">
+              Green: Accepted | Orange: Pending
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-6 pt-0">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -174,63 +174,63 @@ const HostCalendar = () => {
                   fontWeight: 'bold',
                 },
               }}
-              className="rounded-md border"
+              className="rounded-md border w-full"
             />
           </CardContent>
         </Card>
 
         {/* Selected Date Bookings */}
         <Card>
-          <CardHeader>
-            <CardTitle>
-              Bookings for {selectedDate ? format(selectedDate, 'MMMM dd, yyyy') : 'Select a date'}
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="text-sm sm:text-base">
+              {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'Select a date'}
             </CardTitle>
-            <CardDescription>
-              {dayBookings.length} booking{dayBookings.length !== 1 ? 's' : ''} on this date
+            <CardDescription className="text-xs sm:text-sm">
+              {dayBookings.length} booking{dayBookings.length !== 1 ? 's' : ''}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             {dayBookings.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {dayBookings.map(assignment => (
-                  <div key={assignment.id} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-medium">{assignment.bookings.booking_reference}</h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                  <div key={assignment.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-medium text-sm sm:text-base truncate">{assignment.bookings.booking_reference}</h4>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
                             {assignment.bookings.location}
                           </span>
                           <span className="flex items-center gap-1">
                             <Users className="h-3 w-3" />
-                            {assignment.bookings.number_of_students} students
+                            {assignment.bookings.number_of_students}
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant={getResponseBadgeVariant(assignment.response)}>
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <Badge variant={getResponseBadgeVariant(assignment.response)} className="text-xs">
                           {assignment.response}
                         </Badge>
                         {assignment.response === 'accepted' && assignment.students_assigned > 0 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px]">
                             {assignment.students_assigned} assigned
                           </Badge>
                         )}
                       </div>
                     </div>
                     
-                    <div className="text-sm">
+                    <div className="text-xs sm:text-sm">
                       <strong>Duration:</strong> {format(parseISO(assignment.bookings.arrival_date), 'MMM dd')} - 
                       {format(parseISO(assignment.bookings.departure_date), 'MMM dd, yyyy')}
                     </div>
                     
-                    <div className="text-sm">
+                    <div className="text-xs sm:text-sm">
                       <strong>Country:</strong> {assignment.bookings.country_of_students}
                     </div>
 
                     {assignment.response === 'pending' && (
-                      <div className="text-sm text-warning font-medium">
+                      <div className="text-xs sm:text-sm text-warning font-medium">
                         ⏳ Response required
                       </div>
                     )}
@@ -238,7 +238,7 @@ const HostCalendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                 {selectedDate ? 'No bookings on this date' : 'Select a date to view bookings'}
               </div>
             )}

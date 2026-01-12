@@ -294,18 +294,18 @@ const HostManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Host Management</h2>
-          <p className="text-muted-foreground">Manage all hosts in the system</p>
+          <h2 className="text-lg sm:text-2xl font-bold text-foreground">Host Management</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Manage all hosts</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
+            <Button onClick={openCreateDialog} size="sm" className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              Add New Host
+              Add Host
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
@@ -430,53 +430,53 @@ const HostManagement = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4">
+        <CardHeader className="p-3 sm:p-6">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>All Hosts ({filteredHosts.length})</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base sm:text-lg">All Hosts ({filteredHosts.length})</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   {locationFilter === 'all' && !searchQuery
-                    ? 'Complete list of hosts in the system' 
+                    ? 'Complete list' 
                     : locationFilter === 'not_set'
-                      ? 'Hosts without preferred locations'
+                      ? 'Without locations'
                       : searchQuery
-                        ? `Showing results for "${searchQuery}"`
-                        : `Hosts in ${locationFilter}`}
+                        ? `"${searchQuery}"`
+                        : `In ${locationFilter}`}
                 </CardDescription>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-4">
+              <div className="relative flex-1 sm:min-w-[200px] sm:max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name or email..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 h-9 text-sm"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[120px] h-9 text-sm">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="disabled">Disabled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={locationFilter} onValueChange={setLocationFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by location" />
+                  <SelectTrigger className="w-full sm:w-[150px] h-9 text-sm">
+                    <SelectValue placeholder="Location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Locations</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="not_set">Not Set</SelectItem>
                     {AVAILABLE_LOCATIONS.map((location) => (
                       <SelectItem key={location} value={location}>
@@ -489,144 +489,203 @@ const HostManagement = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Host Details</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Preferred Locations</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredHosts.map((host) => (
-                <TableRow key={host.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-foreground">{host.full_name}</p>
-                      <p className="text-sm text-muted-foreground flex items-center">
-                        <Mail className="mr-1 h-3 w-3" />
-                        {host.email}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {host.phone && (
-                        <p className="text-sm flex items-center">
-                          <Phone className="mr-1 h-3 w-3" />
-                          {host.phone}
+        <CardContent className="p-3 sm:p-6 pt-0">
+          {/* Desktop Table */}
+          <div className="hidden lg:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Host</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Locations</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredHosts.map((host) => (
+                  <TableRow key={host.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground">{host.full_name}</p>
+                        <p className="text-sm text-muted-foreground flex items-center">
+                          <Mail className="mr-1 h-3 w-3" />
+                          {host.email}
                         </p>
-                      )}
-                      {host.address && (
-                        <p className="text-sm flex items-center">
-                          <MapPin className="mr-1 h-3 w-3" />
-                          {host.address}
-                        </p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {host.preferred_locations && host.preferred_locations.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {host.preferred_locations.map((loc) => (
-                          <Badge key={loc} variant="outline" className="text-xs">{loc}</Badge>
-                        ))}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Not set</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Star className="mr-1 h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">{host.rating.toFixed(1)}</span>
-                      <span className="text-muted-foreground ml-1">({host.rating_count})</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {host.phone && (
+                          <p className="text-sm flex items-center">
+                            <Phone className="mr-1 h-3 w-3" />
+                            {host.phone}
+                          </p>
+                        )}
+                        {host.address && (
+                          <p className="text-sm flex items-center">
+                            <MapPin className="mr-1 h-3 w-3" />
+                            {host.address}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {host.preferred_locations && host.preferred_locations.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {host.preferred_locations.slice(0, 2).map((loc) => (
+                            <Badge key={loc} variant="outline" className="text-xs">{loc}</Badge>
+                          ))}
+                          {host.preferred_locations.length > 2 && (
+                            <Badge variant="outline" className="text-xs">+{host.preferred_locations.length - 2}</Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Not set</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Star className="mr-1 h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">{host.rating.toFixed(1)}</span>
+                        <span className="text-muted-foreground ml-1">({host.rating_count})</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={host.is_active ? "default" : "secondary"}>
+                        {host.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(host)} title="Edit">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant={host.is_active ? "outline" : "default"} size="sm" title={host.is_active ? "Disable" : "Enable"}>
+                              <Power className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{host.is_active ? 'Disable Host' : 'Enable Host'}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {host.is_active ? `Disable ${host.full_name}? They won't receive bookings.` : `Enable ${host.full_name}? They'll receive bookings again.`}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleToggleHostStatus(host)}>
+                                {host.is_active ? 'Disable' : 'Enable'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" title="Delete">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Host</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Delete {host.full_name}? This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteHost(host.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-3">
+            {filteredHosts.map((host) => (
+              <Card key={host.id} className="overflow-hidden">
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{host.full_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{host.email}</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={host.is_active ? "default" : "secondary"}>
+                    <Badge variant={host.is_active ? "default" : "secondary"} className="text-xs shrink-0">
                       {host.is_active ? 'Active' : 'Inactive'}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(host)}
-                        title="Edit host"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant={host.is_active ? "outline" : "default"} 
-                            size="sm"
-                            title={host.is_active ? "Disable host" : "Enable host"}
-                          >
-                            <Power className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {host.is_active ? 'Disable Host' : 'Enable Host'}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to {host.is_active ? 'disable' : 'enable'} {host.full_name}? 
-                              {host.is_active 
-                                ? ' They will no longer be able to receive new bookings.' 
-                                : ' They will be able to receive new bookings again.'}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleToggleHostStatus(host)}>
-                              {host.is_active ? 'Disable' : 'Enable'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" title="Delete host">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Host</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete {host.full_name}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteHost(host.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      <span>{host.rating.toFixed(1)} ({host.rating_count})</span>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    {host.phone && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        <span className="truncate">{host.phone}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {host.preferred_locations && host.preferred_locations.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {host.preferred_locations.slice(0, 3).map((loc) => (
+                        <Badge key={loc} variant="outline" className="text-[10px]">{loc}</Badge>
+                      ))}
+                      {host.preferred_locations.length > 3 && (
+                        <Badge variant="outline" className="text-[10px]">+{host.preferred_locations.length - 3}</Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => openEditDialog(host)} className="flex-1">
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant={host.is_active ? "outline" : "default"} size="sm">
+                          <Power className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{host.is_active ? 'Disable' : 'Enable'}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {host.is_active ? `Disable ${host.full_name}?` : `Enable ${host.full_name}?`}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleToggleHostStatus(host)}>{host.is_active ? 'Disable' : 'Enable'}</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
           {filteredHosts.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
               {hosts.length === 0 
-                ? 'No hosts found. Click "Add New Host" to create one.'
-                : 'No hosts match the selected filter.'}
+                ? 'No hosts found. Add one to get started.'
+                : 'No hosts match the filter.'}
             </div>
           )}
         </CardContent>
