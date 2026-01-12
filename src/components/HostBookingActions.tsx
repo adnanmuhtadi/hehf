@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2 } from 'lucide-react';
+import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling } from 'lucide-react';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 interface Booking {
@@ -31,6 +31,15 @@ const HostBookingActions = () => {
   const [loading, setLoading] = useState(true);
   const [locationFilter, setLocationFilter] = useState<string>('preferred');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Get rate and capacity from profile
+  const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
+  const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
+
+  // Calculate potential earnings for a booking
+  const calculatePotentialEarnings = (nights: number) => {
+    return ratePerStudentPerNight * nights * maxStudentsCapacity;
+  };
 
   // Helper function to calculate nights
   const calculateNights = (arrivalDate: string, departureDate: string): number => {
@@ -257,7 +266,20 @@ const HostBookingActions = () => {
                   </div>
                 </div>
 
-                {/* Show action buttons based on current response status */}
+                {/* Potential Earnings Display */}
+                {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+                  <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
+                    <PoundSterling className="h-5 w-5 text-primary" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        Potential Earnings: £{calculatePotentialEarnings(booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)).toFixed(2)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {maxStudentsCapacity} students × {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights × £{ratePerStudentPerNight}/night
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') ? (
                   <div className="flex gap-2">
                     <Button
