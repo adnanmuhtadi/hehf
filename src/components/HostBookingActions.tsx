@@ -55,8 +55,10 @@ const HostBookingActions = () => {
         .eq('booking_hosts.host_id', profile.user_id);
 
       // Apply location filter for assigned bookings
-      if (locationFilter === 'preferred' && profile.preferred_location) {
-        assignedQuery = assignedQuery.ilike('location', `%${profile.preferred_location.trim()}%`);
+      if (locationFilter === 'preferred' && profile.preferred_locations && profile.preferred_locations.length > 0) {
+        // Filter by any of the preferred locations
+        const locationFilters = profile.preferred_locations.map(loc => `location.ilike.%${loc.trim()}%`);
+        assignedQuery = assignedQuery.or(locationFilters.join(','));
       } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
         assignedQuery = assignedQuery.ilike('location', `%${locationFilter.trim()}%`);
       }
@@ -80,8 +82,10 @@ const HostBookingActions = () => {
       }
 
       // Apply location filter for available bookings
-      if (locationFilter === 'preferred' && profile.preferred_location) {
-        availableQuery = availableQuery.ilike('location', `%${profile.preferred_location.trim()}%`);
+      if (locationFilter === 'preferred' && profile.preferred_locations && profile.preferred_locations.length > 0) {
+        // Filter by any of the preferred locations
+        const locationFilters = profile.preferred_locations.map(loc => `location.ilike.%${loc.trim()}%`);
+        availableQuery = availableQuery.or(locationFilters.join(','));
       } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
         availableQuery = availableQuery.ilike('location', `%${locationFilter.trim()}%`);
       }

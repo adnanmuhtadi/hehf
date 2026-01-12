@@ -11,7 +11,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
@@ -22,7 +23,7 @@ interface Host {
   full_name: string;
   phone?: string;
   address?: string;
-  preferred_location?: string;
+  preferred_locations?: string[];
   rating: number;
   rating_count: number;
   is_active: boolean;
@@ -37,21 +38,47 @@ const HostManagement = () => {
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
     phone: '',
     address: '',
-    preferred_location: '',
+    preferred_locations: [] as string[],
     is_active: true,
   });
   const { toast } = useToast();
 
   const filteredHosts = useMemo(() => {
-    if (locationFilter === 'all') return hosts;
-    if (locationFilter === 'not_set') return hosts.filter(h => !h.preferred_location);
-    return hosts.filter(h => h.preferred_location === locationFilter);
-  }, [hosts, locationFilter]);
+    let result = hosts;
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(h => 
+        h.full_name.toLowerCase().includes(query) || 
+        h.email.toLowerCase().includes(query)
+      );
+    }
+    
+    // Filter by location
+    if (locationFilter === 'not_set') {
+      result = result.filter(h => !h.preferred_locations || h.preferred_locations.length === 0);
+    } else if (locationFilter !== 'all') {
+      result = result.filter(h => h.preferred_locations?.includes(locationFilter));
+    }
+    
+    return result;
+  }, [hosts, locationFilter, searchQuery]);
+
+  const toggleLocation = (location: string) => {
+    setFormData(prev => ({
+      ...prev,
+      preferred_locations: prev.preferred_locations.includes(location)
+        ? prev.preferred_locations.filter(l => l !== location)
+        : [...prev.preferred_locations, location]
+    }));
+  };
 
   const fetchHosts = async () => {
     try {
@@ -115,7 +142,7 @@ const HostManagement = () => {
         });
 
         setIsDialogOpen(false);
-        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_location: '', is_active: true });
+        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true });
         fetchHosts();
       }
     } catch (error: any) {
@@ -139,7 +166,7 @@ const HostManagement = () => {
           full_name: formData.full_name,
           phone: formData.phone || null,
           address: formData.address || null,
-          preferred_location: formData.preferred_location || null,
+          preferred_locations: formData.preferred_locations,
           is_active: formData.is_active,
         })
         .eq('id', selectedHost.id);
@@ -191,7 +218,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_location: '', is_active: true });
+    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true });
     setIsDialogOpen(true);
   };
 
@@ -202,7 +229,7 @@ const HostManagement = () => {
       full_name: host.full_name,
       phone: host.phone || '',
       address: host.address || '',
-      preferred_location: host.preferred_location || '',
+      preferred_locations: host.preferred_locations || [],
       is_active: host.is_active,
     });
     setIsDialogOpen(true);
@@ -280,34 +307,35 @@ const HostManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    rows={3}
-                  />
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preferred Locations</Label>
+                <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-48 overflow-y-auto">
+                  {AVAILABLE_LOCATIONS.map((location) => (
+                    <div key={location} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`location-${location}`}
+                        checked={formData.preferred_locations.includes(location)}
+                        onCheckedChange={() => toggleLocation(location)}
+                      />
+                      <Label htmlFor={`location-${location}`} className="text-sm font-normal cursor-pointer">
+                        {location}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="preferred_location">Preferred Location</Label>
-                  <Select 
-                    value={formData.preferred_location} 
-                    onValueChange={(value) => setFormData({ ...formData, preferred_location: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AVAILABLE_LOCATIONS.map((location) => (
-                        <SelectItem key={location} value={location}>
-                          {location}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select one or more locations
+                </p>
               </div>
 
               <div className="flex justify-end space-x-2">
@@ -325,33 +353,48 @@ const HostManagement = () => {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>All Hosts ({filteredHosts.length})</CardTitle>
-              <CardDescription>
-                {locationFilter === 'all' 
-                  ? 'Complete list of hosts in the system' 
-                  : locationFilter === 'not_set'
-                    ? 'Hosts without a preferred location'
-                    : `Hosts in ${locationFilter}`}
-              </CardDescription>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>All Hosts ({filteredHosts.length})</CardTitle>
+                <CardDescription>
+                  {locationFilter === 'all' && !searchQuery
+                    ? 'Complete list of hosts in the system' 
+                    : locationFilter === 'not_set'
+                      ? 'Hosts without preferred locations'
+                      : searchQuery
+                        ? `Showing results for "${searchQuery}"`
+                        : `Hosts in ${locationFilter}`}
+                </CardDescription>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filter by location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  <SelectItem value="not_set">Not Set</SelectItem>
-                  {AVAILABLE_LOCATIONS.map((location) => (
-                    <SelectItem key={location} value={location}>
-                      {location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    <SelectItem value="not_set">Not Set</SelectItem>
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -361,7 +404,7 @@ const HostManagement = () => {
               <TableRow>
                 <TableHead>Host Details</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Preferred Location</TableHead>
+                <TableHead>Preferred Locations</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -396,8 +439,12 @@ const HostManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {host.preferred_location ? (
-                      <Badge variant="outline">{host.preferred_location}</Badge>
+                    {host.preferred_locations && host.preferred_locations.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {host.preferred_locations.map((loc) => (
+                          <Badge key={loc} variant="outline" className="text-xs">{loc}</Badge>
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-muted-foreground text-sm">Not set</span>
                     )}
