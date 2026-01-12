@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 const ProfileSettings = () => {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     full_name: '',
@@ -61,6 +61,8 @@ const ProfileSettings = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      await refreshProfile();
 
       toast({
         title: "Success",
