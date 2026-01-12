@@ -10,7 +10,7 @@ interface Profile {
   role: 'admin' | 'host';
   phone?: string;
   address?: string;
-  preferred_location?: string;
+  preferred_locations?: string[];
   rating: number;
   rating_count: number;
   is_active: boolean;

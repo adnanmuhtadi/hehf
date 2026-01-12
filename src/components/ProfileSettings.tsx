@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -19,7 +19,7 @@ const ProfileSettings = () => {
     email: '',
     phone: '',
     address: '',
-    preferred_location: '',
+    preferred_locations: [] as string[],
   });
 
   useEffect(() => {
@@ -29,10 +29,19 @@ const ProfileSettings = () => {
         email: profile.email || '',
         phone: profile.phone || '',
         address: profile.address || '',
-        preferred_location: profile.preferred_location || '',
+        preferred_locations: (profile as any).preferred_locations || [],
       });
     }
   }, [profile]);
+
+  const toggleLocation = (location: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      preferred_locations: prev.preferred_locations.includes(location)
+        ? prev.preferred_locations.filter(l => l !== location)
+        : [...prev.preferred_locations, location]
+    }));
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +56,7 @@ const ProfileSettings = () => {
           full_name: profileData.full_name,
           phone: profileData.phone,
           address: profileData.address,
-          preferred_location: profileData.preferred_location,
+          preferred_locations: profileData.preferred_locations,
         })
         .eq('user_id', user.id);
 
@@ -142,26 +151,23 @@ const ProfileSettings = () => {
 
             {profile?.role === 'host' && (
               <div className="space-y-2">
-                <Label htmlFor="preferred_location">Preferred Location</Label>
-                <Select
-                  value={profileData.preferred_location}
-                  onValueChange={(value) =>
-                    setProfileData({ ...profileData, preferred_location: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your preferred location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_LOCATIONS.map((location) => (
-                      <SelectItem key={location} value={location}>
+                <Label>Preferred Locations</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border rounded-md p-3">
+                  {AVAILABLE_LOCATIONS.map((location) => (
+                    <div key={location} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`profile-location-${location}`}
+                        checked={profileData.preferred_locations.includes(location)}
+                        onCheckedChange={() => toggleLocation(location)}
+                      />
+                      <Label htmlFor={`profile-location-${location}`} className="text-sm font-normal cursor-pointer">
                         {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Choose your preferred location to receive relevant booking assignments.
+                  Select one or more locations to receive relevant booking assignments.
                 </p>
               </div>
             )}
