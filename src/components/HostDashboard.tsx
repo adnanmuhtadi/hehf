@@ -3,17 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Star, Calendar, BookOpen, Settings, LogOut, Bell } from 'lucide-react';
+import { Download, Star, Calendar, BookOpen, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useHostStats } from '@/hooks/useHostStats';
 import HostBookings from '@/components/HostBookings';
 import HostCalendar from '@/components/HostCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
 import HostBookingActions from '@/components/HostBookingActions';
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 const HostDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { stats } = useHostStats();
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleSignOut = async () => {
@@ -37,9 +40,7 @@ const HostDashboard = () => {
               <p className="text-muted-foreground">Welcome back, {profile?.full_name}</p>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon">
-                <Bell className="h-4 w-4" />
-              </Button>
+              <NotificationDropdown />
               <Button variant="outline" onClick={() => setActiveTab('profile')}>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -148,15 +149,21 @@ const HostDashboard = () => {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Pending Bookings</span>
-                    <Badge variant="outline">3</Badge>
+                    <Badge variant="outline">
+                      {stats.loading ? '...' : stats.pendingBookings}
+                    </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Upcoming Arrivals</span>
-                    <Badge variant="outline">2</Badge>
+                    <Badge variant="outline">
+                      {stats.loading ? '...' : stats.upcomingArrivals}
+                    </Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Total Students Hosted</span>
-                    <Badge variant="outline">24</Badge>
+                    <Badge variant="outline">
+                      {stats.loading ? '...' : stats.totalStudentsHosted}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
