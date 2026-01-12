@@ -447,11 +447,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      <span className="font-medium text-green-600">{booking.hosts_available || 0}</span>
                       <span className="text-muted-foreground"> / {booking.hosts_registered || 0}</span>
+                      <span className="font-medium text-green-600">{booking.hosts_available || 0}</span>
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">available / registered</p>
+                  <p className="text-xs text-muted-foreground">registered / available</p>
                 </TableCell>
                 <TableCell>{booking.country_of_students}</TableCell>
                 <TableCell>
