@@ -178,19 +178,26 @@ const HostBookings = () => {
               </div>
             )}
 
-            {/* Students Assigned & Earnings Summary */}
-            {assignment.response === 'accepted' && assignment.students_assigned > 0 && (
-              <div className="flex flex-wrap gap-2 text-sm">
-                <Badge variant="outline">
-                  {assignment.students_assigned} students assigned to you
-                </Badge>
-                {ratePerStudentPerNight > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <PoundSterling className="h-3 w-3" />
-                    Estimated: £{calculateEarnings(assignment.bookings.number_of_nights, assignment.students_assigned).toFixed(2)}
-                  </Badge>
-                )}
+            {/* Potential Earnings Summary - always show if rate is set */}
+            {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                <PoundSterling className="h-5 w-5 text-primary" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    Potential Earnings: £{calculateEarnings(assignment.bookings.number_of_nights, maxStudentsCapacity).toFixed(2)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Based on {maxStudentsCapacity} students × {assignment.bookings.number_of_nights} nights × £{ratePerStudentPerNight}/night
+                  </span>
+                </div>
               </div>
+            )}
+
+            {/* Students Assigned Info */}
+            {assignment.response === 'accepted' && assignment.students_assigned > 0 && (
+              <Badge variant="outline">
+                {assignment.students_assigned} students assigned to you
+              </Badge>
             )}
 
             {/* Action Buttons */}
