@@ -87,11 +87,13 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="bookings">Booking Management</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-            <TabsTrigger value="hosts">Host Management</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-3">
+              <TabsTrigger value="bookings" className="whitespace-nowrap text-xs sm:text-sm">Bookings</TabsTrigger>
+              <TabsTrigger value="calendar" className="whitespace-nowrap text-xs sm:text-sm">Calendar</TabsTrigger>
+              <TabsTrigger value="hosts" className="whitespace-nowrap text-xs sm:text-sm">Hosts</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="bookings" className="mt-6">
             <Card>

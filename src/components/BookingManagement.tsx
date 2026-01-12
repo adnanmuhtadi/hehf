@@ -411,12 +411,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Bookings Table */}
-      <div className="border rounded-lg">
+      {/* Bookings Table - Desktop */}
+      <div className="hidden md:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Reference</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Dates</TableHead>
               <TableHead>Hosts</TableHead>
@@ -428,10 +427,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
           <TableBody>
             {bookings.map((booking) => (
               <TableRow key={booking.id}>
-                <TableCell className="font-medium">
-                  {booking.booking_reference}
-                </TableCell>
-                <TableCell>{booking.location}</TableCell>
+                <TableCell className="font-medium">{booking.location}</TableCell>
                 <TableCell>
                   <div className="text-sm">
                     <div>{format(new Date(booking.arrival_date), 'MMM dd, yyyy')}</div>
@@ -460,21 +456,65 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onViewBooking(booking.id)}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Details
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewBooking(booking.id)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Bookings Cards - Mobile */}
+      <div className="md:hidden space-y-4">
+        {bookings.map((booking) => (
+          <Card key={booking.id} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">{booking.location}</CardTitle>
+                <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">
+                  {booking.status}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">{booking.booking_reference}</p>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground text-xs">Dates</p>
+                  <p className="font-medium">{format(new Date(booking.arrival_date), 'MMM dd')} - {format(new Date(booking.departure_date), 'MMM dd, yyyy')}</p>
+                  <p className="text-xs text-muted-foreground">{booking.number_of_nights} nights</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Country</p>
+                  <p className="font-medium">{booking.country_of_students}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-1 text-sm">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
+                  <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
+                  <span className="text-xs text-muted-foreground ml-1">hosts</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewBooking(booking.id)}
+                >
+                  <Eye className="mr-1 h-4 w-4" />
+                  View
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* View Booking Dialog */}
