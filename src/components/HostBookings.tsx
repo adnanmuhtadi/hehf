@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Calendar, MapPin, Users } from 'lucide-react';
+import { Check, X, Calendar, MapPin, Users, PoundSterling } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,9 +27,18 @@ interface BookingAssignment {
 }
 
 const HostBookings = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get rate and capacity from profile
+  const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
+  const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
+
+  // Calculate earnings for a booking
+  const calculateEarnings = (nights: number, studentsAssigned: number) => {
+    return ratePerStudentPerNight * nights * studentsAssigned;
+  };
 
   useEffect(() => {
     fetchBookingAssignments();
@@ -169,12 +178,18 @@ const HostBookings = () => {
               </div>
             )}
 
-            {/* Students Assigned */}
+            {/* Students Assigned & Earnings Summary */}
             {assignment.response === 'accepted' && assignment.students_assigned > 0 && (
-              <div className="text-sm">
+              <div className="flex flex-wrap gap-2 text-sm">
                 <Badge variant="outline">
                   {assignment.students_assigned} students assigned to you
                 </Badge>
+                {ratePerStudentPerNight > 0 && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <PoundSterling className="h-3 w-3" />
+                    Estimated: £{calculateEarnings(assignment.bookings.number_of_nights, assignment.students_assigned).toFixed(2)}
+                  </Badge>
+                )}
               </div>
             )}
 

@@ -28,6 +28,8 @@ interface Host {
   rating_count: number;
   is_active: boolean;
   handbook_downloaded: boolean;
+  rate_per_student_per_night: number;
+  max_students_capacity: number;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +49,8 @@ const HostManagement = () => {
     address: '',
     preferred_locations: [] as string[],
     is_active: true,
+    rate_per_student_per_night: 0,
+    max_students_capacity: 0,
   });
   const { toast } = useToast();
 
@@ -150,7 +154,7 @@ const HostManagement = () => {
         });
 
         setIsDialogOpen(false);
-        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true });
+        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
         fetchHosts();
       }
     } catch (error: any) {
@@ -176,6 +180,8 @@ const HostManagement = () => {
           address: formData.address || null,
           preferred_locations: formData.preferred_locations,
           is_active: formData.is_active,
+          rate_per_student_per_night: formData.rate_per_student_per_night,
+          max_students_capacity: formData.max_students_capacity,
         })
         .eq('id', selectedHost.id)
         .select('id');
@@ -264,7 +270,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true });
+    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
     setIsDialogOpen(true);
   };
 
@@ -277,6 +283,8 @@ const HostManagement = () => {
       address: host.address || '',
       preferred_locations: host.preferred_locations || [],
       is_active: host.is_active,
+      rate_per_student_per_night: host.rate_per_student_per_night || 0,
+      max_students_capacity: host.max_students_capacity || 0,
     });
     setIsDialogOpen(true);
   };
@@ -361,6 +369,30 @@ const HostManagement = () => {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={3}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                  <Input
+                    id="rate_per_student_per_night"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.rate_per_student_per_night}
+                    onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
+                  <Input
+                    id="max_students_capacity"
+                    type="number"
+                    min="0"
+                    value={formData.max_students_capacity}
+                    onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
