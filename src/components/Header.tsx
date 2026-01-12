@@ -273,9 +273,12 @@ const Header = () => {
                   )
                 )}
               </ul>
-              <div className="px-6 mt-6">
+              <div className="px-6 mt-6 space-y-3">
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/auth" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                </Button>
                 <Button asChild className="w-full">
-                  <Link to="/contact">Get Started</Link>
+                  <Link to="/contact" onClick={() => setMobileOpen(false)}>Get Started</Link>
                 </Button>
               </div>
               <div className="flex justify-center gap-4 py-6">
