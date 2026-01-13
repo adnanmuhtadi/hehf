@@ -244,6 +244,30 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
   };
 
+  const handleStatusChange = async (bookingId: string, newStatus: 'pending' | 'confirmed') => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Booking status updated to ${newStatus}`,
+      });
+
+      fetchBookings();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update booking status",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Create New Booking Dialog */}
@@ -451,9 +475,20 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                 </TableCell>
                 <TableCell>{booking.country_of_students}</TableCell>
                 <TableCell>
-                  <Badge variant={getStatusBadgeVariant(booking.status)}>
-                    {booking.status}
-                  </Badge>
+                  <Select 
+                    value={booking.status} 
+                    onValueChange={(value: 'pending' | 'confirmed') => handleStatusChange(booking.id, value)}
+                  >
+                    <SelectTrigger className="w-[130px]">
+                      <Badge variant={getStatusBadgeVariant(booking.status)} className="mr-1">
+                        {booking.status}
+                      </Badge>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <Button
@@ -478,9 +513,20 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-semibold">{booking.location}</CardTitle>
-                <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">
-                  {booking.status}
-                </Badge>
+                <Select 
+                  value={booking.status} 
+                  onValueChange={(value: 'pending' | 'confirmed') => handleStatusChange(booking.id, value)}
+                >
+                  <SelectTrigger className="w-[120px] h-7">
+                    <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">
+                      {booking.status}
+                    </Badge>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <p className="text-xs text-muted-foreground">{booking.booking_reference}</p>
             </CardHeader>
