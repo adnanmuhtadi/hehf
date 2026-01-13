@@ -106,7 +106,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (identifier: string, password: string) => {
+    let email = identifier;
+
+    // Check if the identifier looks like a phone number (not an email)
+    const isEmail = identifier.includes('@');
+    
+    if (!isEmail) {
+      // Look up the email by phone number
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('phone', identifier)
+        .single();
+
+      if (profileError || !profileData) {
+        return { error: { message: 'No account found with this phone number' } };
+      }
+      
+      email = profileData.email;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,

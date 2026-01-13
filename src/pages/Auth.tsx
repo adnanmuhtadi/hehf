@@ -16,7 +16,7 @@ const Auth = () => {
   
   // Sign In form state
   const [signInData, setSignInData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
 
@@ -32,7 +32,7 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(signInData.email, signInData.password);
+      const { error } = await signIn(signInData.identifier, signInData.password);
       
       if (error) {
         toast({
@@ -101,14 +101,14 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
+                <Label htmlFor="signin-identifier">Email or Phone Number</Label>
                 <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={signInData.email}
+                  id="signin-identifier"
+                  type="text"
+                  placeholder="Enter your email or phone number"
+                  value={signInData.identifier}
                   onChange={(e) =>
-                    setSignInData({ ...signInData, email: e.target.value })
+                    setSignInData({ ...signInData, identifier: e.target.value })
                   }
                   required
                 />
