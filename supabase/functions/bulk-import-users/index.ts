@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 interface UserImportData {
-  email: string;
+  email?: string;
   password: string;
   full_name: string;
   phone?: string;
@@ -18,7 +18,7 @@ interface UserImportData {
 }
 
 interface ImportResult {
-  email: string;
+  identifier: string;
   success: boolean;
   error?: string;
 }
@@ -80,20 +80,24 @@ Deno.serve(async (req) => {
     const results: ImportResult[] = [];
 
     for (const userData of users) {
+      const identifier = userData.email || userData.full_name || 'unknown';
       try {
         // Validate required fields
-        if (!userData.email || !userData.password || !userData.full_name) {
+        if (!userData.password || !userData.full_name) {
           results.push({
-            email: userData.email || 'unknown',
+            identifier,
             success: false,
-            error: 'Missing required fields (email, password, full_name)'
+            error: 'Missing required fields (password, full_name)'
           });
           continue;
         }
 
+        // Generate email if not provided (using full_name as basis)
+        const email = userData.email || `${userData.full_name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@host.local`;
+
         // Create user in Auth
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-          email: userData.email,
+          email: email,
           password: userData.password,
           email_confirm: true, // Auto-confirm email
           user_metadata: {
@@ -104,7 +108,7 @@ Deno.serve(async (req) => {
 
         if (authError) {
           results.push({
-            email: userData.email,
+            identifier,
             success: false,
             error: authError.message
           });
@@ -113,7 +117,7 @@ Deno.serve(async (req) => {
 
         if (!authData.user) {
           results.push({
-            email: userData.email,
+            identifier,
             success: false,
             error: 'User creation failed - no user returned'
           });
@@ -135,10 +139,10 @@ Deno.serve(async (req) => {
           .eq('user_id', authData.user.id);
 
         if (profileError) {
-          console.error('Profile update error for', userData.email, ':', profileError);
+          console.error('Profile update error for', identifier, ':', profileError);
           // User was created but profile update failed - still count as partial success
           results.push({
-            email: userData.email,
+            identifier,
             success: true,
             error: `User created but profile update failed: ${profileError.message}`
           });
@@ -155,18 +159,18 @@ Deno.serve(async (req) => {
             });
 
           if (roleError) {
-            console.error('Role insert error for', userData.email, ':', roleError);
+            console.error('Role insert error for', identifier, ':', roleError);
           }
         }
 
         results.push({
-          email: userData.email,
+          identifier,
           success: true
         });
 
       } catch (err) {
         results.push({
-          email: userData.email || 'unknown',
+          identifier,
           success: false,
           error: err instanceof Error ? err.message : 'Unknown error'
         });
