@@ -23,6 +23,7 @@ interface Host {
   full_name: string;
   phone?: string;
   address?: string;
+  pets?: string;
   preferred_locations?: string[];
   rating: number;
   rating_count: number;
@@ -47,6 +48,7 @@ const HostManagement = () => {
     full_name: '',
     phone: '',
     address: '',
+    pets: '',
     preferred_locations: [] as string[],
     is_active: true,
     rate_per_student_per_night: 0,
@@ -154,7 +156,7 @@ const HostManagement = () => {
         });
 
         setIsDialogOpen(false);
-        setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
+        setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
         fetchHosts();
       }
     } catch (error: any) {
@@ -178,6 +180,7 @@ const HostManagement = () => {
           full_name: formData.full_name,
           phone: formData.phone || null,
           address: formData.address || null,
+          pets: formData.pets || null,
           preferred_locations: formData.preferred_locations,
           is_active: formData.is_active,
           rate_per_student_per_night: formData.rate_per_student_per_night,
@@ -270,7 +273,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', full_name: '', phone: '', address: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
+    setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
     setIsDialogOpen(true);
   };
 
@@ -281,6 +284,7 @@ const HostManagement = () => {
       full_name: host.full_name,
       phone: host.phone || '',
       address: host.address || '',
+      pets: host.pets || '',
       preferred_locations: host.preferred_locations || [],
       is_active: host.is_active,
       rate_per_student_per_night: host.rate_per_student_per_night || 0,
@@ -367,7 +371,17 @@ const HostManagement = () => {
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={3}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pets">Pets</Label>
+                <Input
+                  id="pets"
+                  value={formData.pets}
+                  onChange={(e) => setFormData({ ...formData, pets: e.target.value })}
+                  placeholder="e.g., 2 cats, 1 dog"
                 />
               </div>
 
