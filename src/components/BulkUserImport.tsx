@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface UserData {
-  email: string;
+  email?: string;
   password: string;
   full_name: string;
   phone?: string;
@@ -23,7 +23,7 @@ interface UserData {
 }
 
 interface ImportResult {
-  email: string;
+  identifier: string;
   success: boolean;
   error?: string;
 }
@@ -111,7 +111,7 @@ const BulkUserImport = () => {
         }
       });
 
-      if (user.email && user.password && user.full_name) {
+      if (user.password && user.full_name) {
         users.push(user);
       }
     }
@@ -191,8 +191,8 @@ const BulkUserImport = () => {
   };
 
   const handleDownloadTemplate = () => {
-    const template = `email,password,full_name,phone,address,max_students_capacity,pets,preferred_locations,role
-john.doe@example.com,SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hatch End",host`;
+    const template = `password,full_name,phone,address,max_students_capacity,pets,preferred_locations,role,email
+SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hatch End",host,john.doe@example.com`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -229,8 +229,8 @@ john.doe@example.com,SecurePass123!,John Doe,07123456789,"123 Main Street, Londo
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs sm:text-sm">
-            CSV must include: <strong>email, password, full_name</strong>. 
-            Optional: phone, address, max_students_capacity, pets, preferred_locations, role
+            CSV must include: <strong>password, full_name</strong>. 
+            Optional: email, phone, address, max_students_capacity, pets, preferred_locations, role
           </AlertDescription>
         </Alert>
 
@@ -302,7 +302,7 @@ john.doe@example.com,SecurePass123!,John Doe,07123456789,"123 Main Street, Londo
                     className="text-xs p-2 bg-muted/50 rounded flex flex-wrap gap-2 items-center"
                   >
                     <span className="font-medium">{user.full_name}</span>
-                    <span className="text-muted-foreground">{user.email}</span>
+                    {user.email && <span className="text-muted-foreground">{user.email}</span>}
                     {user.preferred_locations && (
                       <Badge variant="secondary" className="text-[10px]">
                         {user.preferred_locations.join(', ')}
@@ -363,7 +363,7 @@ john.doe@example.com,SecurePass123!,John Doe,07123456789,"123 Main Street, Londo
                       <XCircle className="h-3 w-3 text-red-600 shrink-0 mt-0.5" />
                     )}
                     <div className="min-w-0">
-                      <span className="font-medium">{result.email}</span>
+                      <span className="font-medium">{result.identifier}</span>
                       {result.error && (
                         <p className="text-red-600 text-[10px] mt-0.5">{result.error}</p>
                       )}
