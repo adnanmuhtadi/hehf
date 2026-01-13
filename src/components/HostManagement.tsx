@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
@@ -498,6 +498,7 @@ const HostManagement = () => {
                   <TableHead>Host</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Locations</TableHead>
+                  <TableHead>Max Students</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -544,6 +545,12 @@ const HostManagement = () => {
                       ) : (
                         <span className="text-muted-foreground text-sm">Not set</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Users className="mr-1 h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{host.max_students_capacity || 0}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
@@ -632,8 +639,12 @@ const HostManagement = () => {
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       <span>{host.rating.toFixed(1)} ({host.rating_count})</span>
                     </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      <span>Max: {host.max_students_capacity || 0}</span>
+                    </div>
                     {host.phone && (
-                      <div className="flex items-center gap-1 text-muted-foreground">
+                      <div className="flex items-center gap-1 text-muted-foreground col-span-2">
                         <Phone className="h-3 w-3" />
                         <span className="truncate">{host.phone}</span>
                       </div>
