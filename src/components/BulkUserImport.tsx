@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileText, CheckCircle, XCircle, Loader2, Download, AlertCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle, XCircle, Loader2, Download, AlertCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,6 +20,8 @@ interface UserData {
   pets?: string;
   preferred_locations?: string[];
   role?: string;
+  isDuplicate?: boolean;
+  duplicateType?: 'name' | 'email' | 'both';
 }
 
 interface ImportResult {
@@ -34,6 +36,11 @@ interface ImportSummary {
   failed: number;
 }
 
+interface ExistingUser {
+  full_name: string;
+  email: string;
+}
+
 const BulkUserImport = () => {
   const [parsedUsers, setParsedUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +48,48 @@ const BulkUserImport = () => {
   const [results, setResults] = useState<ImportResult[]>([]);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [fileName, setFileName] = useState<string>('');
+  const [existingUsers, setExistingUsers] = useState<ExistingUser[]>([]);
+  const [duplicateCount, setDuplicateCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch existing users on mount
+  useEffect(() => {
+    const fetchExistingUsers = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, email');
+      
+      if (!error && data) {
+        setExistingUsers(data);
+      }
+    };
+    fetchExistingUsers();
+  }, []);
+
+  const checkDuplicates = (users: UserData[]): UserData[] => {
+    const existingNames = new Set(existingUsers.map(u => u.full_name.toLowerCase().trim()));
+    const existingEmails = new Set(existingUsers.map(u => u.email.toLowerCase().trim()));
+    
+    let dupCount = 0;
+    const usersWithDuplicateInfo = users.map(user => {
+      const nameMatch = existingNames.has(user.full_name.toLowerCase().trim());
+      const emailMatch = user.email && existingEmails.has(user.email.toLowerCase().trim());
+      
+      if (nameMatch || emailMatch) {
+        dupCount++;
+        return {
+          ...user,
+          isDuplicate: true,
+          duplicateType: (nameMatch && emailMatch) ? 'both' as const : 
+                         nameMatch ? 'name' as const : 'email' as const
+        };
+      }
+      return user;
+    });
+    
+    setDuplicateCount(dupCount);
+    return usersWithDuplicateInfo;
+  };
 
   const parseCSV = (text: string): UserData[] => {
     const lines = text.trim().split('\n');
@@ -127,11 +175,13 @@ const BulkUserImport = () => {
     setResults([]);
     setSummary(null);
     setFileName(file.name);
+    setDuplicateCount(0);
 
     try {
       const text = await file.text();
       const users = parseCSV(text);
-      setParsedUsers(users);
+      const usersWithDuplicates = checkDuplicates(users);
+      setParsedUsers(usersWithDuplicates);
 
       if (users.length === 0) {
         toast.error('No valid users found in CSV');
@@ -182,6 +232,14 @@ const BulkUserImport = () => {
       } else {
         toast.error('All imports failed');
       }
+
+      // Refresh existing users list after import
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('full_name, email');
+      if (profiles) {
+        setExistingUsers(profiles);
+      }
     } catch (error) {
       console.error('Import error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to import users');
@@ -208,8 +266,18 @@ SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hat
     setResults([]);
     setSummary(null);
     setFileName('');
+    setDuplicateCount(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const getDuplicateLabel = (type?: 'name' | 'email' | 'both') => {
+    switch (type) {
+      case 'both': return 'Name & Email exist';
+      case 'name': return 'Name exists';
+      case 'email': return 'Email exists';
+      default: return 'Duplicate';
     }
   };
 
@@ -266,6 +334,17 @@ SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hat
           )}
         </div>
 
+        {/* Duplicate Warning */}
+        {duplicateCount > 0 && !summary && (
+          <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-200">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs sm:text-sm">
+              <strong>{duplicateCount}</strong> user(s) may already exist in the system. 
+              They are marked with a warning badge below. Importing duplicates may fail or create duplicate entries.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Preview */}
         {parsedUsers.length > 0 && !summary && (
           <div className="space-y-3">
@@ -299,10 +378,22 @@ SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hat
                 {parsedUsers.slice(0, 10).map((user, index) => (
                   <div 
                     key={index} 
-                    className="text-xs p-2 bg-muted/50 rounded flex flex-wrap gap-2 items-center"
+                    className={`text-xs p-2 rounded flex flex-wrap gap-2 items-center ${
+                      user.isDuplicate 
+                        ? 'bg-amber-50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-800' 
+                        : 'bg-muted/50'
+                    }`}
                   >
+                    {user.isDuplicate && (
+                      <AlertTriangle className="h-3 w-3 text-amber-600 shrink-0" />
+                    )}
                     <span className="font-medium">{user.full_name}</span>
                     {user.email && <span className="text-muted-foreground">{user.email}</span>}
+                    {user.isDuplicate && (
+                      <Badge variant="outline" className="text-[10px] bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700">
+                        {getDuplicateLabel(user.duplicateType)}
+                      </Badge>
+                    )}
                     {user.preferred_locations && (
                       <Badge variant="secondary" className="text-[10px]">
                         {user.preferred_locations.join(', ')}
