@@ -206,6 +206,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_students_capacity: number | null
+          pets: string | null
           phone: string | null
           preferred_locations: string[] | null
           rate_per_student_per_night: number | null
@@ -224,6 +225,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
+          pets?: string | null
           phone?: string | null
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
@@ -242,6 +244,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
+          pets?: string | null
           phone?: string | null
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
