@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Auth = () => {
   const { signIn, user, loading } = useAuth();
@@ -77,6 +78,11 @@ const Auth = () => {
         </Link>
 
         <div className="text-center mb-8">
+          <img 
+            src={logo} 
+            alt="Herts & Essex Host Families" 
+            className="h-20 mx-auto mb-4"
+          />
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Herts & Essex Host Families
           </h1>
