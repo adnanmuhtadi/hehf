@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling, AlertTriangle } from 'lucide-react';
+import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
@@ -26,6 +26,11 @@ interface Booking {
   }[];
 }
 
+interface LocationBonus {
+  location: string;
+  bonus_per_night: number;
+}
+
 interface HostBookingActionsProps {
   locationFilter?: string;
   onLocationFilterChange?: (value: string) => void;
@@ -37,6 +42,7 @@ const HostBookingActions = ({
 }: HostBookingActionsProps) => {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
   const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>('preferred');
   const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
@@ -47,9 +53,21 @@ const HostBookingActions = ({
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
   const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
 
-  // Calculate potential earnings for a booking
-  const calculatePotentialEarnings = (nights: number) => {
-    return ratePerStudentPerNight * nights * maxStudentsCapacity;
+  // Get bonus for a specific location
+  const getBonusForLocation = (location: string): number => {
+    const bonus = locationBonuses.find(b => 
+      location.toLowerCase().includes(b.location.toLowerCase()) || 
+      b.location.toLowerCase().includes(location.toLowerCase())
+    );
+    return bonus?.bonus_per_night || 0;
+  };
+
+  // Calculate potential earnings for a booking (including location bonus)
+  const calculatePotentialEarnings = (nights: number, location: string) => {
+    const baseEarnings = ratePerStudentPerNight * nights * maxStudentsCapacity;
+    const bonusPerNight = getBonusForLocation(location);
+    const totalBonus = bonusPerNight * nights;
+    return { baseEarnings, totalBonus, total: baseEarnings + totalBonus };
   };
 
   // Helper function to calculate nights
@@ -112,6 +130,22 @@ const HostBookingActions = ({
       }
     }
     return null;
+  };
+
+  const fetchLocationBonuses = async () => {
+    if (!profile) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('host_location_bonuses')
+        .select('location, bonus_per_night')
+        .eq('host_id', profile.user_id);
+      
+      if (error) throw error;
+      setLocationBonuses(data || []);
+    } catch (error) {
+      console.error('Error fetching location bonuses:', error);
+    }
   };
 
   const fetchBookings = async () => {
@@ -254,6 +288,7 @@ const HostBookingActions = ({
   };
 
   useEffect(() => {
+    fetchLocationBonuses();
     fetchBookings();
   }, [profile, locationFilter]);
 
@@ -343,19 +378,34 @@ const HostBookingActions = ({
                 </div>
 
                 {/* Potential Earnings Display */}
-                {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
-                  <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
-                    <PoundSterling className="h-5 w-5 text-primary" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        Potential Earnings: £{calculatePotentialEarnings(booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)).toFixed(2)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {maxStudentsCapacity} students × {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights × £{ratePerStudentPerNight}/night
-                      </span>
+                {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (() => {
+                  const nights = booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
+                  const earnings = calculatePotentialEarnings(nights, booking.location);
+                  const hasBonus = earnings.totalBonus > 0;
+                  
+                  return (
+                    <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
+                      <PoundSterling className="h-5 w-5 text-primary" />
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            Potential Earnings: £{earnings.total.toFixed(2)}
+                          </span>
+                          {hasBonus && (
+                            <Badge variant="outline" className="border-green-500 text-green-600 text-xs flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3" />
+                              +£{earnings.totalBonus.toFixed(2)} bonus
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {maxStudentsCapacity} students × {nights} nights × £{ratePerStudentPerNight}/night
+                          {hasBonus && ` + £${getBonusForLocation(booking.location)}/night location bonus`}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
                 {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') ? (
                   <div className="space-y-2">
                     {isBlockedByConflict(booking.id) && (

@@ -12,9 +12,11 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import HostLocationBonuses from './HostLocationBonuses';
 
 interface Host {
   id: string;
@@ -312,133 +314,274 @@ const HostManagement = () => {
               Add Host
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedHost ? 'Edit Host' : 'Create New Host'}</DialogTitle>
               <DialogDescription>
-                {selectedHost ? 'Update host information' : 'Add a new host to the system'}
+                {selectedHost ? 'Update host information and manage location bonuses' : 'Add a new host to the system'}
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={selectedHost ? handleUpdateHost : handleCreateHost} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    disabled={!!selectedHost}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name</Label>
-                  <Input
-                    id="full_name"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
+            {selectedHost ? (
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="details">Host Details</TabsTrigger>
+                  <TabsTrigger value="bonuses">
+                    <PoundSterling className="h-4 w-4 mr-1" />
+                    Location Bonuses
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="mt-4">
+                  <form onSubmit={handleUpdateHost} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          disabled
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Full Name</Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2 flex items-center">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="is_active"
+                            checked={formData.is_active}
+                            onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                          />
+                          <Label htmlFor="is_active">Active</Label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address</Label>
+                      <Textarea
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="pets">Pets</Label>
+                      <Input
+                        id="pets"
+                        value={formData.pets}
+                        onChange={(e) => setFormData({ ...formData, pets: e.target.value })}
+                        placeholder="e.g., 2 cats, 1 dog"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                        <Input
+                          id="rate_per_student_per_night"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.rate_per_student_per_night}
+                          onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
+                        <Input
+                          id="max_students_capacity"
+                          type="number"
+                          min="0"
+                          value={formData.max_students_capacity}
+                          onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Preferred Locations</Label>
+                      <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-48 overflow-y-auto">
+                        {AVAILABLE_LOCATIONS.map((location) => (
+                          <div key={location} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`location-${location}`}
+                              checked={formData.preferred_locations.includes(location)}
+                              onCheckedChange={() => toggleLocation(location)}
+                            />
+                            <Label htmlFor={`location-${location}`} className="text-sm font-normal cursor-pointer">
+                              {location}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Select one or more locations
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">Update Host</Button>
+                    </div>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="bonuses" className="mt-4">
+                  <HostLocationBonuses 
+                    hostId={selectedHost.user_id} 
+                    hostName={selectedHost.full_name} 
                   />
-                </div>
-                <div className="space-y-2 flex items-center">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_active"
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  <div className="flex justify-end mt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Close
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <form onSubmit={handleCreateHost} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                     />
-                    <Label htmlFor="is_active">Active</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      required
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pets">Pets</Label>
-                <Input
-                  id="pets"
-                  value={formData.pets}
-                  onChange={(e) => setFormData({ ...formData, pets: e.target.value })}
-                  placeholder="e.g., 2 cats, 1 dog"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
-                  <Input
-                    id="rate_per_student_per_night"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.rate_per_student_per_night}
-                    onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
-                  <Input
-                    id="max_students_capacity"
-                    type="number"
-                    min="0"
-                    value={formData.max_students_capacity}
-                    onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Preferred Locations</Label>
-                <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-48 overflow-y-auto">
-                  {AVAILABLE_LOCATIONS.map((location) => (
-                    <div key={location} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`location-${location}`}
-                        checked={formData.preferred_locations.includes(location)}
-                        onCheckedChange={() => toggleLocation(location)}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2 flex items-center">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_active"
+                        checked={formData.is_active}
+                        onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                       />
-                      <Label htmlFor={`location-${location}`} className="text-sm font-normal cursor-pointer">
-                        {location}
-                      </Label>
+                      <Label htmlFor="is_active">Active</Label>
                     </div>
-                  ))}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Select one or more locations
-                </p>
-              </div>
 
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {selectedHost ? 'Update Host' : 'Create Host'}
-                </Button>
-              </div>
-            </form>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pets">Pets</Label>
+                  <Input
+                    id="pets"
+                    value={formData.pets}
+                    onChange={(e) => setFormData({ ...formData, pets: e.target.value })}
+                    placeholder="e.g., 2 cats, 1 dog"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                    <Input
+                      id="rate_per_student_per_night"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.rate_per_student_per_night}
+                      onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
+                    <Input
+                      id="max_students_capacity"
+                      type="number"
+                      min="0"
+                      value={formData.max_students_capacity}
+                      onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Preferred Locations</Label>
+                  <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-48 overflow-y-auto">
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <div key={location} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`location-create-${location}`}
+                          checked={formData.preferred_locations.includes(location)}
+                          onCheckedChange={() => toggleLocation(location)}
+                        />
+                        <Label htmlFor={`location-create-${location}`} className="text-sm font-normal cursor-pointer">
+                          {location}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select one or more locations
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create Host</Button>
+                </div>
+              </form>
+            )}
           </DialogContent>
         </Dialog>
       </div>

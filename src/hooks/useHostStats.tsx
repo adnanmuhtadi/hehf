@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+interface LocationBonus {
+  location: string;
+  bonus_per_night: number;
+}
+
 interface HostStats {
   pendingBookings: number;
   upcomingArrivals: number;
@@ -30,6 +35,27 @@ export const useHostStats = (locationFilter?: string) => {
       const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
       const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
       const preferredLocations = (profile as any)?.preferred_locations || [];
+
+      // Fetch location bonuses for this host
+      const { data: locationBonuses } = await supabase
+        .from('host_location_bonuses')
+        .select('location, bonus_per_night')
+        .eq('host_id', user.id);
+
+      const bonusMap = new Map<string, number>();
+      (locationBonuses || []).forEach((b: LocationBonus) => {
+        bonusMap.set(b.location.toLowerCase(), b.bonus_per_night);
+      });
+
+      // Helper to get bonus for a location
+      const getBonusForLocation = (location: string): number => {
+        for (const [bonusLoc, bonus] of bonusMap.entries()) {
+          if (location.toLowerCase().includes(bonusLoc) || bonusLoc.includes(location.toLowerCase())) {
+            return bonus;
+          }
+        }
+        return 0;
+      };
 
       // Fetch pending bookings (bookings where host hasn't responded yet)
       const { count: pendingCount } = await supabase
@@ -94,7 +120,9 @@ export const useHostStats = (locationFilter?: string) => {
                     new Date(booking.arrival_date).getTime()) /
                     (1000 * 60 * 60 * 24)
                 );
-              return sum + ratePerStudentPerNight * maxStudentsCapacity * nights;
+              const baseEarnings = ratePerStudentPerNight * maxStudentsCapacity * nights;
+              const locationBonus = getBonusForLocation(booking.location) * nights;
+              return sum + baseEarnings + locationBonus;
             }, 0);
           }
         }
