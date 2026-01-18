@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling } from 'lucide-react';
+import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling, AlertTriangle } from 'lucide-react';
+import { useMemo } from 'react';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 
 interface Booking {
@@ -57,6 +58,60 @@ const HostBookingActions = ({
     const departure = new Date(departureDate);
     const diffTime = Math.abs(departure.getTime() - arrival.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Check if two date ranges overlap
+  const datesOverlap = (
+    start1: string,
+    end1: string,
+    start2: string,
+    end2: string
+  ): boolean => {
+    const s1 = new Date(start1).getTime();
+    const e1 = new Date(end1).getTime();
+    const s2 = new Date(start2).getTime();
+    const e2 = new Date(end2).getTime();
+    return s1 < e2 && s2 < e1;
+  };
+
+  // Build a map of booking ID -> list of conflicting booking IDs
+  const conflictMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (let i = 0; i < bookings.length; i++) {
+      const a = bookings[i];
+      const conflicts: string[] = [];
+      for (let j = 0; j < bookings.length; j++) {
+        if (i === j) continue;
+        const b = bookings[j];
+        if (datesOverlap(a.arrival_date, a.departure_date, b.arrival_date, b.departure_date)) {
+          conflicts.push(b.id);
+        }
+      }
+      if (conflicts.length > 0) map.set(a.id, conflicts);
+    }
+    return map;
+  }, [bookings]);
+
+  // Check if accepting this booking is blocked (another conflicting one already accepted)
+  const isBlockedByConflict = (bookingId: string): boolean => {
+    const conflicts = conflictMap.get(bookingId);
+    if (!conflicts) return false;
+    return conflicts.some((cId) => {
+      const cBooking = bookings.find((b) => b.id === cId);
+      return cBooking?.booking_hosts?.[0]?.response === 'accepted';
+    });
+  };
+
+  const getConflictingAcceptedRef = (bookingId: string): string | null => {
+    const conflicts = conflictMap.get(bookingId);
+    if (!conflicts) return null;
+    for (const cId of conflicts) {
+      const cBooking = bookings.find((b) => b.id === cId);
+      if (cBooking?.booking_hosts?.[0]?.response === 'accepted') {
+        return cBooking.booking_reference;
+      }
+    }
+    return null;
   };
 
   const fetchBookings = async () => {
@@ -248,10 +303,21 @@ const HostBookingActions = ({
       ) : (
         <div className="grid gap-4">
           {bookings.map((booking) => (
-            <Card key={booking.id}>
+            <Card
+              key={booking.id}
+              className={conflictMap.has(booking.id) ? 'border-amber-400' : ''}
+            >
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{booking.booking_reference}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">{booking.booking_reference}</CardTitle>
+                    {conflictMap.has(booking.id) && (
+                      <Badge variant="outline" className="border-amber-400 text-amber-600 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Conflict
+                      </Badge>
+                    )}
+                  </div>
                   {getResponseBadge(booking.booking_hosts?.[0]?.response || 'pending')}
                 </div>
                 <CardDescription>
@@ -291,27 +357,37 @@ const HostBookingActions = ({
                   </div>
                 )}
                 {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') ? (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="success"
-                      onClick={() => handleBookingResponse(booking.id, 'accepted')}
-                      disabled={actionLoading === booking.id}
-                      className="flex items-center gap-2"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      Available
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleBookingResponse(booking.id, 'ignored')}
-                      disabled={actionLoading === booking.id}
-                      className="flex items-center gap-2"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      Unavailable
-                    </Button>
+                  <div className="space-y-2">
+                    {isBlockedByConflict(booking.id) && (
+                      <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-sm">
+                        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                        <span>
+                          You already marked <strong>{getConflictingAcceptedRef(booking.id)}</strong> as available for these dates. Mark it unavailable first to select this one.
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="success"
+                        onClick={() => handleBookingResponse(booking.id, 'accepted')}
+                        disabled={actionLoading === booking.id || isBlockedByConflict(booking.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        Available
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleBookingResponse(booking.id, 'ignored')}
+                        disabled={actionLoading === booking.id}
+                        className="flex items-center gap-2"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Unavailable
+                      </Button>
+                    </div>
                   </div>
                 ) : booking.booking_hosts?.[0]?.response === 'accepted' ? (
                   <div className="flex items-center gap-3">
