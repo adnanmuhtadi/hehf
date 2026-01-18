@@ -25,11 +25,21 @@ interface Booking {
   }[];
 }
 
-const HostBookingActions = () => {
+interface HostBookingActionsProps {
+  locationFilter?: string;
+  onLocationFilterChange?: (value: string) => void;
+}
+
+const HostBookingActions = ({
+  locationFilter: controlledLocationFilter,
+  onLocationFilterChange,
+}: HostBookingActionsProps) => {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [locationFilter, setLocationFilter] = useState<string>('preferred');
+  const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>('preferred');
+  const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
+  const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Get rate and capacity from profile

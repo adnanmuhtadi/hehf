@@ -10,7 +10,7 @@ interface HostStats {
   loading: boolean;
 }
 
-export const useHostStats = () => {
+export const useHostStats = (locationFilter?: string) => {
   const { user, profile } = useAuth();
   const [stats, setStats] = useState<HostStats>({
     pendingBookings: 0,
@@ -58,27 +58,45 @@ export const useHostStats = () => {
 
       const totalStudents = studentsData?.reduce((sum, item) => sum + (item.students_assigned || 0), 0) || 0;
 
-      // Fetch all available bookings in preferred locations for potential earnings
+      // Fetch all available bookings (scoped by the current location filter) for potential earnings
       let potentialEarnings = 0;
-      if (ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && preferredLocations.length > 0) {
-        // Build query for bookings in preferred locations
+      if (ratePerStudentPerNight > 0 && maxStudentsCapacity > 0) {
+        const filter = (locationFilter || 'preferred').trim();
+        let shouldFetch = true;
+
         let bookingsQuery = supabase
           .from('bookings')
-          .select('number_of_nights, arrival_date, departure_date')
+          .select('number_of_nights, arrival_date, departure_date, location')
           .gte('arrival_date', today);
 
-        // Filter by preferred locations
-        const locationFilters = preferredLocations.map((loc: string) => `location.ilike.%${loc.trim()}%`);
-        bookingsQuery = bookingsQuery.or(locationFilters.join(','));
+        if (filter === 'preferred') {
+          if (preferredLocations.length === 0) {
+            shouldFetch = false;
+          } else {
+            const locationFilters = preferredLocations.map(
+              (loc: string) => `location.ilike.%${loc.trim()}%`
+            );
+            bookingsQuery = bookingsQuery.or(locationFilters.join(','));
+          }
+        } else if (filter !== 'all') {
+          bookingsQuery = bookingsQuery.ilike('location', `%${filter}%`);
+        }
 
-        const { data: availableBookings } = await bookingsQuery;
+        if (shouldFetch) {
+          const { data: availableBookings } = await bookingsQuery;
 
-        if (availableBookings) {
-          potentialEarnings = availableBookings.reduce((sum, booking) => {
-            const nights = booking.number_of_nights || 
-              Math.ceil((new Date(booking.departure_date).getTime() - new Date(booking.arrival_date).getTime()) / (1000 * 60 * 60 * 24));
-            return sum + (ratePerStudentPerNight * maxStudentsCapacity * nights);
-          }, 0);
+          if (availableBookings) {
+            potentialEarnings = availableBookings.reduce((sum, booking) => {
+              const nights =
+                booking.number_of_nights ||
+                Math.ceil(
+                  (new Date(booking.departure_date).getTime() -
+                    new Date(booking.arrival_date).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                );
+              return sum + ratePerStudentPerNight * maxStudentsCapacity * nights;
+            }, 0);
+          }
         }
       }
 
@@ -97,7 +115,7 @@ export const useHostStats = () => {
 
   useEffect(() => {
     fetchStats();
-  }, [user]);
+  }, [user, profile, locationFilter]);
 
   return { stats, refetchStats: fetchStats };
 };
