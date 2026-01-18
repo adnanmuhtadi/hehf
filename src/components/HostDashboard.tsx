@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Star, Calendar, BookOpen, Settings, LogOut, PoundSterling, Sparkles } from 'lucide-react';
+import { Download, Star, Calendar, BookOpen, Settings, LogOut, PoundSterling } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -12,7 +12,6 @@ import HostCalendar from '@/components/HostCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
 import HostBookingActions from '@/components/HostBookingActions';
 import NotificationDropdown from '@/components/NotificationDropdown';
-import OptimizedBookings from '@/components/OptimizedBookings';
 
 const HostDashboard = () => {
   const { profile, signOut } = useAuth();
@@ -62,12 +61,8 @@ const HostDashboard = () => {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4">
               <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
-              <TabsTrigger value="optimized" className="text-xs sm:text-sm whitespace-nowrap flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                Optimized
-              </TabsTrigger>
               <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap">Bookings</TabsTrigger>
               <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap">Calendar</TabsTrigger>
               <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap">Profile</TabsTrigger>
@@ -181,23 +176,6 @@ const HostDashboard = () => {
               </div>
             </div>
 
-          </TabsContent>
-
-          <TabsContent value="optimized" className="mt-4 sm:mt-6">
-            <Card>
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  Optimized Bookings
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  AI-calculated best booking combination to maximize your earnings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6 pt-0">
-                <OptimizedBookings />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="bookings" className="mt-4 sm:mt-6">
