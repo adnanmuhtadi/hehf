@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, Plus, Eye, Users, Check, X, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { CalendarIcon, Plus, Eye, Users, Check, X, ArrowUpDown, ArrowUp, ArrowDown, Filter, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -56,6 +56,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isViewBookingOpen, setIsViewBookingOpen] = useState(false);
+  const [isEditBookingOpen, setIsEditBookingOpen] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Filter states
@@ -154,6 +156,18 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
   const hasActiveFilters = locationFilter !== 'all' || statusFilter !== 'all' || countryFilter !== '';
 
+  // Edit booking state
+  const [editBookingForm, setEditBookingForm] = useState({
+    booking_reference: '',
+    arrival_date: undefined as Date | undefined,
+    departure_date: undefined as Date | undefined,
+    location: '',
+    country_of_students: '',
+    number_of_students: 1,
+    notes: '',
+    status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
+  });
+
   // Calculate nights automatically
   const calculateNights = (arrival: Date | undefined, departure: Date | undefined): number => {
     if (!arrival || !departure) return 0;
@@ -162,6 +176,71 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   };
 
   const nights = calculateNights(newBooking.arrival_date, newBooking.departure_date);
+  const editNights = calculateNights(editBookingForm.arrival_date, editBookingForm.departure_date);
+
+  const handleEditBooking = (booking: Booking) => {
+    setEditingBooking(booking);
+    setEditBookingForm({
+      booking_reference: booking.booking_reference,
+      arrival_date: new Date(booking.arrival_date),
+      departure_date: new Date(booking.departure_date),
+      location: booking.location,
+      country_of_students: booking.country_of_students,
+      number_of_students: booking.number_of_students,
+      notes: booking.notes || '',
+      status: booking.status,
+    });
+    setIsEditBookingOpen(true);
+  };
+
+  const handleUpdateBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBooking || !editBookingForm.arrival_date || !editBookingForm.departure_date) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all required fields",
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          booking_reference: editBookingForm.booking_reference,
+          arrival_date: editBookingForm.arrival_date.toISOString().split('T')[0],
+          departure_date: editBookingForm.departure_date.toISOString().split('T')[0],
+          location: editBookingForm.location,
+          country_of_students: editBookingForm.country_of_students,
+          number_of_students: editBookingForm.number_of_students,
+          notes: editBookingForm.notes || null,
+          status: editBookingForm.status,
+        })
+        .eq('id', editingBooking.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Booking updated successfully",
+      });
+
+      setIsEditBookingOpen(false);
+      setEditingBooking(null);
+      fetchBookings();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchBookings();
@@ -693,14 +772,24 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onViewBooking(booking.id)}
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditBooking(booking)}
+                    >
+                      <Pencil className="mr-1 h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onViewBooking(booking.id)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      View
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
@@ -759,14 +848,24 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
                   <span className="text-xs text-muted-foreground ml-1">hosts</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewBooking(booking.id)}
-                >
-                  <Eye className="mr-1 h-4 w-4" />
-                  View
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditBooking(booking)}
+                  >
+                    <Pencil className="mr-1 h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewBooking(booking.id)}
+                  >
+                    <Eye className="mr-1 h-4 w-4" />
+                    View
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -854,6 +953,147 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </Card>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditBookingOpen} onOpenChange={setIsEditBookingOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Booking</DialogTitle>
+            <DialogDescription>
+              Update booking details. Changes will be saved immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateBooking} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-booking-ref">Booking Reference</Label>
+                <Input
+                  id="edit-booking-ref"
+                  value={editBookingForm.booking_reference}
+                  onChange={(e) => setEditBookingForm({ ...editBookingForm, booking_reference: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-location">Location</Label>
+                <Select 
+                  value={editBookingForm.location} 
+                  onValueChange={(value) => setEditBookingForm({ ...editBookingForm, location: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Arrival Date</Label>
+                <Input
+                  type="date"
+                  value={editBookingForm.arrival_date ? editBookingForm.arrival_date.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setEditBookingForm({ ...editBookingForm, arrival_date: date });
+                  }}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Departure Date</Label>
+                <Input
+                  type="date"
+                  value={editBookingForm.departure_date ? editBookingForm.departure_date.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setEditBookingForm({ ...editBookingForm, departure_date: date });
+                  }}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-country">Country</Label>
+                <Input
+                  id="edit-country"
+                  value={editBookingForm.country_of_students}
+                  onChange={(e) => setEditBookingForm({ ...editBookingForm, country_of_students: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-students">Students</Label>
+                <Input
+                  id="edit-students"
+                  type="number"
+                  min="1"
+                  value={editBookingForm.number_of_students}
+                  onChange={(e) => setEditBookingForm({ ...editBookingForm, number_of_students: parseInt(e.target.value) || 1 })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-nights">Nights</Label>
+                <Input
+                  id="edit-nights"
+                  type="number"
+                  value={editNights}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status</Label>
+                <Select 
+                  value={editBookingForm.status} 
+                  onValueChange={(value: 'pending' | 'confirmed' | 'cancelled' | 'completed') => 
+                    setEditBookingForm({ ...editBookingForm, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                placeholder="Additional information about the booking..."
+                value={editBookingForm.notes}
+                onChange={(e) => setEditBookingForm({ ...editBookingForm, notes: e.target.value })}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditBookingOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
