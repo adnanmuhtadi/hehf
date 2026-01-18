@@ -122,8 +122,8 @@ const HostDashboard = () => {
                 </Card>
               </div>
 
-              {/* Sidebar - Shows first on mobile */}
-              <div className="space-y-4 order-first lg:order-last">
+              {/* Sidebar - Shows after tiles on mobile, in sidebar on desktop */}
+              <div className="space-y-4 order-none lg:order-last">
                 {/* Host Handbook */}
                 <Card>
                   <CardContent className="p-3 sm:p-4">
