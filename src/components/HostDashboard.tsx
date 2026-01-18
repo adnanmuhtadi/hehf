@@ -122,26 +122,8 @@ const HostDashboard = () => {
                 </Card>
               </div>
 
-              {/* Available Bookings */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader className="p-3 sm:p-6">
-                    <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Review and respond to assignments
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-3 sm:p-6 pt-0">
-                    <HostBookingActions
-                      locationFilter={locationFilter}
-                      onLocationFilterChange={setLocationFilter}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-4">
+              {/* Sidebar - Shows first on mobile */}
+              <div className="space-y-4 order-first lg:order-last">
                 {/* Host Handbook */}
                 <Card>
                   <CardContent className="p-3 sm:p-4">
@@ -173,6 +155,24 @@ const HostDashboard = () => {
                     </CardContent>
                   </Card>
                 )}
+              </div>
+
+              {/* Available Bookings */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Review and respond to assignments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6 pt-0">
+                    <HostBookingActions
+                      locationFilter={locationFilter}
+                      onLocationFilterChange={setLocationFilter}
+                    />
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
