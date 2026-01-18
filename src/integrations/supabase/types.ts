@@ -110,6 +110,41 @@ export type Database = {
         }
         Relationships: []
       }
+      host_location_bonuses: {
+        Row: {
+          bonus_per_night: number
+          created_at: string | null
+          host_id: string
+          id: string
+          location: string
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_per_night?: number
+          created_at?: string | null
+          host_id: string
+          id?: string
+          location: string
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_per_night?: number
+          created_at?: string | null
+          host_id?: string
+          id?: string
+          location?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_location_bonuses_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       host_ratings: {
         Row: {
           booking_id: string
