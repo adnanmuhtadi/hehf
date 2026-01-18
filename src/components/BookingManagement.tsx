@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, Plus, Eye, Users, Check, X } from 'lucide-react';
+import { CalendarIcon, Plus, Eye, Users, Check, X, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+
+type SortField = 'location' | 'arrival_date' | 'country_of_students' | 'status' | 'hosts_available';
+type SortDirection = 'asc' | 'desc';
 
 interface Booking {
   id: string;
@@ -55,6 +58,15 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [isViewBookingOpen, setIsViewBookingOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Filter states
+  const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('');
+  
+  // Sort states
+  const [sortField, setSortField] = useState<SortField>('arrival_date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
   const [newBooking, setNewBooking] = useState({
     booking_reference: '',
     arrival_date: undefined as Date | undefined,
@@ -64,6 +76,83 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     number_of_students: 1,
     notes: '',
   });
+
+  // Get unique countries from bookings
+  const uniqueCountries = useMemo(() => {
+    const countries = [...new Set(bookings.map(b => b.country_of_students))];
+    return countries.sort();
+  }, [bookings]);
+
+  // Filter and sort bookings
+  const filteredAndSortedBookings = useMemo(() => {
+    let result = [...bookings];
+
+    // Apply filters
+    if (locationFilter !== 'all') {
+      result = result.filter(b => b.location === locationFilter);
+    }
+    if (statusFilter !== 'all') {
+      result = result.filter(b => b.status === statusFilter);
+    }
+    if (countryFilter) {
+      result = result.filter(b => 
+        b.country_of_students.toLowerCase().includes(countryFilter.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'location':
+          comparison = a.location.localeCompare(b.location);
+          break;
+        case 'arrival_date':
+          comparison = new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime();
+          break;
+        case 'country_of_students':
+          comparison = a.country_of_students.localeCompare(b.country_of_students);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case 'hosts_available':
+          comparison = (a.hosts_available || 0) - (b.hosts_available || 0);
+          break;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return result;
+  }, [bookings, locationFilter, statusFilter, countryFilter, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-1 h-4 w-4 text-muted-foreground" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-1 h-4 w-4" /> 
+      : <ArrowDown className="ml-1 h-4 w-4" />;
+  };
+
+  const clearFilters = () => {
+    setLocationFilter('all');
+    setStatusFilter('all');
+    setCountryFilter('');
+  };
+
+  const hasActiveFilters = locationFilter !== 'all' || statusFilter !== 'all' || countryFilter !== '';
 
   // Calculate nights automatically
   const calculateNights = (arrival: Date | undefined, departure: Date | undefined): number => {
@@ -435,21 +524,134 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* Filters Section */}
+      <Card className="border-dashed">
+        <CardContent className="pt-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              Filters
+            </div>
+            
+            <div className="flex-1 min-w-[150px] max-w-[200px]">
+              <Label className="text-xs text-muted-foreground">Location</Label>
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="All locations" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All locations</SelectItem>
+                  {AVAILABLE_LOCATIONS.map((location) => (
+                    <SelectItem key={location} value={location}>
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[130px] max-w-[160px]">
+              <Label className="text-xs text-muted-foreground">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex-1 min-w-[150px] max-w-[200px]">
+              <Label className="text-xs text-muted-foreground">Country</Label>
+              <Input
+                placeholder="Search country..."
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+                className="h-9"
+              />
+            </div>
+
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+                <X className="mr-1 h-4 w-4" />
+                Clear
+              </Button>
+            )}
+
+            <div className="ml-auto text-sm text-muted-foreground">
+              Showing {filteredAndSortedBookings.length} of {bookings.length} bookings
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Bookings Table - Desktop */}
       <div className="hidden md:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Location</TableHead>
-              <TableHead>Dates</TableHead>
-              <TableHead>Hosts</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort('location')}
+              >
+                <div className="flex items-center">
+                  Location
+                  {getSortIcon('location')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort('arrival_date')}
+              >
+                <div className="flex items-center">
+                  Dates
+                  {getSortIcon('arrival_date')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort('hosts_available')}
+              >
+                <div className="flex items-center">
+                  Hosts
+                  {getSortIcon('hosts_available')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort('country_of_students')}
+              >
+                <div className="flex items-center">
+                  Country
+                  {getSortIcon('country_of_students')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center">
+                  Status
+                  {getSortIcon('status')}
+                </div>
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bookings.map((booking) => (
+            {filteredAndSortedBookings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  {hasActiveFilters ? 'No bookings match your filters' : 'No bookings found'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredAndSortedBookings.map((booking) => (
               <TableRow key={booking.id}>
                 <TableCell className="font-medium">{booking.location}</TableCell>
                 <TableCell>
@@ -501,14 +703,22 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Bookings Cards - Mobile */}
       <div className="md:hidden space-y-4">
-        {bookings.map((booking) => (
+        {filteredAndSortedBookings.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              {hasActiveFilters ? 'No bookings match your filters' : 'No bookings found'}
+            </CardContent>
+          </Card>
+        ) : (
+          filteredAndSortedBookings.map((booking) => (
           <Card key={booking.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -560,7 +770,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))
+        )}
       </div>
 
       {/* View Booking Dialog */}
