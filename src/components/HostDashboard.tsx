@@ -16,8 +16,9 @@ import NotificationDropdown from '@/components/NotificationDropdown';
 const HostDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const { stats } = useHostStats();
   const [activeTab, setActiveTab] = useState('overview');
+  const [locationFilter, setLocationFilter] = useState<string>('preferred');
+  const { stats } = useHostStats(locationFilter);
 
   const handleSignOut = async () => {
     await signOut();
@@ -131,7 +132,10 @@ const HostDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0">
-                    <HostBookingActions />
+                    <HostBookingActions
+                      locationFilter={locationFilter}
+                      onLocationFilterChange={setLocationFilter}
+                    />
                   </CardContent>
                 </Card>
               </div>
