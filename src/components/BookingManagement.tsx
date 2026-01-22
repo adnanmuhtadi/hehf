@@ -11,7 +11,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, Plus, Eye, Users, Check, X, ArrowUpDown, ArrowUp, ArrowDown, Filter, Pencil } from 'lucide-react';
+import { CalendarIcon, Plus, Eye, Users, Check, X, ArrowUpDown, ArrowUp, ArrowDown, Filter, Pencil, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -58,6 +59,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [isViewBookingOpen, setIsViewBookingOpen] = useState(false);
   const [isEditBookingOpen, setIsEditBookingOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Filter states
@@ -436,6 +438,42 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
   };
 
+  const handleDeleteBooking = async (bookingId: string) => {
+    setDeletingBookingId(bookingId);
+    try {
+      // First delete related booking_hosts
+      const { error: hostsError } = await supabase
+        .from('booking_hosts')
+        .delete()
+        .eq('booking_id', bookingId);
+
+      if (hostsError) throw hostsError;
+
+      // Then delete the booking
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Booking deleted successfully",
+      });
+
+      fetchBookings();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete booking",
+      });
+    } finally {
+      setDeletingBookingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Create New Booking Dialog */}
@@ -789,6 +827,34 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                       <Eye className="mr-1 h-4 w-4" />
                       View
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this booking? This action cannot be undone and will also remove all host assignments.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteBooking(booking.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>
@@ -865,6 +931,34 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                     <Eye className="mr-1 h-4 w-4" />
                     View
                   </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this booking? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteBooking(booking.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>
