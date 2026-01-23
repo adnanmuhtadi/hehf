@@ -455,7 +455,22 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
               <Users className="h-5 w-5 text-muted-foreground" />
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Students</Label>
-                <p className="text-sm font-medium">{booking.number_of_students}</p>
+                <p className="text-sm font-medium">
+                  {booking.number_of_students}
+                  {(() => {
+                    const totalCapacity = bookingHosts
+                      .filter((h) => h.response === "accepted")
+                      .reduce((sum, h) => {
+                        const capacity = booking.bed_type === "shared_beds"
+                          ? h.profiles.shared_bed_capacity || 0
+                          : h.profiles.single_bed_capacity || 0;
+                        return sum + capacity;
+                      }, 0);
+                    return totalCapacity > 0 ? (
+                      <span className="text-muted-foreground"> ({totalCapacity} can be hosted)</span>
+                    ) : null;
+                  })()}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
