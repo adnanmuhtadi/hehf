@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import HostLocationBonuses from './HostLocationBonuses';
@@ -277,6 +277,53 @@ const HostManagement = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete host",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetPassword = async (host: Host) => {
+    try {
+      // Get first name from full_name
+      const firstName = host.full_name.split(' ')[0] || host.full_name;
+      
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
+      const response = await fetch(
+        `https://rivswwdjhwgnnqqlysjh.supabase.co/functions/v1/reset-host-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            host_user_id: host.user_id,
+            first_name: firstName,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to reset password');
+      }
+
+      toast({
+        title: "Password Reset",
+        description: `Password reset to: ${result.password}`,
+      });
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password",
         variant: "destructive",
       });
     }
@@ -795,6 +842,28 @@ const HostManagement = () => {
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" title="Reset Password">
+                              <KeyRound className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Reset {host.full_name}'s password to their first name + 1234?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleResetPassword(host)}>
+                                Reset Password
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
                             <Button variant={host.is_active ? "outline" : "default"} size="sm" title={host.is_active ? "Disable" : "Enable"}>
                               <Power className="h-4 w-4" />
                             </Button>
@@ -888,6 +957,25 @@ const HostManagement = () => {
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" title="Reset Password">
+                          <KeyRound className="h-3 w-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Reset {host.full_name}'s password?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleResetPassword(host)}>Reset</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant={host.is_active ? "outline" : "default"} size="sm">
