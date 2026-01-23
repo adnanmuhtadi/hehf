@@ -179,6 +179,7 @@ const HostManagement = () => {
       const { data, error } = await supabase
         .from('profiles')
         .update({
+          email: formData.email,
           full_name: formData.full_name,
           phone: formData.phone || null,
           address: formData.address || null,
@@ -342,7 +343,6 @@ const HostManagement = () => {
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          disabled
                           required
                         />
                       </div>
