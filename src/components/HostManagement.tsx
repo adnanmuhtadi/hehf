@@ -31,6 +31,8 @@ interface Host {
   handbook_downloaded: boolean;
   rate_per_student_per_night: number;
   max_students_capacity: number;
+  shared_bed_capacity: number;
+  single_bed_capacity: number;
   created_at: string;
   updated_at: string;
 }
@@ -52,7 +54,8 @@ const HostManagement = () => {
     preferred_locations: [] as string[],
     is_active: true,
     rate_per_student_per_night: 0,
-    max_students_capacity: 0,
+    shared_bed_capacity: 0,
+    single_bed_capacity: 0,
   });
   const { toast } = useToast();
 
@@ -156,7 +159,7 @@ const HostManagement = () => {
         });
 
         setIsDialogOpen(false);
-        setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
+        setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
         fetchHosts();
       }
     } catch (error: any) {
@@ -185,7 +188,8 @@ const HostManagement = () => {
           preferred_locations: formData.preferred_locations,
           is_active: formData.is_active,
           rate_per_student_per_night: formData.rate_per_student_per_night,
-          max_students_capacity: formData.max_students_capacity,
+          shared_bed_capacity: formData.shared_bed_capacity,
+          single_bed_capacity: formData.single_bed_capacity,
         })
         .eq('id', selectedHost.id)
         .select('id');
@@ -274,7 +278,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, max_students_capacity: 0 });
+    setFormData({ email: '', full_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
     setIsDialogOpen(true);
   };
 
@@ -289,7 +293,8 @@ const HostManagement = () => {
       preferred_locations: host.preferred_locations || [],
       is_active: host.is_active,
       rate_per_student_per_night: host.rate_per_student_per_night || 0,
-      max_students_capacity: host.max_students_capacity || 0,
+      shared_bed_capacity: host.shared_bed_capacity || 0,
+      single_bed_capacity: host.single_bed_capacity || 0,
     });
     setIsDialogOpen(true);
   };
@@ -396,26 +401,37 @@ const HostManagement = () => {
                       />
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                      <Input
+                        id="rate_per_student_per_night"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.rate_per_student_per_night}
+                        onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                      />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                        <Label htmlFor="shared_bed_capacity">Shared Bed Capacity</Label>
                         <Input
-                          id="rate_per_student_per_night"
+                          id="shared_bed_capacity"
                           type="number"
                           min="0"
-                          step="0.01"
-                          value={formData.rate_per_student_per_night}
-                          onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                          value={formData.shared_bed_capacity}
+                          onChange={(e) => setFormData({ ...formData, shared_bed_capacity: parseInt(e.target.value) || 0 })}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
+                        <Label htmlFor="single_bed_capacity">Single Bed Capacity</Label>
                         <Input
-                          id="max_students_capacity"
+                          id="single_bed_capacity"
                           type="number"
                           min="0"
-                          value={formData.max_students_capacity}
-                          onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
+                          value={formData.single_bed_capacity}
+                          onChange={(e) => setFormData({ ...formData, single_bed_capacity: parseInt(e.target.value) || 0 })}
                         />
                       </div>
                     </div>
@@ -527,26 +543,37 @@ const HostManagement = () => {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                  <Input
+                    id="rate_per_student_per_night"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.rate_per_student_per_night}
+                    onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="rate_per_student_per_night">Rate per Student per Night (£)</Label>
+                    <Label htmlFor="shared_bed_capacity">Shared Bed Capacity</Label>
                     <Input
-                      id="rate_per_student_per_night"
+                      id="shared_bed_capacity"
                       type="number"
                       min="0"
-                      step="0.01"
-                      value={formData.rate_per_student_per_night}
-                      onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                      value={formData.shared_bed_capacity}
+                      onChange={(e) => setFormData({ ...formData, shared_bed_capacity: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="max_students_capacity">Max Students Capacity</Label>
+                    <Label htmlFor="single_bed_capacity">Single Bed Capacity</Label>
                     <Input
-                      id="max_students_capacity"
+                      id="single_bed_capacity"
                       type="number"
                       min="0"
-                      value={formData.max_students_capacity}
-                      onChange={(e) => setFormData({ ...formData, max_students_capacity: parseInt(e.target.value) || 0 })}
+                      value={formData.single_bed_capacity}
+                      onChange={(e) => setFormData({ ...formData, single_bed_capacity: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                 </div>

@@ -204,6 +204,8 @@ export type Database = {
           preferred_locations: string[] | null
           rate_per_student_per_night: number | null
           role: Database["public"]["Enums"]["user_role"]
+          shared_bed_capacity: number | null
+          single_bed_capacity: number | null
           updated_at: string | null
           user_id: string
         }
@@ -221,6 +223,8 @@ export type Database = {
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          shared_bed_capacity?: number | null
+          single_bed_capacity?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -238,6 +242,8 @@ export type Database = {
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          shared_bed_capacity?: number | null
+          single_bed_capacity?: number | null
           updated_at?: string | null
           user_id?: string
         }

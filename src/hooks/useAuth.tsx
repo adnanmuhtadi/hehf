@@ -13,6 +13,10 @@ interface Profile {
   preferred_locations?: string[];
   is_active: boolean;
   handbook_downloaded: boolean;
+  rate_per_student_per_night?: number;
+  max_students_capacity?: number;
+  shared_bed_capacity?: number;
+  single_bed_capacity?: number;
   created_at: string;
   updated_at: string;
 }
