@@ -533,11 +533,35 @@ const HostManagement = () => {
                       </p>
                     </div>
 
-                    <div className="flex justify-end space-x-2">
-                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button type="submit">Update Host</Button>
+                    <div className="flex justify-between">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="outline" className="text-orange-600 border-orange-300 hover:bg-orange-50">
+                            <KeyRound className="h-4 w-4 mr-2" />
+                            Reset Password
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Reset password to {formData.first_name.toLowerCase()}1234? The host will be required to change it on their next login.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => selectedHost && handleResetPassword(selectedHost)}>
+                              Reset Password
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <div className="flex space-x-2">
+                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit">Update Host</Button>
+                      </div>
                     </div>
                   </form>
                 </TabsContent>
@@ -842,28 +866,6 @@ const HostManagement = () => {
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" title="Reset Password">
-                              <KeyRound className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Reset Password</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Reset {host.full_name}'s password to their first name + 1234?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleResetPassword(host)}>
-                                Reset Password
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
                             <Button variant={host.is_active ? "outline" : "default"} size="sm" title={host.is_active ? "Disable" : "Enable"}>
                               <Power className="h-4 w-4" />
                             </Button>
@@ -957,25 +959,6 @@ const HostManagement = () => {
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" title="Reset Password">
-                          <KeyRound className="h-3 w-3" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Reset Password</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Reset {host.full_name}'s password?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleResetPassword(host)}>Reset</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant={host.is_active ? "outline" : "default"} size="sm">

@@ -90,6 +90,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Set must_reset_password flag to true
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .update({ must_reset_password: true })
+      .eq("user_id", host_user_id);
+
+    if (profileError) {
+      console.error("Error setting must_reset_password flag:", profileError);
+    }
+
     console.log(`Password reset successfully for user ${host_user_id}`);
 
     return new Response(
