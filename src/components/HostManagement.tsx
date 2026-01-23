@@ -408,8 +408,10 @@ const HostManagement = () => {
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.rate_per_student_per_night}
+                        value={formData.rate_per_student_per_night || ''}
                         onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                        onFocus={(e) => e.target.select()}
+                        placeholder="0"
                       />
                     </div>
 
@@ -420,8 +422,10 @@ const HostManagement = () => {
                           id="shared_bed_capacity"
                           type="number"
                           min="0"
-                          value={formData.shared_bed_capacity}
+                          value={formData.shared_bed_capacity || ''}
                           onChange={(e) => setFormData({ ...formData, shared_bed_capacity: parseInt(e.target.value) || 0 })}
+                          onFocus={(e) => e.target.select()}
+                          placeholder="0"
                         />
                       </div>
                       <div className="space-y-2">
@@ -430,8 +434,10 @@ const HostManagement = () => {
                           id="single_bed_capacity"
                           type="number"
                           min="0"
-                          value={formData.single_bed_capacity}
+                          value={formData.single_bed_capacity || ''}
                           onChange={(e) => setFormData({ ...formData, single_bed_capacity: parseInt(e.target.value) || 0 })}
+                          onFocus={(e) => e.target.select()}
+                          placeholder="0"
                         />
                       </div>
                     </div>
@@ -550,8 +556,10 @@ const HostManagement = () => {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={formData.rate_per_student_per_night}
+                    value={formData.rate_per_student_per_night || ''}
                     onChange={(e) => setFormData({ ...formData, rate_per_student_per_night: parseFloat(e.target.value) || 0 })}
+                    onFocus={(e) => e.target.select()}
+                    placeholder="0"
                   />
                 </div>
 
@@ -562,8 +570,10 @@ const HostManagement = () => {
                       id="shared_bed_capacity"
                       type="number"
                       min="0"
-                      value={formData.shared_bed_capacity}
+                      value={formData.shared_bed_capacity || ''}
                       onChange={(e) => setFormData({ ...formData, shared_bed_capacity: parseInt(e.target.value) || 0 })}
+                      onFocus={(e) => e.target.select()}
+                      placeholder="0"
                     />
                   </div>
                   <div className="space-y-2">
@@ -572,8 +582,10 @@ const HostManagement = () => {
                       id="single_bed_capacity"
                       type="number"
                       min="0"
-                      value={formData.single_bed_capacity}
+                      value={formData.single_bed_capacity || ''}
                       onChange={(e) => setFormData({ ...formData, single_bed_capacity: parseInt(e.target.value) || 0 })}
+                      onFocus={(e) => e.target.select()}
+                      placeholder="0"
                     />
                   </div>
                 </div>
