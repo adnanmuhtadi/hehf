@@ -13,10 +13,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import HostLocationBonuses from './HostLocationBonuses';
+import HostBookingHistory from './HostBookingHistory';
 
 interface Host {
   id: string;
@@ -45,6 +46,7 @@ const HostManagement = () => {
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -804,7 +806,12 @@ const HostManagement = () => {
                   <TableRow key={host.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-foreground">{host.full_name}</p>
+                        <button
+                          onClick={() => setBookingHistoryHost(host)}
+                          className="font-medium text-foreground hover:text-primary hover:underline text-left cursor-pointer"
+                        >
+                          {host.full_name}
+                        </button>
                         <p className="text-sm text-muted-foreground flex items-center">
                           <Mail className="mr-1 h-3 w-3" />
                           {host.email}
@@ -860,6 +867,9 @@ const HostManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => setBookingHistoryHost(host)} title="View Bookings">
+                          <BookOpen className="h-4 w-4" />
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(host)} title="Edit">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -920,7 +930,12 @@ const HostManagement = () => {
                 <CardContent className="p-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{host.full_name}</p>
+                      <button
+                        onClick={() => setBookingHistoryHost(host)}
+                        className="font-medium text-sm truncate hover:text-primary hover:underline text-left cursor-pointer"
+                      >
+                        {host.full_name}
+                      </button>
                       <p className="text-xs text-muted-foreground truncate">{host.email}</p>
                     </div>
                     <Badge variant={host.is_active ? "default" : "secondary"} className="text-xs shrink-0">
@@ -955,6 +970,9 @@ const HostManagement = () => {
                   )}
 
                   <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setBookingHistoryHost(host)}>
+                      <BookOpen className="h-3 w-3" />
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(host)} className="flex-1">
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
@@ -993,6 +1011,13 @@ const HostManagement = () => {
           )}
         </CardContent>
       </Card>
+      {/* Booking History Dialog */}
+      <HostBookingHistory
+        hostId={bookingHistoryHost?.user_id || ''}
+        hostName={bookingHistoryHost?.full_name || ''}
+        isOpen={!!bookingHistoryHost}
+        onClose={() => setBookingHistoryHost(null)}
+      />
     </div>
   );
 };
