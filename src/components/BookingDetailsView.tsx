@@ -263,36 +263,36 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Bookings
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <Button variant="outline" size="sm" onClick={onBack} className="w-fit">
+            <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+            <span className="text-xs sm:text-sm">Back to Bookings</span>
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">Booking Details</h2>
-            <p className="text-muted-foreground">{booking.booking_reference}</p>
+            <h2 className="text-lg sm:text-2xl font-bold">Booking Details</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">{booking.booking_reference}</p>
           </div>
         </div>
         <div className="flex gap-2">
           <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
+              <Button variant="outline" size="sm">
+                <Edit className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="text-xs sm:text-sm">Edit</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Booking</DialogTitle>
-                <DialogDescription>Update the booking details</DialogDescription>
+                <DialogTitle className="text-base sm:text-lg">Edit Booking</DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm">Update the booking details</DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleUpdateBooking} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-location">Location</Label>
+              <form onSubmit={handleUpdateBooking} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="edit-location" className="text-xs sm:text-sm">Location</Label>
                     <Select
                       value={editBooking.location}
                       onValueChange={(value) => setEditBooking({ ...editBooking, location: value })}
@@ -309,8 +309,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-country">Country of Students</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="edit-country" className="text-xs sm:text-sm">Country of Students</Label>
                     <Input
                       id="edit-country"
                       value={editBooking.country_of_students}
@@ -320,50 +320,30 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Arrival Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editBooking.arrival_date ? format(editBooking.arrival_date, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={editBooking.arrival_date}
-                          onSelect={(date) => setEditBooking({ ...editBooking, arrival_date: date })}
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Arrival Date</Label>
+                    <Input
+                      type="date"
+                      value={editBooking.arrival_date ? editBooking.arrival_date.toISOString().split("T")[0] : ""}
+                      onChange={(e) => setEditBooking({ ...editBooking, arrival_date: e.target.value ? new Date(e.target.value) : undefined })}
+                      className="w-full"
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Departure Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editBooking.departure_date ? format(editBooking.departure_date, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={editBooking.departure_date}
-                          onSelect={(date) => setEditBooking({ ...editBooking, departure_date: date })}
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Departure Date</Label>
+                    <Input
+                      type="date"
+                      value={editBooking.departure_date ? editBooking.departure_date.toISOString().split("T")[0] : ""}
+                      onChange={(e) => setEditBooking({ ...editBooking, departure_date: e.target.value ? new Date(e.target.value) : undefined })}
+                      className="w-full"
+                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-students">Number of Students</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label htmlFor="edit-students" className="text-xs sm:text-sm">Students</Label>
                     <Input
                       id="edit-students"
                       type="number"
@@ -375,8 +355,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Bed Type</Label>
+                  <div className="space-y-1 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Bed Type</Label>
                     <Select
                       value={editBooking.bed_type}
                       onValueChange={(value: "single_beds_only" | "shared_beds") =>
@@ -392,29 +372,27 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Nights</Label>
+                  <div className="space-y-1 sm:space-y-2 col-span-2 sm:col-span-1">
+                    <Label className="text-xs sm:text-sm">Nights</Label>
                     <Input type="number" value={editNights} disabled className="bg-muted" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-notes">Notes</Label>
+                <div className="space-y-1 sm:space-y-2">
+                  <Label htmlFor="edit-notes" className="text-xs sm:text-sm">Notes</Label>
                   <Textarea
                     id="edit-notes"
                     value={editBooking.notes}
                     onChange={(e) => setEditBooking({ ...editBooking, notes: e.target.value })}
+                    rows={2}
                   />
                 </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsEditOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={editLoading}>
+                  <Button type="submit" size="sm" disabled={editLoading}>
                     {editLoading ? "Updating..." : "Update Booking"}
                   </Button>
                 </div>
@@ -424,23 +402,23 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+              <Button variant="destructive" size="sm">
+                <Trash2 className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="text-xs sm:text-sm">Delete</span>
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="w-[90vw] max-w-md">
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Booking</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-base">Delete Booking</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm">
                   Are you sure you want to delete this booking? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogFooter className="flex-row gap-2">
+                <AlertDialogCancel className="flex-1 m-0">Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDeleteBooking}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="flex-1 m-0 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Delete
                 </AlertDialogAction>
@@ -452,33 +430,33 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
       {/* Booking Information */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Booking Information</CardTitle>
-            <Badge variant={getStatusBadgeVariant(booking.status)}>{booking.status}</Badge>
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm sm:text-base">Booking Information</CardTitle>
+            <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">{booking.status}</Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-                <p className="text-sm font-medium">{booking.location}</p>
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Location</Label>
+                <p className="text-xs sm:text-sm font-medium truncate">{booking.location}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Country</Label>
-                <p className="text-sm font-medium">{booking.country_of_students}</p>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Country</Label>
+                <p className="text-xs sm:text-sm font-medium truncate">{booking.country_of_students}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Students</Label>
-                <p className="text-sm font-medium">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Students</Label>
+                <p className="text-xs sm:text-sm font-medium">
                   {booking.number_of_students}
                   {(() => {
                     const totalCapacity = bookingHosts
@@ -490,37 +468,37 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                         return sum + capacity;
                       }, 0);
                     return totalCapacity > 0 ? (
-                      <span className="text-muted-foreground"> ({totalCapacity} can be hosted)</span>
+                      <span className="text-muted-foreground text-[10px] sm:text-xs"> ({totalCapacity} hosted)</span>
                     ) : null;
                   })()}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Bed className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Bed Type</Label>
-                <p className="text-sm font-medium">
-                  {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Bed Type</Label>
+                <p className="text-xs sm:text-sm font-medium">
+                  {booking.bed_type === "shared_beds" ? "Shared" : "Single"}
                 </p>
               </div>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Arrival Date</Label>
-              <p className="text-sm font-medium">{format(new Date(booking.arrival_date), "PPP")}</p>
+              <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Arrival</Label>
+              <p className="text-xs sm:text-sm font-medium">{format(new Date(booking.arrival_date), "MMM d, yyyy")}</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Departure Date</Label>
-              <p className="text-sm font-medium">{format(new Date(booking.departure_date), "PPP")}</p>
+              <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Departure</Label>
+              <p className="text-xs sm:text-sm font-medium">{format(new Date(booking.departure_date), "MMM d, yyyy")}</p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Duration</Label>
-              <p className="text-sm font-medium">{booking.number_of_nights} nights</p>
+              <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Duration</Label>
+              <p className="text-xs sm:text-sm font-medium">{booking.number_of_nights} nights</p>
             </div>
             {booking.notes && (
-              <div className="col-span-full">
-                <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
-                <p className="text-sm mt-1">{booking.notes}</p>
+              <div className="col-span-2 sm:col-span-full">
+                <Label className="text-[10px] sm:text-sm font-medium text-muted-foreground">Notes</Label>
+                <p className="text-xs sm:text-sm mt-1">{booking.notes}</p>
               </div>
             )}
           </div>
@@ -529,28 +507,28 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
       {/* Host Assignments */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
             Host Assignments ({bookingHosts.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0">
           {bookingHosts.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               {bookingHosts.map((hostAssignment) => (
-                <div key={hostAssignment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{hostAssignment.profiles.full_name}</p>
-                    <p className="text-sm text-muted-foreground">{hostAssignment.profiles.email}</p>
+                <div key={hostAssignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border rounded-lg">
+                  <div className="min-w-0">
+                    <p className="font-medium text-xs sm:text-sm truncate">{hostAssignment.profiles.full_name}</p>
+                    <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{hostAssignment.profiles.email}</p>
                     {hostAssignment.profiles.phone && (
-                      <p className="text-sm text-muted-foreground">{hostAssignment.profiles.phone}</p>
+                      <p className="text-[10px] sm:text-sm text-muted-foreground">{hostAssignment.profiles.phone}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getResponseBadgeVariant(hostAssignment.response)}>{hostAssignment.response}</Badge>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <Badge variant={getResponseBadgeVariant(hostAssignment.response)} className="text-[10px] sm:text-xs">{hostAssignment.response}</Badge>
                     {hostAssignment.response === "accepted" && (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-[10px] sm:text-xs">
                         {booking.bed_type === "shared_beds"
                           ? hostAssignment.profiles.shared_bed_capacity || 0
                           : hostAssignment.profiles.single_bed_capacity || 0}{" "}
@@ -562,7 +540,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-8">No hosts assigned yet</p>
+            <p className="text-muted-foreground text-center py-4 sm:py-8 text-xs sm:text-sm">No hosts assigned yet</p>
           )}
         </CardContent>
       </Card>
