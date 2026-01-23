@@ -62,16 +62,16 @@ const QuickEnquiry: React.FC<QuickEnquiryProps> = ({
   };
 
   return (
-    <section className={`py-20 ${bgClassName}`}>
+    <section className={`py-12 sm:py-20 ${bgClassName}`}>
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
             {title}
           </h2>
-          <p className="text-xl mb-8 opacity-90">
+          <p className="text-base sm:text-xl mb-6 sm:mb-8 opacity-90">
             {description}
           </p>
-          <Card className="p-8">
+          <Card className="p-4 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
                 type="text"

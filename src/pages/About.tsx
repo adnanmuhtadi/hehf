@@ -22,7 +22,7 @@ const About = () => (
   >
     {/* HERO SECTION */}
     <section
-      className="relative flex items-center justify-center min-h-[340px] md:min-h-[420px] py-20 overflow-hidden"
+      className="relative flex items-center justify-center min-h-[280px] sm:min-h-[340px] md:min-h-[420px] py-12 sm:py-20 overflow-hidden"
       style={{ backgroundColor: "#3833a5" }}
     >
       {/* Background image */}
@@ -44,7 +44,7 @@ const About = () => (
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="font-black text-4xl md:text-6xl tracking-tight text-white drop-shadow-lg"
+          className="font-black text-3xl sm:text-4xl md:text-6xl tracking-tight text-white drop-shadow-lg"
         >
           {heroHeading}
         </motion.h1>
@@ -52,11 +52,11 @@ const About = () => (
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.7 }}
-          className="mt-6 max-w-2xl mx-auto text-xl md:text-2xl text-white/90"
+          className="mt-4 sm:mt-6 max-w-2xl mx-auto text-lg sm:text-xl md:text-2xl text-white/90"
         >
           {heroSubheading}
         </motion.p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6 sm:mt-8">
           <Button
             asChild
             size="xl"
@@ -83,9 +83,9 @@ const About = () => (
     </section>
 
     {/* SPLIT SECTION: Bus Image + First About Section */}
-    <section className="py-16">
+    <section className="py-10 sm:py-16">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="grid md:grid-cols-2 gap-10 items-center mb-14">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-10 items-center mb-10 sm:mb-14">
           {/* About text */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -93,10 +93,10 @@ const About = () => (
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3 text-center md:text-left">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-3 text-center md:text-left">
               {aboutSections[0]?.heading}
             </h2>
-            <div className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center md:text-left">
+            <div className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed text-center md:text-left">
               {aboutSections[0]?.text}
             </div>
           </motion.div>
@@ -124,12 +124,12 @@ const About = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: idx * 0.15, duration: 0.7 }}
-            className="mb-14 last:mb-0"
+            className="mb-10 sm:mb-14 last:mb-0"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3 text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-3 text-center">
               {section.heading}
             </h2>
-            <div className="text-lg md:text-xl text-muted-foreground text-center leading-relaxed">
+            <div className="text-base sm:text-lg md:text-xl text-muted-foreground text-center leading-relaxed">
               {section.text}
             </div>
           </motion.div>

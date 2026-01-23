@@ -66,12 +66,12 @@ const Index = () => {
 
       {/* PORTAL ACCESS SECTION */}
       <AnimatedSection>
-        <section className="py-12 bg-primary">
+        <section className="py-8 sm:py-12 bg-primary">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-foreground mb-3 sm:mb-4">
               Access Your Portal
             </h2>
-            <p className="text-primary-foreground/90 mb-6 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-primary-foreground/90 mb-4 sm:mb-6 max-w-2xl mx-auto">
               Admins and Hosts can access the booking management portal to manage student placements and accommodations.
             </p>
             <Link to="/auth">
@@ -86,24 +86,24 @@ const Index = () => {
 
       {/* HOW IT WORKS Section */}
       <AnimatedSection>
-        <section className="py-20 bg-muted">
+        <section className="py-12 sm:py-20 bg-muted">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
                 HOST FAMILIES
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
               {howItWorks.map((item, index) =>
                 <Card
                   key={index}
-                  className="text-center p-6 hover:shadow-card-hover transition-all duration-300"
+                  className="text-center p-4 sm:p-6 hover:shadow-card-hover transition-all duration-300"
                 >
-                  <CardContent className="space-y-4">
-                    <h3 className="text-xl font-semibold text-foreground">
+                  <CardContent className="space-y-3 sm:space-y-4 p-0">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground leading-relaxed">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                       {item.description}
                     </p>
                   </CardContent>
@@ -116,20 +116,20 @@ const Index = () => {
 
       {/* STATISTICS Section */}
       <AnimatedSection>
-        <section className="py-20 bg-background">
+        <section className="py-12 sm:py-20 bg-background">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
                 OUR STATISTICS
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
               {stats.map((stat, index) =>
                 <div key={index} className="text-center">
-                  <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                  <div className="text-2xl sm:text-4xl md:text-5xl font-bold text-primary mb-1 sm:mb-2">
                     {stat.number}
                   </div>
-                  <div className="text-lg text-muted-foreground font-medium">
+                  <div className="text-xs sm:text-lg text-muted-foreground font-medium">
                     {stat.label}
                   </div>
                 </div>
@@ -141,32 +141,32 @@ const Index = () => {
 
       {/* TESTIMONIALS Section */}
       <AnimatedSection>
-        <section className="py-20 bg-muted">
+        <section className="py-12 sm:py-20 bg-muted">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">
                 WHAT OUR HOSTS SAY
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
               {testimonials.map((testimonial, index) =>
                 <Card
                   key={index}
-                  className="p-6 hover:shadow-card-hover transition-all duration-300"
+                  className="p-4 sm:p-6 hover:shadow-card-hover transition-all duration-300"
                 >
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-center mb-4">
+                  <CardContent className="space-y-3 sm:space-y-4 p-0">
+                    <div className="flex items-center justify-center mb-3 sm:mb-4">
                       {Array.from({ length: 5 }).map((_, i) =>
                         <Star
                           key={i}
-                          className="h-5 w-5 text-yellow-500 fill-current"
+                          className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 fill-current"
                         />
                       )}
                     </div>
-                    <p className="text-muted-foreground leading-relaxed italic">
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed italic">
                       "{testimonial.quote}"
                     </p>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-semibold text-sm sm:text-base text-foreground">
                       - {testimonial.name}
                     </p>
                   </CardContent>

@@ -65,7 +65,7 @@ const HeroCarousel = () => {
   return (
     <div
       ref={sliderRef}
-      className="keen-slider h-screen relative"
+      className="keen-slider h-[80vh] sm:h-screen relative"
       onMouseEnter={() => (mouseOver.current = true)}
       onMouseLeave={() => (mouseOver.current = false)}
       onFocus={() => (mouseOver.current = true)}
@@ -79,13 +79,13 @@ const HeroCarousel = () => {
           />
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6">
               {slide.title}
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl">
+            <p className="text-base sm:text-xl md:text-2xl mb-6 sm:mb-8 max-w-3xl">
               {slide.description}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto px-4 sm:px-0">
               <Button
                 size="xl"
                 className="bg-white text-primary hover:bg-white/90"

@@ -123,19 +123,19 @@ const BecomeHostForm = () => {
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
       variants={containerVariants}
-      className="bg-white rounded-xl shadow p-8 max-w-2xl mx-auto mt-14"
+      className="bg-white rounded-xl shadow p-4 sm:p-8 max-w-2xl mx-auto mt-8 sm:mt-14"
       onSubmit={handleSubmit}
       autoComplete="off"
     >
       <motion.h2 
         variants={itemVariants}
-        className="text-3xl md:text-4xl font-bold text-center mb-2 text-primary"
+        className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-2 text-primary"
       >
         <span className="text-blue-600">Ready To</span> Become a Host?
       </motion.h2>
       <motion.p 
         variants={itemVariants}
-        className="text-center mb-8 text-muted-foreground"
+        className="text-center mb-6 sm:mb-8 text-sm sm:text-base text-muted-foreground"
       >
         Please complete the form below to get started.
       </motion.p>
