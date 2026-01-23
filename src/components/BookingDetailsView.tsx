@@ -81,6 +81,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     location: "",
     country_of_students: "",
     number_of_students: 1,
+    bed_type: "single_beds_only" as "single_beds_only" | "shared_beds",
     notes: "",
   });
 
@@ -121,6 +122,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         location: bookingData.location,
         country_of_students: bookingData.country_of_students,
         number_of_students: bookingData.number_of_students,
+        bed_type: bookingData.bed_type || "single_beds_only",
         notes: bookingData.notes || "",
       });
 
@@ -174,6 +176,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         location: editBooking.location,
         country_of_students: editBooking.country_of_students,
         number_of_students: editBooking.number_of_students,
+        bed_type: editBooking.bed_type,
         notes: editBooking.notes,
       };
 
@@ -372,6 +375,26 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       required
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Bed Type</Label>
+                    <Select
+                      value={editBooking.bed_type}
+                      onValueChange={(value: "single_beds_only" | "shared_beds") =>
+                        setEditBooking({ ...editBooking, bed_type: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select bed type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="single_beds_only">Single Beds</SelectItem>
+                        <SelectItem value="shared_beds">Shared Beds</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Nights</Label>
                     <Input type="number" value={editNights} disabled className="bg-muted" />
