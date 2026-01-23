@@ -135,7 +135,14 @@ const ProfileSettings = () => {
                 onChange={(e) =>
                   setProfileData({ ...profileData, phone: e.target.value })
                 }
+                disabled={profile?.role === 'host'}
+                className={profile?.role === 'host' ? 'bg-muted' : ''}
               />
+              {profile?.role === 'host' && (
+                <p className="text-xs text-muted-foreground">
+                  Phone number can only be changed by an admin. Please contact support.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
