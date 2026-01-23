@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -43,6 +43,7 @@ interface Booking {
   country_of_students: string;
   number_of_students: number;
   status: "pending" | "confirmed" | "cancelled" | "completed";
+  bed_type: "single_beds_only" | "shared_beds";
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -56,6 +57,8 @@ interface BookingHost {
     full_name: string;
     email: string;
     phone?: string;
+    single_bed_capacity?: number;
+    shared_bed_capacity?: number;
   };
 }
 
@@ -130,7 +133,9 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
           profiles (
             full_name,
             email,
-            phone
+            phone,
+            single_bed_capacity,
+            shared_bed_capacity
           )
         `,
         )
@@ -453,6 +458,15 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                 <p className="text-sm font-medium">{booking.number_of_students}</p>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <Bed className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Bed Type</Label>
+                <p className="text-sm font-medium">
+                  {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+                </p>
+              </div>
+            </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Arrival Date</Label>
               <p className="text-sm font-medium">{format(new Date(booking.arrival_date), "PPP")}</p>
@@ -498,7 +512,12 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                   <div className="flex items-center gap-2">
                     <Badge variant={getResponseBadgeVariant(hostAssignment.response)}>{hostAssignment.response}</Badge>
                     {hostAssignment.response === "accepted" && (
-                      <Badge variant="outline">{hostAssignment.students_assigned} students</Badge>
+                      <Badge variant="outline">
+                        {booking.bed_type === "shared_beds"
+                          ? hostAssignment.profiles.shared_bed_capacity || 0
+                          : hostAssignment.profiles.single_bed_capacity || 0}{" "}
+                        students
+                      </Badge>
                     )}
                   </div>
                 </div>
