@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, MapPin, Users, Bed } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,7 @@ interface BookingAssignment {
     country_of_students: string;
     number_of_students: number;
     status: string;
+    bed_type?: "single_beds_only" | "shared_beds";
   };
 }
 
@@ -57,7 +58,8 @@ const HostCalendar = () => {
             location,
             country_of_students,
             number_of_students,
-            status
+            status,
+            bed_type
           )
         `,
         )
@@ -233,6 +235,11 @@ const HostCalendar = () => {
 
                     <div className="text-xs sm:text-sm">
                       <strong>Country:</strong> {assignment.bookings.country_of_students}
+                    </div>
+
+                    <div className="text-xs sm:text-sm flex items-center gap-1">
+                      <Bed className="h-3 w-3" />
+                      <strong>Beds:</strong> {assignment.bookings.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds Only"}
                     </div>
 
                     {assignment.response === "pending" && (

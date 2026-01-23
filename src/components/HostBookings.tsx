@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users, PoundSterling } from "lucide-react";
+import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +23,7 @@ interface BookingAssignment {
     number_of_students: number;
     status: string;
     notes?: string;
+    bed_type?: "single_beds_only" | "shared_beds";
   };
 }
 
@@ -63,7 +64,8 @@ const HostBookings = () => {
             country_of_students,
             number_of_students,
             status,
-            notes
+            notes,
+            bed_type
           )
         `,
         )
@@ -143,7 +145,7 @@ const HostBookings = () => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-lg">{assignment.bookings.booking_reference}</CardTitle>
-                <CardDescription className="flex items-center gap-4 mt-2">
+                <CardDescription className="flex flex-wrap items-center gap-4 mt-2">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     {assignment.bookings.location}
@@ -151,6 +153,10 @@ const HostBookings = () => {
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
                     {assignment.bookings.number_of_students} students
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Bed className="h-4 w-4" />
+                    {assignment.bookings.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds Only"}
                   </span>
                   <span>from {assignment.bookings.country_of_students}</span>
                 </CardDescription>
