@@ -127,7 +127,9 @@ const HostDashboard = () => {
                 </Card>
 
                 {/* Potential Earnings Widget */}
-                {((profile as any)?.rate_per_student_per_night > 0 && (profile as any)?.max_students_capacity > 0) && (
+                {(profile?.rate_per_student_per_night && profile.rate_per_student_per_night > 0 && 
+                  ((profile?.single_bed_capacity && profile.single_bed_capacity > 0) || 
+                   (profile?.shared_bed_capacity && profile.shared_bed_capacity > 0))) && (
                   <Card className="border-primary/20 bg-primary/5">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -138,7 +140,7 @@ const HostDashboard = () => {
                         £{stats.loading ? '...' : stats.totalPotentialEarnings.toFixed(2)}
                       </div>
                       <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                        {(profile as any)?.max_students_capacity} students × £{(profile as any)?.rate_per_student_per_night}/night
+                        Single: {profile?.single_bed_capacity || 0} / Shared: {profile?.shared_bed_capacity || 0} × £{profile?.rate_per_student_per_night}/night
                       </p>
                     </CardContent>
                   </Card>

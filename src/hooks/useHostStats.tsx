@@ -31,10 +31,11 @@ export const useHostStats = (locationFilter?: string) => {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      // Get host's rate and capacity from profile
-      const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
-      const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
-      const preferredLocations = (profile as any)?.preferred_locations || [];
+      // Get host's rate and capacities from profile
+      const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
+      const singleBedCapacity = profile?.single_bed_capacity || 0;
+      const sharedBedCapacity = profile?.shared_bed_capacity || 0;
+      const preferredLocations = profile?.preferred_locations || [];
 
       // Fetch location bonuses for this host
       const { data: locationBonuses } = await supabase
@@ -86,13 +87,13 @@ export const useHostStats = (locationFilter?: string) => {
 
       // Fetch all available bookings (scoped by the current location filter) for potential earnings
       let potentialEarnings = 0;
-      if (ratePerStudentPerNight > 0 && maxStudentsCapacity > 0) {
+      if (ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0)) {
         const filter = (locationFilter || 'preferred').trim();
         let shouldFetch = true;
 
         let bookingsQuery = supabase
           .from('bookings')
-          .select('number_of_nights, arrival_date, departure_date, location')
+          .select('number_of_nights, arrival_date, departure_date, location, bed_type')
           .gte('arrival_date', today);
 
         if (filter === 'preferred') {
@@ -120,7 +121,9 @@ export const useHostStats = (locationFilter?: string) => {
                     new Date(booking.arrival_date).getTime()) /
                     (1000 * 60 * 60 * 24)
                 );
-              const baseEarnings = ratePerStudentPerNight * maxStudentsCapacity * nights;
+              // Use appropriate capacity based on booking's bed type
+              const capacity = booking.bed_type === 'shared_beds' ? sharedBedCapacity : singleBedCapacity;
+              const baseEarnings = ratePerStudentPerNight * capacity * nights;
               const locationBonus = getBonusForLocation(booking.location) * nights;
               return sum + baseEarnings + locationBonus;
             }, 0);
