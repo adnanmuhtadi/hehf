@@ -16,6 +16,7 @@ import {
   PoundSterling,
   AlertTriangle,
   TrendingUp,
+  Bed,
 } from "lucide-react";
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
@@ -30,6 +31,7 @@ interface Booking {
   number_of_students: number;
   status: string;
   number_of_nights?: number;
+  bed_type?: "single_beds_only" | "shared_beds";
   booking_hosts?: {
     response: string;
     students_assigned: number;
@@ -359,7 +361,7 @@ const HostBookingActions = ({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{booking.location}</span>
@@ -367,6 +369,12 @@ const HostBookingActions = ({
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{booking.number_of_students} students</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Bed className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
