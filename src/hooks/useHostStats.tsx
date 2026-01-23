@@ -12,6 +12,7 @@ interface HostStats {
   upcomingArrivals: number;
   totalStudentsHosted: number;
   totalPotentialEarnings: number;
+  totalActualEarnings: number;
   loading: boolean;
 }
 
@@ -22,6 +23,7 @@ export const useHostStats = (locationFilter?: string) => {
     upcomingArrivals: 0,
     totalStudentsHosted: 0,
     totalPotentialEarnings: 0,
+    totalActualEarnings: 0,
     loading: true,
   });
 
@@ -76,14 +78,34 @@ export const useHostStats = (locationFilter?: string) => {
         .eq('response', 'accepted')
         .gte('bookings.arrival_date', today);
 
-      // Fetch total students hosted (sum of students_assigned from accepted bookings)
-      const { data: studentsData } = await supabase
+      // Fetch accepted bookings for actual earnings calculation
+      const { data: acceptedBookingsData } = await supabase
         .from('booking_hosts')
-        .select('students_assigned')
+        .select(`
+          students_assigned,
+          bookings!inner(number_of_nights, arrival_date, departure_date, location, bed_type)
+        `)
         .eq('host_id', user.id)
         .eq('response', 'accepted');
 
-      const totalStudents = studentsData?.reduce((sum, item) => sum + (item.students_assigned || 0), 0) || 0;
+      // Calculate actual earnings from accepted bookings
+      let actualEarnings = 0;
+      const totalStudents = acceptedBookingsData?.reduce((sum, item) => {
+        const students = item.students_assigned || 0;
+        if (students > 0 && ratePerStudentPerNight > 0) {
+          const booking = item.bookings as any;
+          const nights = booking.number_of_nights ||
+            Math.ceil(
+              (new Date(booking.departure_date).getTime() -
+                new Date(booking.arrival_date).getTime()) /
+                (1000 * 60 * 60 * 24)
+            );
+          const baseEarnings = ratePerStudentPerNight * students * nights;
+          const locationBonus = getBonusForLocation(booking.location) * nights;
+          actualEarnings += baseEarnings + locationBonus;
+        }
+        return sum + students;
+      }, 0) || 0;
 
       // Fetch all available bookings (scoped by the current location filter) for potential earnings
       let potentialEarnings = 0;
@@ -136,6 +158,7 @@ export const useHostStats = (locationFilter?: string) => {
         upcomingArrivals: upcomingData?.length || 0,
         totalStudentsHosted: totalStudents,
         totalPotentialEarnings: potentialEarnings,
+        totalActualEarnings: actualEarnings,
         loading: false,
       });
     } catch (error) {

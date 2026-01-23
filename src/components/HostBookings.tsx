@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed } from "lucide-react";
+import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,14 +32,25 @@ const HostBookings = () => {
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Get rate and capacity from profile
-  const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
-  const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
+  // Get rate and capacities from profile
+  const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
+  const singleBedCapacity = profile?.single_bed_capacity || 0;
+  const sharedBedCapacity = profile?.shared_bed_capacity || 0;
 
   // Calculate earnings for a booking
   const calculateEarnings = (nights: number, studentsAssigned: number) => {
     return ratePerStudentPerNight * nights * studentsAssigned;
   };
+
+  // Get capacity based on bed type
+  const getCapacityForBedType = (bedType?: "single_beds_only" | "shared_beds") => {
+    return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
+  };
+
+  // Calculate total actual earnings from accepted bookings
+  const totalActualEarnings = assignments
+    .filter((a) => a.response === "accepted" && a.students_assigned > 0)
+    .reduce((sum, a) => sum + calculateEarnings(a.bookings.number_of_nights, a.students_assigned), 0);
 
   useEffect(() => {
     fetchBookingAssignments();
@@ -139,6 +150,25 @@ const HostBookings = () => {
 
   return (
     <div className="space-y-4">
+      {/* Total Earnings Summary */}
+      {ratePerStudentPerNight > 0 && (
+        <Card className="border-green-500/20 bg-green-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <span className="font-medium">Total Actual Earnings</span>
+              </div>
+              <span className="text-2xl font-bold text-green-600">
+                £{totalActualEarnings.toFixed(2)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              From {assignments.filter((a) => a.response === "accepted" && a.students_assigned > 0).length} confirmed bookings
+            </p>
+          </CardContent>
+        </Card>
+      )}
       {assignments.map((assignment) => (
         <Card key={assignment.id} className="relative">
           <CardHeader>
@@ -187,7 +217,7 @@ const HostBookings = () => {
             )}
 
             {/* Earnings Summary */}
-            {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+            {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && (
               <div className="space-y-2">
                 {/* Confirmed Earnings - shown when students are assigned */}
                 {assignment.response === "accepted" && assignment.students_assigned > 0 && (
@@ -215,10 +245,10 @@ const HostBookings = () => {
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">
                         Potential Earnings: £
-                        {calculateEarnings(assignment.bookings.number_of_nights, maxStudentsCapacity).toFixed(2)}
+                        {calculateEarnings(assignment.bookings.number_of_nights, getCapacityForBedType(assignment.bookings.bed_type)).toFixed(2)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        Based on {maxStudentsCapacity} students × {assignment.bookings.number_of_nights} nights × £
+                        Based on {getCapacityForBedType(assignment.bookings.bed_type)} students × {assignment.bookings.number_of_nights} nights × £
                         {ratePerStudentPerNight}/night
                       </span>
                     </div>
