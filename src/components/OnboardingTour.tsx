@@ -257,22 +257,32 @@ const OnboardingTour = ({ onComplete, isVisible }: OnboardingTourProps) => {
               </div>
             </div>
           ) : (
-            <div className="flex justify-between">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrev}
+                  disabled={currentStep === 0}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {currentStep + 1} / {tourSteps.length}
+                </span>
+                <Button size="sm" onClick={handleNext}>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handlePrev}
-                disabled={currentStep === 0}
+                className="w-full text-muted-foreground hover:text-foreground"
+                onClick={() => handleFinish(true)}
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back
-              </Button>
-              <span className="text-xs text-muted-foreground self-center">
-                {currentStep + 1} / {tourSteps.length}
-              </span>
-              <Button size="sm" onClick={handleNext}>
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
+                Skip tour
               </Button>
             </div>
           )}
