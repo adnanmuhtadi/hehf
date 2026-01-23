@@ -522,15 +522,15 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
             New Booking
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Booking</DialogTitle>
             <DialogDescription>Add a new student booking to the system</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreateBooking} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="booking-ref">Booking Reference</Label>
+                <Label htmlFor="booking-ref" className="text-sm">Booking Reference</Label>
                 <Input
                   id="booking-ref"
                   placeholder="Auto-generated if empty"
@@ -539,7 +539,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location" className="text-sm">Location</Label>
                 <Select
                   value={newBooking.location}
                   onValueChange={(value) => setNewBooking({ ...newBooking, location: value })}
@@ -558,74 +558,36 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label>Arrival Date</Label>
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={newBooking.arrival_date ? newBooking.arrival_date.toISOString().split("T")[0] : ""}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : undefined;
-                      setNewBooking({ ...newBooking, arrival_date: date });
-                    }}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-muted-foreground">Or use date picker:</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newBooking.arrival_date ? format(newBooking.arrival_date, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={newBooking.arrival_date}
-                        onSelect={(date) => setNewBooking({ ...newBooking, arrival_date: date })}
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <Label className="text-sm">Arrival Date</Label>
+                <Input
+                  type="date"
+                  value={newBooking.arrival_date ? newBooking.arrival_date.toISOString().split("T")[0] : ""}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setNewBooking({ ...newBooking, arrival_date: date });
+                  }}
+                  className="w-full"
+                />
               </div>
               <div className="space-y-2">
-                <Label>Departure Date</Label>
-                <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={newBooking.departure_date ? newBooking.departure_date.toISOString().split("T")[0] : ""}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : undefined;
-                      setNewBooking({ ...newBooking, departure_date: date });
-                    }}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-muted-foreground">Or use date picker:</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newBooking.departure_date ? format(newBooking.departure_date, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={newBooking.departure_date}
-                        onSelect={(date) => setNewBooking({ ...newBooking, departure_date: date })}
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <Label className="text-sm">Departure Date</Label>
+                <Input
+                  type="date"
+                  value={newBooking.departure_date ? newBooking.departure_date.toISOString().split("T")[0] : ""}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined;
+                    setNewBooking({ ...newBooking, departure_date: date });
+                  }}
+                  className="w-full"
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="country">Country of Students</Label>
+                <Label htmlFor="country" className="text-sm">Country of Students</Label>
                 <Input
                   id="country"
                   placeholder="e.g., Spain, Italy, France"
@@ -635,7 +597,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bed-type">Type of Beds</Label>
+                <Label htmlFor="bed-type" className="text-sm">Type of Beds</Label>
                 <Select
                   value={newBooking.bed_type}
                   onValueChange={(value: "single_beds_only" | "shared_beds") => setNewBooking({ ...newBooking, bed_type: value })}
@@ -651,9 +613,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="students">Number of Students</Label>
+                <Label htmlFor="students" className="text-sm">Students</Label>
                 <Input
                   id="students"
                   type="number"
@@ -664,7 +626,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nights">Nights</Label>
+                <Label htmlFor="nights" className="text-sm">Nights</Label>
                 <Input id="nights" type="number" value={nights} disabled className="bg-muted" />
               </div>
             </div>
@@ -693,65 +655,68 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
       {/* Filters Section */}
       <Card className="border-dashed">
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap items-end gap-4">
+        <CardContent className="p-3 sm:pt-4 sm:p-6">
+          <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Filter className="h-4 w-4" />
-              Filters
+              <span className="text-xs sm:text-sm">Filters</span>
             </div>
 
-            <div className="flex-1 min-w-[150px] max-w-[200px]">
-              <Label className="text-xs text-muted-foreground">Location</Label>
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All locations</SelectItem>
-                  {AVAILABLE_LOCATIONS.map((location) => (
-                    <SelectItem key={location} value={location}>
-                      {location}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Location</Label>
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[180px]">
+                    <SelectValue placeholder="All locations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {AVAILABLE_LOCATIONS.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1 col-span-2 sm:col-span-1">
+                <Label className="text-xs text-muted-foreground">Country</Label>
+                <Input
+                  placeholder="Search country..."
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
+                  className="h-9 w-full sm:w-[180px]"
+                />
+              </div>
             </div>
 
-            <div className="flex-1 min-w-[130px] max-w-[160px]">
-              <Label className="text-xs text-muted-foreground">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex-1 min-w-[150px] max-w-[200px]">
-              <Label className="text-xs text-muted-foreground">Country</Label>
-              <Input
-                placeholder="Search country..."
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-                className="h-9"
-              />
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
-                <X className="mr-1 h-4 w-4" />
-                Clear
-              </Button>
-            )}
-
-            <div className="ml-auto text-sm text-muted-foreground">
-              Showing {filteredAndSortedBookings.length} of {bookings.length} bookings
+            <div className="flex items-center justify-between pt-2 sm:pt-0 sm:flex-1">
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs sm:h-9 sm:px-3 sm:text-sm">
+                  <X className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                  Clear
+                </Button>
+              )}
+              <div className="text-xs sm:text-sm text-muted-foreground ml-auto">
+                {filteredAndSortedBookings.length} of {bookings.length}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -905,25 +870,25 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       </div>
 
       {/* Bookings Cards - Mobile */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {filteredAndSortedBookings.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
+            <CardContent className="py-6 text-center text-muted-foreground text-sm">
               {hasActiveFilters ? "No bookings match your filters" : "No bookings found"}
             </CardContent>
           </Card>
         ) : (
           filteredAndSortedBookings.map((booking) => (
             <Card key={booking.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold">{booking.location}</CardTitle>
+              <CardHeader className="p-3 pb-2">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-sm font-semibold truncate">{booking.location}</CardTitle>
                   <Select
                     value={booking.status}
                     onValueChange={(value: "pending" | "confirmed") => handleStatusChange(booking.id, value)}
                   >
-                    <SelectTrigger className="w-[120px] h-7">
-                      <Badge variant={getStatusBadgeVariant(booking.status)} className="text-xs">
+                    <SelectTrigger className="w-auto h-6 px-2 gap-1">
+                      <Badge variant={getStatusBadgeVariant(booking.status)} className="text-[10px] px-1.5 py-0">
                         {booking.status}
                       </Badge>
                     </SelectTrigger>
@@ -933,57 +898,59 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="text-xs text-muted-foreground">{booking.booking_reference}</p>
+                <p className="text-[10px] text-muted-foreground">{booking.booking_reference}</p>
               </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+              <CardContent className="p-3 pt-0 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <p className="text-muted-foreground text-xs">Dates</p>
+                    <p className="text-muted-foreground text-[10px]">Dates</p>
                     <p className="font-medium">
                       {format(new Date(booking.arrival_date), "MMM dd")} -{" "}
                       {format(new Date(booking.departure_date), "MMM dd, yyyy")}
                     </p>
-                    <p className="text-xs text-muted-foreground">{booking.number_of_nights} nights</p>
+                    <p className="text-[10px] text-muted-foreground">{booking.number_of_nights} nights</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">Country</p>
+                    <p className="text-muted-foreground text-[10px]">Country</p>
                     <p className="font-medium">{booking.country_of_students}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-1 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
-                    <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
-                    <span className="text-xs text-muted-foreground ml-1">hosts</span>
+                <div className="flex flex-col gap-2 pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs">
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
+                      <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">hosts</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditBooking(booking)}>
-                      <Pencil className="mr-1 h-4 w-4" />
+                  <div className="flex items-center gap-1.5">
+                    <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={() => handleEditBooking(booking)}>
+                      <Pencil className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => onViewBooking(booking.id)}>
-                      <Eye className="mr-1 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={() => onViewBooking(booking.id)}>
+                      <Eye className="h-3 w-3 mr-1" />
                       View
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="w-[90vw] max-w-md">
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Booking</AlertDialogTitle>
-                          <AlertDialogDescription>
+                          <AlertDialogTitle className="text-base">Delete Booking</AlertDialogTitle>
+                          <AlertDialogDescription className="text-sm">
                             Are you sure you want to delete this booking? This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogFooter className="flex-row gap-2">
+                          <AlertDialogCancel className="flex-1 m-0">Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDeleteBooking(booking.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="flex-1 m-0 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete
                           </AlertDialogAction>
@@ -1082,15 +1049,15 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
       {/* Edit Booking Dialog */}
       <Dialog open={isEditBookingOpen} onOpenChange={setIsEditBookingOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Booking</DialogTitle>
-            <DialogDescription>Update booking details. Changes will be saved immediately.</DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Edit Booking</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">Update booking details.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdateBooking} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-booking-ref">Booking Reference</Label>
+          <form onSubmit={handleUpdateBooking} className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-booking-ref" className="text-xs sm:text-sm">Booking Reference</Label>
                 <Input
                   id="edit-booking-ref"
                   value={editBookingForm.booking_reference}
@@ -1098,8 +1065,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-location">Location</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-location" className="text-xs sm:text-sm">Location</Label>
                 <Select
                   value={editBookingForm.location}
                   onValueChange={(value) => setEditBookingForm({ ...editBookingForm, location: value })}
@@ -1118,9 +1085,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Arrival Date</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Arrival Date</Label>
                 <Input
                   type="date"
                   value={editBookingForm.arrival_date ? editBookingForm.arrival_date.toISOString().split("T")[0] : ""}
@@ -1131,8 +1098,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   className="w-full"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Departure Date</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label className="text-xs sm:text-sm">Departure Date</Label>
                 <Input
                   type="date"
                   value={
@@ -1147,9 +1114,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-country">Country</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-country" className="text-xs sm:text-sm">Country</Label>
                 <Input
                   id="edit-country"
                   value={editBookingForm.country_of_students}
@@ -1157,8 +1124,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-bed-type">Type of Beds</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-bed-type" className="text-xs sm:text-sm">Type of Beds</Label>
                 <Select
                   value={editBookingForm.bed_type}
                   onValueChange={(value: "single_beds_only" | "shared_beds") =>
@@ -1176,9 +1143,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-students">Students</Label>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-students" className="text-xs sm:text-sm">Students</Label>
                 <Input
                   id="edit-students"
                   type="number"
@@ -1190,12 +1157,12 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-nights">Nights</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-nights" className="text-xs sm:text-sm">Nights</Label>
                 <Input id="edit-nights" type="number" value={editNights} disabled className="bg-muted" />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="edit-status" className="text-xs sm:text-sm">Status</Label>
                 <Select
                   value={editBookingForm.status}
                   onValueChange={(value: "pending" | "confirmed" | "cancelled" | "completed") =>
@@ -1215,21 +1182,22 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-notes">Notes</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="edit-notes" className="text-xs sm:text-sm">Notes</Label>
               <Textarea
                 id="edit-notes"
                 placeholder="Additional information about the booking..."
                 value={editBookingForm.notes}
                 onChange={(e) => setEditBookingForm({ ...editBookingForm, notes: e.target.value })}
+                rows={2}
               />
             </div>
 
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditBookingOpen(false)}>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsEditBookingOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" size="sm" disabled={loading}>
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
             </div>

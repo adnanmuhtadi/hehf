@@ -378,7 +378,7 @@ const HostManagement = () => {
               Add Host
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedHost ? 'Edit Host' : 'Create New Host'}</DialogTitle>
               <DialogDescription>
@@ -388,19 +388,19 @@ const HostManagement = () => {
 
             {selectedHost ? (
               <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-2 text-xs sm:text-sm">
                   <TabsTrigger value="details">Host Details</TabsTrigger>
                   <TabsTrigger value="bonuses">
-                    <PoundSterling className="h-4 w-4 mr-1" />
-                    Location Bonuses
+                    <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    Bonuses
                   </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="details" className="mt-4">
-                  <form onSubmit={handleUpdateHost} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="first_name">First Name</Label>
+                <TabsContent value="details" className="mt-3 sm:mt-4">
+                  <form onSubmit={handleUpdateHost} className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="first_name" className="text-xs sm:text-sm">First Name</Label>
                         <Input
                           id="first_name"
                           value={formData.first_name}
@@ -408,8 +408,8 @@ const HostManagement = () => {
                           required
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="last_name">Last Name</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="last_name" className="text-xs sm:text-sm">Last Name</Label>
                         <Input
                           id="last_name"
                           value={formData.last_name}
@@ -419,36 +419,34 @@ const HostManagement = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          required
-                        />
-                      </div>
+                    <div className="space-y-1 sm:space-y-2">
+                      <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="phone" className="text-xs sm:text-sm">Phone</Label>
                         <Input
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         />
                       </div>
-                      <div className="space-y-2 flex items-center">
+                      <div className="flex items-center justify-end sm:justify-start pt-4 sm:pt-6">
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="is_active"
                             checked={formData.is_active}
                             onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                           />
-                          <Label htmlFor="is_active">Active</Label>
+                          <Label htmlFor="is_active" className="text-xs sm:text-sm">Active</Label>
                         </div>
                       </div>
                     </div>
