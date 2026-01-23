@@ -46,11 +46,13 @@ interface LocationBonus {
 interface HostBookingActionsProps {
   locationFilter?: string;
   onLocationFilterChange?: (value: string) => void;
+  onResponseUpdate?: () => void;
 }
 
 const HostBookingActions = ({
   locationFilter: controlledLocationFilter,
   onLocationFilterChange,
+  onResponseUpdate,
 }: HostBookingActionsProps) => {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -279,6 +281,7 @@ const HostBookingActions = ({
       });
 
       fetchBookings();
+      onResponseUpdate?.();
     } catch (error: any) {
       toast({
         variant: "destructive",
