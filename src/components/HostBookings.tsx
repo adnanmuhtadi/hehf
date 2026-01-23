@@ -51,10 +51,15 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
   };
 
-  // Calculate total actual earnings from accepted bookings
+  // Calculate total actual earnings from accepted bookings (using bed capacity)
   const totalActualEarnings = assignments
-    .filter((a) => a.response === "accepted" && a.students_assigned > 0)
-    .reduce((sum, a) => sum + calculateEarnings(a.bookings.number_of_nights, a.students_assigned), 0);
+    .filter((a) => a.response === "accepted")
+    .reduce((sum, a) => {
+      const capacity = getCapacityForBedType(a.bookings.bed_type);
+      return sum + calculateEarnings(a.bookings.number_of_nights, capacity);
+    }, 0);
+  
+  const acceptedBookingsCount = assignments.filter((a) => a.response === "accepted").length;
 
   useEffect(() => {
     fetchBookingAssignments();
@@ -169,7 +174,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              From {assignments.filter((a) => a.response === "accepted" && a.students_assigned > 0).length} confirmed bookings
+              From {acceptedBookingsCount} booking{acceptedBookingsCount !== 1 ? 's' : ''} marked available
             </p>
           </CardContent>
         </Card>
