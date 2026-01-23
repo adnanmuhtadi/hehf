@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Star, Calendar, BookOpen, Settings, LogOut, PoundSterling } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -72,19 +72,7 @@ const HostDashboard = () => {
           <TabsContent value="overview" className="mt-4 sm:mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Quick Stats Row - Mobile First */}
-              <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                {/* Host Rating - Compact */}
-                <Card className="col-span-1">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="text-xs text-muted-foreground">Rating</span>
-                    </div>
-                    <div className="text-xl sm:text-2xl font-bold">{profile?.rating?.toFixed(1) || '0.0'}</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{profile?.rating_count || 0} reviews</p>
-                  </CardContent>
-                </Card>
-
+              <div className="lg:col-span-3 grid grid-cols-3 gap-2 sm:gap-4">
                 {/* Pending Bookings */}
                 <Card className="col-span-1">
                   <CardContent className="p-3 sm:p-4">

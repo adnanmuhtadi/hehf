@@ -224,24 +224,11 @@ const ProfileSettings = () => {
 
           {profile.role === 'host' && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
-                  <p className="text-sm">
-                    {profile.rating?.toFixed(1) || '0.0'} / 5.0
-                    {profile.rating_count > 0 && (
-                      <span className="text-muted-foreground ml-1">
-                        ({profile.rating_count} reviews)
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Handbook</Label>
-                  <p className="text-sm">
-                    {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
-                  </p>
-                </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Handbook</Label>
+                <p className="text-sm">
+                  {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
+                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                 <div>
