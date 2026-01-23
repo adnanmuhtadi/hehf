@@ -27,6 +27,11 @@ interface BookingAssignment {
   };
 }
 
+interface LocationBonus {
+  location: string;
+  bonus_per_night: number;
+}
+
 interface HostBookingsProps {
   onResponseUpdate?: () => void;
 }
@@ -34,6 +39,7 @@ interface HostBookingsProps {
 const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const { user, profile } = useAuth();
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
+  const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get rate and capacities from profile
@@ -41,9 +47,21 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const singleBedCapacity = profile?.single_bed_capacity || 0;
   const sharedBedCapacity = profile?.shared_bed_capacity || 0;
 
-  // Calculate earnings for a booking
-  const calculateEarnings = (nights: number, studentsAssigned: number) => {
-    return ratePerStudentPerNight * nights * studentsAssigned;
+  // Get bonus for a specific location
+  const getBonusForLocation = (location: string): number => {
+    const bonus = locationBonuses.find(
+      (b) =>
+        location.toLowerCase().includes(b.location.toLowerCase()) ||
+        b.location.toLowerCase().includes(location.toLowerCase()),
+    );
+    return bonus?.bonus_per_night || 0;
+  };
+
+  // Calculate earnings for a booking (including location bonus)
+  const calculateEarningsWithBonus = (nights: number, capacity: number, location: string) => {
+    const baseEarnings = ratePerStudentPerNight * nights * capacity;
+    const locationBonus = getBonusForLocation(location) * nights;
+    return { baseEarnings, locationBonus, total: baseEarnings + locationBonus };
   };
 
   // Get capacity based on bed type
@@ -51,17 +69,35 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
   };
 
-  // Calculate total actual earnings from accepted bookings (using bed capacity)
+  // Calculate total actual earnings from accepted bookings (using bed capacity + location bonuses)
   const totalActualEarnings = assignments
     .filter((a) => a.response === "accepted")
     .reduce((sum, a) => {
       const capacity = getCapacityForBedType(a.bookings.bed_type);
-      return sum + calculateEarnings(a.bookings.number_of_nights, capacity);
+      const earnings = calculateEarningsWithBonus(a.bookings.number_of_nights, capacity, a.bookings.location);
+      return sum + earnings.total;
     }, 0);
   
   const acceptedBookingsCount = assignments.filter((a) => a.response === "accepted").length;
 
+  const fetchLocationBonuses = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("host_location_bonuses")
+        .select("location, bonus_per_night")
+        .eq("host_id", user.id);
+
+      if (error) throw error;
+      setLocationBonuses(data || []);
+    } catch (error) {
+      console.error("Error fetching location bonuses:", error);
+    }
+  };
+
   useEffect(() => {
+    fetchLocationBonuses();
     fetchBookingAssignments();
   }, [user]);
 
@@ -230,40 +266,69 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
             {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && (
               <div className="space-y-2">
                 {/* Confirmed Earnings - shown when students are assigned */}
-                {assignment.response === "accepted" && assignment.students_assigned > 0 && (
-                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-                    <PoundSterling className="h-5 w-5 text-green-600" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                        Confirmed Earnings: £
-                        {calculateEarnings(assignment.bookings.number_of_nights, assignment.students_assigned).toFixed(
-                          2,
-                        )}
-                      </span>
-                      <span className="text-xs text-green-600 dark:text-green-500">
-                        {assignment.students_assigned} students assigned × {assignment.bookings.number_of_nights} nights
-                        × £{ratePerStudentPerNight}/night
-                      </span>
+                {assignment.response === "accepted" && assignment.students_assigned > 0 && (() => {
+                  const earnings = calculateEarningsWithBonus(
+                    assignment.bookings.number_of_nights,
+                    assignment.students_assigned,
+                    assignment.bookings.location
+                  );
+                  const hasBonus = earnings.locationBonus > 0;
+                  return (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                      <PoundSterling className="h-5 w-5 text-green-600" />
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                            Confirmed Earnings: £{earnings.total.toFixed(2)}
+                          </span>
+                          {hasBonus && (
+                            <Badge variant="outline" className="border-green-500 text-green-600 text-xs flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3" />
+                              +£{earnings.locationBonus.toFixed(2)} bonus
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-green-600 dark:text-green-500">
+                          {assignment.students_assigned} students × {assignment.bookings.number_of_nights} nights × £{ratePerStudentPerNight}/night
+                          {hasBonus && ` + £${getBonusForLocation(assignment.bookings.location)}/night location bonus`}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Potential Earnings - show for pending/available or when no students assigned yet */}
-                {(assignment.response !== "accepted" || assignment.students_assigned === 0) && (
-                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                    <PoundSterling className="h-5 w-5 text-primary" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
-                        Potential Earnings: £
-                        {calculateEarnings(assignment.bookings.number_of_nights, getCapacityForBedType(assignment.bookings.bed_type)).toFixed(2)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Based on {getCapacityForBedType(assignment.bookings.bed_type)} students × {assignment.bookings.number_of_nights} nights × £
-                        {ratePerStudentPerNight}/night
-                      </span>
+                {(assignment.response !== "accepted" || assignment.students_assigned === 0) && (() => {
+                  const capacity = getCapacityForBedType(assignment.bookings.bed_type);
+                  const earnings = calculateEarningsWithBonus(
+                    assignment.bookings.number_of_nights,
+                    capacity,
+                    assignment.bookings.location
+                  );
+                  const hasBonus = earnings.locationBonus > 0;
+                  return (
+                    <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                      <PoundSterling className="h-5 w-5 text-primary" />
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            Potential Earnings: £{earnings.total.toFixed(2)}
+                          </span>
+                          {hasBonus && (
+                            <Badge variant="outline" className="border-green-500 text-green-600 text-xs flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3" />
+                              +£{earnings.locationBonus.toFixed(2)} bonus
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          Based on {capacity} students × {assignment.bookings.number_of_nights} nights × £{ratePerStudentPerNight}/night
+                          {hasBonus && ` + £${getBonusForLocation(assignment.bookings.location)}/night location bonus`}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
 
