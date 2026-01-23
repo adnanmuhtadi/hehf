@@ -1,24 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import HostBookings from '@/components/HostBookings';
 import HostCalendar from '@/components/HostCalendar';
 import ProfileSettings from '@/components/ProfileSettings';
 import HostBookingActions from '@/components/HostBookingActions';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import OnboardingTour from '@/components/OnboardingTour';
 
 const HostDashboard = () => {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [locationFilter, setLocationFilter] = useState<string>('preferred');
   const { stats, refetchStats } = useHostStats(locationFilter);
+  const [showTour, setShowTour] = useState(false);
+
+  // Show tour for first-time users
+  useEffect(() => {
+    if (profile && !profile.has_completed_tour && !profile.must_reset_password) {
+      setShowTour(true);
+    }
+  }, [profile]);
+
+  const handleTourComplete = async (disableTour: boolean) => {
+    setShowTour(false);
+    
+    if (disableTour && user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ has_completed_tour: true })
+          .eq('user_id', user.id);
+        
+        refreshProfile();
+      } catch (error) {
+        console.error('Error updating tour status:', error);
+      }
+    }
+  };
+
+  const handleRestartTour = () => {
+    setShowTour(true);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -32,6 +65,9 @@ const HostDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Onboarding Tour */}
+      <OnboardingTour isVisible={showTour} onComplete={handleTourComplete} />
+
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -41,7 +77,17 @@ const HostDashboard = () => {
               <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
-              <NotificationDropdown />
+              <div data-tour="notifications">
+                <NotificationDropdown />
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleRestartTour}
+                title="Take a tour"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setActiveTab('profile')} className="hidden sm:flex">
                 <Settings className="h-4 w-4 sm:mr-2" />
                 <span className="hidden md:inline">Settings</span>
@@ -62,17 +108,17 @@ const HostDashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
             <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4">
-              <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
-              <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap">Bookings</TabsTrigger>
-              <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap">Calendar</TabsTrigger>
-              <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap">Profile</TabsTrigger>
+              <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap" data-tour="overview-tab">Overview</TabsTrigger>
+              <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap" data-tour="bookings-tab">Bookings</TabsTrigger>
+              <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap" data-tour="calendar-tab">Calendar</TabsTrigger>
+              <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap" data-tour="profile-tab">Profile</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="overview" className="mt-4 sm:mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Quick Stats Row - Mobile First */}
-              <div className="lg:col-span-3 grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="lg:col-span-3 grid grid-cols-3 gap-2 sm:gap-4" data-tour="quick-stats">
                 {/* Pending Bookings */}
                 <Card className="col-span-1">
                   <CardContent className="p-3 sm:p-4">
@@ -111,7 +157,7 @@ const HostDashboard = () => {
               </div>
 
               {/* Sidebar - Shows after tiles on mobile, in sidebar on desktop */}
-              <div className="space-y-4 order-none lg:order-last">
+              <div className="space-y-4 order-none lg:order-last" data-tour="earnings-widget">
                 {/* Host Handbook */}
                 <Card>
                   <CardContent className="p-3 sm:p-4">
@@ -126,7 +172,6 @@ const HostDashboard = () => {
                   </CardContent>
                 </Card>
 
-                {/* Potential Earnings Widget */}
                 {/* Actual Earnings Widget */}
                 <Card className="border-green-500/20 bg-green-500/5">
                   <CardContent className="p-3 sm:p-4">
@@ -165,7 +210,7 @@ const HostDashboard = () => {
               </div>
 
               {/* Available Bookings */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2" data-tour="available-bookings">
                 <Card>
                   <CardHeader className="p-3 sm:p-6">
                     <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>

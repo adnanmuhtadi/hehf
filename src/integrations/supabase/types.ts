@@ -196,6 +196,7 @@ export type Database = {
           email: string
           full_name: string
           handbook_downloaded: boolean | null
+          has_completed_tour: boolean | null
           id: string
           is_active: boolean | null
           max_students_capacity: number | null
@@ -216,6 +217,7 @@ export type Database = {
           email: string
           full_name: string
           handbook_downloaded?: boolean | null
+          has_completed_tour?: boolean | null
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
@@ -236,6 +238,7 @@ export type Database = {
           email?: string
           full_name?: string
           handbook_downloaded?: boolean | null
+          has_completed_tour?: boolean | null
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
