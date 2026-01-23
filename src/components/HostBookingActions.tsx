@@ -1,14 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { MapPin, Users, Calendar, CheckCircle, XCircle, Edit2, PoundSterling, AlertTriangle, TrendingUp } from 'lucide-react';
-import { useMemo } from 'react';
-import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import {
+  MapPin,
+  Users,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Edit2,
+  PoundSterling,
+  AlertTriangle,
+  TrendingUp,
+} from "lucide-react";
+import { useMemo } from "react";
+import { AVAILABLE_LOCATIONS } from "@/data/locations";
 
 interface Booking {
   id: string;
@@ -44,7 +54,7 @@ const HostBookingActions = ({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>('preferred');
+  const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>("preferred");
   const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
   const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -55,9 +65,10 @@ const HostBookingActions = ({
 
   // Get bonus for a specific location
   const getBonusForLocation = (location: string): number => {
-    const bonus = locationBonuses.find(b => 
-      location.toLowerCase().includes(b.location.toLowerCase()) || 
-      b.location.toLowerCase().includes(location.toLowerCase())
+    const bonus = locationBonuses.find(
+      (b) =>
+        location.toLowerCase().includes(b.location.toLowerCase()) ||
+        b.location.toLowerCase().includes(location.toLowerCase()),
     );
     return bonus?.bonus_per_night || 0;
   };
@@ -79,12 +90,7 @@ const HostBookingActions = ({
   };
 
   // Check if two date ranges overlap
-  const datesOverlap = (
-    start1: string,
-    end1: string,
-    start2: string,
-    end2: string
-  ): boolean => {
+  const datesOverlap = (start1: string, end1: string, start2: string, end2: string): boolean => {
     const s1 = new Date(start1).getTime();
     const e1 = new Date(end1).getTime();
     const s2 = new Date(start2).getTime();
@@ -116,7 +122,7 @@ const HostBookingActions = ({
     if (!conflicts) return false;
     return conflicts.some((cId) => {
       const cBooking = bookings.find((b) => b.id === cId);
-      return cBooking?.booking_hosts?.[0]?.response === 'accepted';
+      return cBooking?.booking_hosts?.[0]?.response === "accepted";
     });
   };
 
@@ -125,7 +131,7 @@ const HostBookingActions = ({
     if (!conflicts) return null;
     for (const cId of conflicts) {
       const cBooking = bookings.find((b) => b.id === cId);
-      if (cBooking?.booking_hosts?.[0]?.response === 'accepted') {
+      if (cBooking?.booking_hosts?.[0]?.response === "accepted") {
         return cBooking.booking_reference;
       }
     }
@@ -134,88 +140,85 @@ const HostBookingActions = ({
 
   const fetchLocationBonuses = async () => {
     if (!profile) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('host_location_bonuses')
-        .select('location, bonus_per_night')
-        .eq('host_id', profile.user_id);
-      
+        .from("host_location_bonuses")
+        .select("location, bonus_per_night")
+        .eq("host_id", profile.user_id);
+
       if (error) throw error;
       setLocationBonuses(data || []);
     } catch (error) {
-      console.error('Error fetching location bonuses:', error);
+      console.error("Error fetching location bonuses:", error);
     }
   };
 
   const fetchBookings = async () => {
     if (!profile) return;
-    
+
     setLoading(true);
     try {
       // First get bookings with existing assignments for this host
       let assignedQuery = supabase
-        .from('bookings')
-        .select(`
+        .from("bookings")
+        .select(
+          `
           *,
           booking_hosts!inner(response, students_assigned)
-        `)
-        .eq('booking_hosts.host_id', profile.user_id);
+        `,
+        )
+        .eq("booking_hosts.host_id", profile.user_id);
 
       // Apply location filter for assigned bookings
-      if (locationFilter === 'preferred' && profile.preferred_locations && profile.preferred_locations.length > 0) {
+      if (locationFilter === "preferred" && profile.preferred_locations && profile.preferred_locations.length > 0) {
         // Filter by any of the preferred locations
-        const locationFilters = profile.preferred_locations.map(loc => `location.ilike.%${loc.trim()}%`);
-        assignedQuery = assignedQuery.or(locationFilters.join(','));
-      } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
-        assignedQuery = assignedQuery.ilike('location', `%${locationFilter.trim()}%`);
+        const locationFilters = profile.preferred_locations.map((loc) => `location.ilike.%${loc.trim()}%`);
+        assignedQuery = assignedQuery.or(locationFilters.join(","));
+      } else if (locationFilter !== "all" && locationFilter !== "preferred") {
+        assignedQuery = assignedQuery.ilike("location", `%${locationFilter.trim()}%`);
       }
 
       // Get all host assignments for this user to exclude from available bookings
       const { data: hostAssignments } = await supabase
-        .from('booking_hosts')
-        .select('booking_id')
-        .eq('host_id', profile.user_id);
+        .from("booking_hosts")
+        .select("booking_id")
+        .eq("host_id", profile.user_id);
 
-      const assignedBookingIds = hostAssignments?.map(h => h.booking_id) || [];
+      const assignedBookingIds = hostAssignments?.map((h) => h.booking_id) || [];
 
       // Get ALL available bookings (not assigned to this host yet) for the location - regardless of status
-      let availableQuery = supabase
-        .from('bookings')
-        .select('*');
+      let availableQuery = supabase.from("bookings").select("*");
 
       // Exclude already assigned bookings
       if (assignedBookingIds.length > 0) {
-        availableQuery = availableQuery.not('id', 'in', `(${assignedBookingIds.join(',')})`);
+        availableQuery = availableQuery.not("id", "in", `(${assignedBookingIds.join(",")})`);
       }
 
       // Apply location filter for available bookings
-      if (locationFilter === 'preferred' && profile.preferred_locations && profile.preferred_locations.length > 0) {
+      if (locationFilter === "preferred" && profile.preferred_locations && profile.preferred_locations.length > 0) {
         // Filter by any of the preferred locations
-        const locationFilters = profile.preferred_locations.map(loc => `location.ilike.%${loc.trim()}%`);
-        availableQuery = availableQuery.or(locationFilters.join(','));
-      } else if (locationFilter !== 'all' && locationFilter !== 'preferred') {
-        availableQuery = availableQuery.ilike('location', `%${locationFilter.trim()}%`);
+        const locationFilters = profile.preferred_locations.map((loc) => `location.ilike.%${loc.trim()}%`);
+        availableQuery = availableQuery.or(locationFilters.join(","));
+      } else if (locationFilter !== "all" && locationFilter !== "preferred") {
+        availableQuery = availableQuery.ilike("location", `%${locationFilter.trim()}%`);
       }
 
-      const [assignedResult, availableResult] = await Promise.all([
-        assignedQuery,
-        availableQuery
-      ]);
-      
+      const [assignedResult, availableResult] = await Promise.all([assignedQuery, availableQuery]);
+
       if (assignedResult.error) throw assignedResult.error;
       if (availableResult.error) throw availableResult.error;
 
       // Combine assigned and available bookings
       const assignedBookings = assignedResult.data || [];
-      const availableBookings = (availableResult.data || []).map(booking => ({
+      const availableBookings = (availableResult.data || []).map((booking) => ({
         ...booking,
-        booking_hosts: [{ response: 'available', students_assigned: 0 }]
+        booking_hosts: [{ response: "available", students_assigned: 0 }],
       }));
 
       // Combine and sort by arrival_date (earliest first)
-      const allBookings = [...assignedBookings, ...availableBookings].sort((a, b) => 
-        new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime()
+      const allBookings = [...assignedBookings, ...availableBookings].sort(
+        (a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime(),
       );
 
       setBookings(allBookings);
@@ -230,42 +233,40 @@ const HostBookingActions = ({
     }
   };
 
-  const handleBookingResponse = async (bookingId: string, response: 'accepted' | 'ignored') => {
+  const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined") => {
     if (!profile) return;
-    
+
     setActionLoading(bookingId);
     try {
       // Check if booking_host record exists
       const { data: existingRecord } = await supabase
-        .from('booking_hosts')
-        .select('id')
-        .eq('booking_id', bookingId)
-        .eq('host_id', profile.user_id)
+        .from("booking_hosts")
+        .select("id")
+        .eq("booking_id", bookingId)
+        .eq("host_id", profile.user_id)
         .single();
 
       if (existingRecord) {
         // Update existing record
         const { error } = await supabase
-          .from('booking_hosts')
-          .update({ 
+          .from("booking_hosts")
+          .update({
             response,
-            responded_at: new Date().toISOString()
+            responded_at: new Date().toISOString(),
           })
-          .eq('booking_id', bookingId)
-          .eq('host_id', profile.user_id);
+          .eq("booking_id", bookingId)
+          .eq("host_id", profile.user_id);
 
         if (error) throw error;
       } else {
         // Create new record for available booking
-        const { error } = await supabase
-          .from('booking_hosts')
-          .insert({
-            booking_id: bookingId,
-            host_id: profile.user_id,
-            response,
-            responded_at: new Date().toISOString(),
-            assigned_at: new Date().toISOString()
-          });
+        const { error } = await supabase.from("booking_hosts").insert({
+          booking_id: bookingId,
+          host_id: profile.user_id,
+          response,
+          responded_at: new Date().toISOString(),
+          assigned_at: new Date().toISOString(),
+        });
 
         if (error) throw error;
       }
@@ -279,7 +280,7 @@ const HostBookingActions = ({
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error", 
+        title: "Error",
         description: error.message,
       });
     } finally {
@@ -294,11 +295,11 @@ const HostBookingActions = ({
 
   const getResponseBadge = (response: string) => {
     switch (response) {
-      case 'accepted':
+      case "accepted":
         return <Badge className="bg-green-100 text-green-800">Accepted</Badge>;
-      case 'ignored':
+      case "declined":
         return <Badge variant="destructive">Declined</Badge>;
-      case 'available':
+      case "available":
         return <Badge variant="secondary">Available</Badge>;
       default:
         return <Badge variant="outline">Pending</Badge>;
@@ -338,10 +339,7 @@ const HostBookingActions = ({
       ) : (
         <div className="grid gap-4">
           {bookings.map((booking) => (
-            <Card
-              key={booking.id}
-              className={conflictMap.has(booking.id) ? 'border-amber-400' : ''}
-            >
+            <Card key={booking.id} className={conflictMap.has(booking.id) ? "border-amber-400" : ""}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -353,10 +351,11 @@ const HostBookingActions = ({
                       </Badge>
                     )}
                   </div>
-                  {getResponseBadge(booking.booking_hosts?.[0]?.response || 'pending')}
+                  {getResponseBadge(booking.booking_hosts?.[0]?.response || "pending")}
                 </div>
                 <CardDescription>
-                  {booking.country_of_students} • {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights
+                  {booking.country_of_students} •{" "}
+                  {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -372,47 +371,56 @@ const HostBookingActions = ({
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      {new Date(booking.arrival_date).toLocaleDateString()} - {new Date(booking.departure_date).toLocaleDateString()}
+                      {new Date(booking.arrival_date).toLocaleDateString()} -{" "}
+                      {new Date(booking.departure_date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
                 {/* Potential Earnings Display */}
-                {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (() => {
-                  const nights = booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
-                  const earnings = calculatePotentialEarnings(nights, booking.location);
-                  const hasBonus = earnings.totalBonus > 0;
-                  
-                  return (
-                    <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
-                      <PoundSterling className="h-5 w-5 text-primary" />
-                      <div className="flex flex-col flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">
-                            Potential Earnings: £{earnings.total.toFixed(2)}
+                {ratePerStudentPerNight > 0 &&
+                  maxStudentsCapacity > 0 &&
+                  (() => {
+                    const nights =
+                      booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
+                    const earnings = calculatePotentialEarnings(nights, booking.location);
+                    const hasBonus = earnings.totalBonus > 0;
+
+                    return (
+                      <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
+                        <PoundSterling className="h-5 w-5 text-primary" />
+                        <div className="flex flex-col flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              Potential Earnings: £{earnings.total.toFixed(2)}
+                            </span>
+                            {hasBonus && (
+                              <Badge
+                                variant="outline"
+                                className="border-green-500 text-green-600 text-xs flex items-center gap-1"
+                              >
+                                <TrendingUp className="h-3 w-3" />
+                                +£{earnings.totalBonus.toFixed(2)} bonus
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {maxStudentsCapacity} students × {nights} nights × £{ratePerStudentPerNight}/night
+                            {hasBonus && ` + £${getBonusForLocation(booking.location)}/night location bonus`}
                           </span>
-                          {hasBonus && (
-                            <Badge variant="outline" className="border-green-500 text-green-600 text-xs flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3" />
-                              +£{earnings.totalBonus.toFixed(2)} bonus
-                            </Badge>
-                          )}
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {maxStudentsCapacity} students × {nights} nights × £{ratePerStudentPerNight}/night
-                          {hasBonus && ` + £${getBonusForLocation(booking.location)}/night location bonus`}
-                        </span>
                       </div>
-                    </div>
-                  );
-                })()}
-                {(booking.booking_hosts?.[0]?.response === 'pending' || booking.booking_hosts?.[0]?.response === 'available') ? (
+                    );
+                  })()}
+                {booking.booking_hosts?.[0]?.response === "pending" ||
+                booking.booking_hosts?.[0]?.response === "available" ? (
                   <div className="space-y-2">
                     {isBlockedByConflict(booking.id) && (
                       <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-sm">
                         <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                         <span>
-                          You already marked <strong>{getConflictingAcceptedRef(booking.id)}</strong> as available for these dates. Mark it unavailable first to select this one.
+                          You already marked <strong>{getConflictingAcceptedRef(booking.id)}</strong> as available for
+                          these dates. Mark it unavailable first to select this one.
                         </span>
                       </div>
                     )}
@@ -420,7 +428,7 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="success"
-                        onClick={() => handleBookingResponse(booking.id, 'accepted')}
+                        onClick={() => handleBookingResponse(booking.id, "accepted")}
                         disabled={actionLoading === booking.id || isBlockedByConflict(booking.id)}
                         className="flex items-center gap-2"
                       >
@@ -430,7 +438,7 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleBookingResponse(booking.id, 'ignored')}
+                        onClick={() => handleBookingResponse(booking.id, "declined")}
                         disabled={actionLoading === booking.id}
                         className="flex items-center gap-2"
                       >
@@ -439,13 +447,13 @@ const HostBookingActions = ({
                       </Button>
                     </div>
                   </div>
-                ) : booking.booking_hosts?.[0]?.response === 'accepted' ? (
+                ) : booking.booking_hosts?.[0]?.response === "accepted" ? (
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-green-600 font-medium">✓ You marked yourself as available</span>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleBookingResponse(booking.id, 'ignored')}
+                      onClick={() => handleBookingResponse(booking.id, "declined")}
                       disabled={actionLoading === booking.id}
                       className="flex items-center gap-2"
                     >
@@ -453,13 +461,13 @@ const HostBookingActions = ({
                       Change to Unavailable
                     </Button>
                   </div>
-                ) : booking.booking_hosts?.[0]?.response === 'ignored' ? (
+                ) : booking.booking_hosts?.[0]?.response === "declined" ? (
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">You marked yourself as unavailable</span>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleBookingResponse(booking.id, 'accepted')}
+                      onClick={() => handleBookingResponse(booking.id, "accepted")}
                       disabled={actionLoading === booking.id}
                       className="flex items-center gap-2"
                     >

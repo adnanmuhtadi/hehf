@@ -1,7 +1,7 @@
 -- Create enum types for better data integrity
 CREATE TYPE public.user_role AS ENUM ('admin', 'host');
 CREATE TYPE public.booking_status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed');
-CREATE TYPE public.booking_response AS ENUM ('pending', 'accepted', 'ignored');
+CREATE TYPE public.booking_response AS ENUM ('pending', 'accepted', 'declined');
 
 -- Create profiles table for user management
 CREATE TABLE public.profiles (

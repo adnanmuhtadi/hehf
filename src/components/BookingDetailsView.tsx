@@ -1,20 +1,37 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe } from 'lucide-react';
-import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe } from "lucide-react";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { AVAILABLE_LOCATIONS } from "@/data/locations";
 
 interface Booking {
   id: string;
@@ -25,7 +42,7 @@ interface Booking {
   location: string;
   country_of_students: string;
   number_of_students: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: "pending" | "confirmed" | "cancelled" | "completed";
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -33,7 +50,7 @@ interface Booking {
 
 interface BookingHost {
   id: string;
-  response: 'pending' | 'accepted' | 'ignored';
+  response: "pending" | "accepted" | "declined";
   students_assigned: number;
   profiles: {
     full_name: string;
@@ -58,10 +75,10 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const [editBooking, setEditBooking] = useState({
     arrival_date: undefined as Date | undefined,
     departure_date: undefined as Date | undefined,
-    location: '',
-    country_of_students: '',
+    location: "",
+    country_of_students: "",
     number_of_students: 1,
-    notes: '',
+    notes: "",
   });
 
   // Calculate nights automatically for edit form
@@ -81,14 +98,14 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
   const fetchBookingDetails = async () => {
     if (!bookingId) return;
-    
+
     setLoading(true);
     try {
       // Fetch booking details
       const { data: bookingData, error: bookingError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('id', bookingId)
+        .from("bookings")
+        .select("*")
+        .eq("id", bookingId)
         .single();
 
       if (bookingError) throw bookingError;
@@ -101,21 +118,23 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         location: bookingData.location,
         country_of_students: bookingData.country_of_students,
         number_of_students: bookingData.number_of_students,
-        notes: bookingData.notes || '',
+        notes: bookingData.notes || "",
       });
 
       // Fetch assigned hosts
       const { data: hostsData, error: hostsError } = await supabase
-        .from('booking_hosts')
-        .select(`
+        .from("booking_hosts")
+        .select(
+          `
           *,
           profiles (
             full_name,
             email,
             phone
           )
-        `)
-        .eq('booking_id', bookingId);
+        `,
+        )
+        .eq("booking_id", bookingId);
 
       if (hostsError) throw hostsError;
       setBookingHosts(hostsData || []);
@@ -145,18 +164,15 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     setEditLoading(true);
     try {
       const updateData = {
-        arrival_date: editBooking.arrival_date.toISOString().split('T')[0],
-        departure_date: editBooking.departure_date.toISOString().split('T')[0],
+        arrival_date: editBooking.arrival_date.toISOString().split("T")[0],
+        departure_date: editBooking.departure_date.toISOString().split("T")[0],
         location: editBooking.location,
         country_of_students: editBooking.country_of_students,
         number_of_students: editBooking.number_of_students,
         notes: editBooking.notes,
       };
 
-      const { error } = await supabase
-        .from('bookings')
-        .update(updateData)
-        .eq('id', booking.id);
+      const { error } = await supabase.from("bookings").update(updateData).eq("id", booking.id);
 
       if (error) throw error;
 
@@ -183,10 +199,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     if (!booking) return;
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('id', booking.id);
+      const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
 
       if (error) throw error;
 
@@ -207,33 +220,38 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'default';
-      case 'pending': return 'secondary';
-      case 'cancelled': return 'destructive';
-      case 'completed': return 'outline';
-      default: return 'secondary';
+      case "confirmed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "cancelled":
+        return "destructive";
+      case "completed":
+        return "outline";
+      default:
+        return "secondary";
     }
   };
 
   const getResponseBadgeVariant = (response: string) => {
     switch (response) {
-      case 'accepted': return 'default';
-      case 'ignored': return 'destructive';
-      case 'pending': return 'secondary';
-      default: return 'secondary';
+      case "accepted":
+        return "default";
+      case "declined":
+        return "destructive";
+      case "pending":
+        return "secondary";
+      default:
+        return "secondary";
     }
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">Loading booking details...</div>
-    );
+    return <div className="text-center py-8">Loading booking details...</div>;
   }
 
   if (!booking) {
-    return (
-      <div className="text-center py-8">Booking not found</div>
-    );
+    return <div className="text-center py-8">Booking not found</div>;
   }
 
   return (
@@ -261,15 +279,16 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Edit Booking</DialogTitle>
-                <DialogDescription>
-                  Update the booking details
-                </DialogDescription>
+                <DialogDescription>Update the booking details</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleUpdateBooking} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="edit-location">Location</Label>
-                    <Select value={editBooking.location} onValueChange={(value) => setEditBooking({ ...editBooking, location: value })}>
+                    <Select
+                      value={editBooking.location}
+                      onValueChange={(value) => setEditBooking({ ...editBooking, location: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
@@ -300,7 +319,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editBooking.arrival_date ? format(editBooking.arrival_date, 'PPP') : 'Select date'}
+                          {editBooking.arrival_date ? format(editBooking.arrival_date, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -319,7 +338,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left">
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editBooking.departure_date ? format(editBooking.departure_date, 'PPP') : 'Select date'}
+                          {editBooking.departure_date ? format(editBooking.departure_date, "PPP") : "Select date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -342,18 +361,15 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       type="number"
                       min="1"
                       value={editBooking.number_of_students}
-                      onChange={(e) => setEditBooking({ ...editBooking, number_of_students: parseInt(e.target.value) || 1 })}
+                      onChange={(e) =>
+                        setEditBooking({ ...editBooking, number_of_students: parseInt(e.target.value) || 1 })
+                      }
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Nights</Label>
-                    <Input
-                      type="number"
-                      value={editNights}
-                      disabled
-                      className="bg-muted"
-                    />
+                    <Input type="number" value={editNights} disabled className="bg-muted" />
                   </div>
                 </div>
 
@@ -371,7 +387,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                     Cancel
                   </Button>
                   <Button type="submit" disabled={editLoading}>
-                    {editLoading ? 'Updating...' : 'Update Booking'}
+                    {editLoading ? "Updating..." : "Update Booking"}
                   </Button>
                 </div>
               </form>
@@ -394,7 +410,10 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteBooking} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogAction
+                  onClick={handleDeleteBooking}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -408,9 +427,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Booking Information</CardTitle>
-            <Badge variant={getStatusBadgeVariant(booking.status)}>
-              {booking.status}
-            </Badge>
+            <Badge variant={getStatusBadgeVariant(booking.status)}>{booking.status}</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -438,11 +455,11 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Arrival Date</Label>
-              <p className="text-sm font-medium">{format(new Date(booking.arrival_date), 'PPP')}</p>
+              <p className="text-sm font-medium">{format(new Date(booking.arrival_date), "PPP")}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Departure Date</Label>
-              <p className="text-sm font-medium">{format(new Date(booking.departure_date), 'PPP')}</p>
+              <p className="text-sm font-medium">{format(new Date(booking.departure_date), "PPP")}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Duration</Label>
@@ -479,13 +496,9 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={getResponseBadgeVariant(hostAssignment.response)}>
-                      {hostAssignment.response}
-                    </Badge>
-                    {hostAssignment.response === 'accepted' && (
-                      <Badge variant="outline">
-                        {hostAssignment.students_assigned} students
-                      </Badge>
+                    <Badge variant={getResponseBadgeVariant(hostAssignment.response)}>{hostAssignment.response}</Badge>
+                    {hostAssignment.response === "accepted" && (
+                      <Badge variant="outline">{hostAssignment.students_assigned} students</Badge>
                     )}
                   </div>
                 </div>
