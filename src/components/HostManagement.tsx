@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Star, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import HostLocationBonuses from './HostLocationBonuses';
@@ -27,8 +27,6 @@ interface Host {
   address?: string;
   pets?: string;
   preferred_locations?: string[];
-  rating: number;
-  rating_count: number;
   is_active: boolean;
   handbook_downloaded: boolean;
   rate_per_student_per_night: number;
@@ -656,7 +654,6 @@ const HostManagement = () => {
                   <TableHead>Contact</TableHead>
                   <TableHead>Locations</TableHead>
                   <TableHead>Max Students</TableHead>
-                  <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -707,13 +704,6 @@ const HostManagement = () => {
                       <div className="flex items-center">
                         <Users className="mr-1 h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{host.max_students_capacity || 0}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Star className="mr-1 h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{host.rating.toFixed(1)}</span>
-                        <span className="text-muted-foreground ml-1">({host.rating_count})</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -792,10 +782,6 @@ const HostManagement = () => {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span>{host.rating.toFixed(1)} ({host.rating_count})</span>
-                    </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Users className="h-3 w-3" />
                       <span>Max: {host.max_students_capacity || 0}</span>
