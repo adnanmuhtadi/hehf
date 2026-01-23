@@ -65,6 +65,7 @@ export type Database = {
       bookings: {
         Row: {
           arrival_date: string
+          bed_type: Database["public"]["Enums"]["bed_type"] | null
           booking_reference: string
           country_of_students: string
           created_at: string | null
@@ -80,6 +81,7 @@ export type Database = {
         }
         Insert: {
           arrival_date: string
+          bed_type?: Database["public"]["Enums"]["bed_type"] | null
           booking_reference: string
           country_of_students: string
           created_at?: string | null
@@ -95,6 +97,7 @@ export type Database = {
         }
         Update: {
           arrival_date?: string
+          bed_type?: Database["public"]["Enums"]["bed_type"] | null
           booking_reference?: string
           country_of_students?: string
           created_at?: string | null
@@ -277,6 +280,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "host"
+      bed_type: "single_beds_only" | "shared_beds"
       booking_response: "pending" | "accepted" | "declined"
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"
       user_role: "admin" | "host"
@@ -408,6 +412,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "host"],
+      bed_type: ["single_beds_only", "shared_beds"],
       booking_response: ["pending", "accepted", "declined"],
       booking_status: ["pending", "confirmed", "cancelled", "completed"],
       user_role: ["admin", "host"],

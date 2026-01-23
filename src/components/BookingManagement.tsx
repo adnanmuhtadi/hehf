@@ -109,6 +109,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     country_of_students: "",
     number_of_students: 1,
     notes: "",
+    bed_type: "single_beds_only" as "single_beds_only" | "shared_beds",
   });
 
   // Get unique countries from bookings
@@ -194,6 +195,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     number_of_students: 1,
     notes: "",
     status: "pending" as "pending" | "confirmed" | "cancelled" | "completed",
+    bed_type: "single_beds_only" as "single_beds_only" | "shared_beds",
   });
 
   // Calculate nights automatically
@@ -217,6 +219,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       number_of_students: booking.number_of_students,
       notes: booking.notes || "",
       status: booking.status,
+      bed_type: (booking as any).bed_type || "single_beds_only",
     });
     setIsEditBookingOpen(true);
   };
@@ -246,6 +249,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
           number_of_students: editBookingForm.number_of_students,
           notes: editBookingForm.notes || null,
           status: editBookingForm.status,
+          bed_type: editBookingForm.bed_type,
         })
         .eq("id", editingBooking.id);
 
@@ -379,10 +383,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       }
 
       const bookingData = {
-        ...newBooking,
         booking_reference: newBooking.booking_reference || generateBookingReference(),
         arrival_date: newBooking.arrival_date.toISOString().split("T")[0],
         departure_date: newBooking.departure_date.toISOString().split("T")[0],
+        location: newBooking.location,
+        country_of_students: newBooking.country_of_students,
+        number_of_students: newBooking.number_of_students,
+        notes: newBooking.notes || null,
+        bed_type: newBooking.bed_type,
         created_by: user.id,
       };
 
@@ -404,6 +412,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         country_of_students: "",
         number_of_students: 1,
         notes: "",
+        bed_type: "single_beds_only",
       });
       fetchBookings();
     } catch (error: any) {
@@ -613,7 +622,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="country">Country of Students</Label>
                 <Input
@@ -624,6 +633,24 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="bed-type">Type of Beds</Label>
+                <Select
+                  value={newBooking.bed_type}
+                  onValueChange={(value: "single_beds_only" | "shared_beds") => setNewBooking({ ...newBooking, bed_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bed type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single_beds_only">Single Beds Only</SelectItem>
+                    <SelectItem value="shared_beds">Shared Beds</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="students">Number of Students</Label>
                 <Input
@@ -1113,7 +1140,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-country">Country</Label>
                 <Input
@@ -1123,6 +1150,26 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-bed-type">Type of Beds</Label>
+                <Select
+                  value={editBookingForm.bed_type}
+                  onValueChange={(value: "single_beds_only" | "shared_beds") =>
+                    setEditBookingForm({ ...editBookingForm, bed_type: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bed type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single_beds_only">Single Beds Only</SelectItem>
+                    <SelectItem value="shared_beds">Shared Beds</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-students">Students</Label>
                 <Input
