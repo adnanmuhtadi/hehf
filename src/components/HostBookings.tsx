@@ -27,7 +27,11 @@ interface BookingAssignment {
   };
 }
 
-const HostBookings = () => {
+interface HostBookingsProps {
+  onResponseUpdate?: () => void;
+}
+
+const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const { user, profile } = useAuth();
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,6 +118,7 @@ const HostBookings = () => {
       });
 
       fetchBookingAssignments();
+      onResponseUpdate?.();
     } catch (error: any) {
       toast({
         variant: "destructive",

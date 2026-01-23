@@ -18,7 +18,7 @@ const HostDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [locationFilter, setLocationFilter] = useState<string>('preferred');
-  const { stats } = useHostStats(locationFilter);
+  const { stats, refetchStats } = useHostStats(locationFilter);
 
   const handleSignOut = async () => {
     await signOut();
@@ -177,6 +177,7 @@ const HostDashboard = () => {
                     <HostBookingActions
                       locationFilter={locationFilter}
                       onLocationFilterChange={setLocationFilter}
+                      onResponseUpdate={refetchStats}
                     />
                   </CardContent>
                 </Card>
@@ -194,7 +195,7 @@ const HostDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-0">
-                <HostBookings />
+                <HostBookings onResponseUpdate={refetchStats} />
               </CardContent>
             </Card>
           </TabsContent>
