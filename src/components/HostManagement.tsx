@@ -692,7 +692,7 @@ const HostManagement = () => {
                   <TableHead>Host</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Locations</TableHead>
-                  <TableHead>Max Students</TableHead>
+                  <TableHead>Bed Capacity</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -740,9 +740,15 @@ const HostManagement = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center">
-                        <Users className="mr-1 h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{host.max_students_capacity || 0}</span>
+                      <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex items-center">
+                          <span className="text-muted-foreground mr-1">Single:</span>
+                          <span className="font-medium">{host.single_bed_capacity || 0}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-muted-foreground mr-1">Shared:</span>
+                          <span className="font-medium">{host.shared_bed_capacity || 0}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -822,8 +828,10 @@ const HostManagement = () => {
                   
                   <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                     <div className="flex items-center gap-1 text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      <span>Max: {host.max_students_capacity || 0}</span>
+                      <span>Single: {host.single_bed_capacity || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <span>Shared: {host.shared_bed_capacity || 0}</span>
                     </div>
                     {host.phone && (
                       <div className="flex items-center gap-1 text-muted-foreground col-span-2">
