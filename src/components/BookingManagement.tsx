@@ -65,6 +65,7 @@ interface Booking {
   created_at: string;
   hosts_registered?: number;
   hosts_available?: number;
+  bed_type?: "single_beds_only" | "shared_beds";
 }
 
 interface BookingHost {
@@ -803,13 +804,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   {getSortIcon("status")}
                 </div>
               </TableHead>
+              <TableHead>Bed Type</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAndSortedBookings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {hasActiveFilters ? "No bookings match your filters" : "No bookings found"}
                 </TableCell>
               </TableRow>
@@ -852,6 +854,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                         <SelectItem value="confirmed">Confirmed</SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={booking.bed_type === "shared_beds" ? "secondary" : "outline"} className="whitespace-nowrap">
+                      {booking.bed_type === "shared_beds" ? "Shared" : "Single"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
