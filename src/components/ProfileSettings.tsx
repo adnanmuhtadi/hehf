@@ -120,7 +120,9 @@ const ProfileSettings = () => {
                   className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Email cannot be changed here. Please contact support.
+                  {profile?.role === 'host' 
+                    ? 'Email can only be changed by an admin. Please contact support.'
+                    : 'Email cannot be changed here. Please contact support.'}
                 </p>
               </div>
             </div>
