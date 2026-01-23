@@ -82,7 +82,13 @@ const OnboardingTour = ({ onComplete, isVisible }: OnboardingTourProps) => {
       if (element) {
         const rect = element.getBoundingClientRect();
         const padding = 8;
+        const tooltipWidth = 320;
+        const tooltipHeight = 280;
+        const tooltipOffset = 16;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
+        // Set highlight position
         setHighlightStyle({
           top: rect.top - padding + window.scrollY,
           left: rect.left - padding,
@@ -90,51 +96,73 @@ const OnboardingTour = ({ onComplete, isVisible }: OnboardingTourProps) => {
           height: rect.height + padding * 2,
         });
 
-        // Calculate tooltip position based on step position preference
-        const tooltipOffset = 16;
+        // Calculate initial tooltip position based on preference
         let top = 0;
         let left = 0;
 
-        switch (step.position) {
-          case 'top':
-            top = rect.top + window.scrollY - tooltipOffset;
-            left = rect.left + rect.width / 2;
+        // Try the preferred position first, then find a position that fits
+        const positions: Array<'top' | 'bottom' | 'left' | 'right'> = [step.position || 'bottom', 'bottom', 'top', 'right', 'left'];
+        
+        
+        for (const pos of positions) {
+          let testTop = 0;
+          let testLeft = 0;
+
+          switch (pos) {
+            case 'top':
+              testTop = rect.top - tooltipHeight - tooltipOffset;
+              testLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
+              break;
+            case 'bottom':
+              testTop = rect.bottom + tooltipOffset;
+              testLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
+              break;
+            case 'left':
+              testTop = rect.top + rect.height / 2 - tooltipHeight / 2;
+              testLeft = rect.left - tooltipWidth - tooltipOffset;
+              break;
+            case 'right':
+              testTop = rect.top + rect.height / 2 - tooltipHeight / 2;
+              testLeft = rect.right + tooltipOffset;
+              break;
+          }
+
+          // Check if this position fits in viewport
+          const fitsHorizontally = testLeft >= 10 && testLeft + tooltipWidth <= viewportWidth - 10;
+          const fitsVertically = testTop >= 10 && testTop + tooltipHeight <= viewportHeight - 10;
+
+          if (fitsHorizontally && fitsVertically) {
+            top = testTop;
+            left = testLeft;
             break;
-          case 'bottom':
-            top = rect.bottom + window.scrollY + tooltipOffset;
-            left = rect.left + rect.width / 2;
-            break;
-          case 'left':
-            top = rect.top + window.scrollY + rect.height / 2;
-            left = rect.left - tooltipOffset;
-            break;
-          case 'right':
-            top = rect.top + window.scrollY + rect.height / 2;
-            left = rect.right + tooltipOffset;
-            break;
-          default:
-            top = rect.bottom + window.scrollY + tooltipOffset;
-            left = rect.left + rect.width / 2;
+          }
         }
 
+        // Clamp to viewport bounds as fallback
+        left = Math.max(10, Math.min(left, viewportWidth - tooltipWidth - 10));
+        top = Math.max(10, Math.min(top, viewportHeight - tooltipHeight - 10));
+
         setTooltipStyle({
+          position: 'fixed' as const,
           top,
           left,
-          transform: step.position === 'top' || step.position === 'bottom' 
-            ? 'translateX(-50%)' 
-            : step.position === 'left' 
-              ? 'translateX(-100%) translateY(-50%)'
-              : 'translateY(-50%)',
+          transform: 'none',
+          maxWidth: `calc(100vw - 20px)`,
         });
 
-        // Scroll element into view
+        // Scroll element into view if needed
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     };
 
-    updatePosition();
+    // Small delay to allow for any layout changes
+    const timeout = setTimeout(updatePosition, 100);
     window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
+    
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('resize', updatePosition);
+    };
   }, [currentStep, isVisible]);
 
   if (!isVisible) return null;
