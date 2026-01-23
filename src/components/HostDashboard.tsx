@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -123,6 +123,23 @@ const HostDashboard = () => {
                       <Download className="mr-2 h-4 w-4" />
                       Download
                     </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Potential Earnings Widget */}
+                {/* Actual Earnings Widget */}
+                <Card className="border-green-500/20 bg-green-500/5">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium">Actual Earnings</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
+                      £{stats.loading ? '...' : stats.totalActualEarnings.toFixed(2)}
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                      From bookings marked available
+                    </p>
                   </CardContent>
                 </Card>
 
