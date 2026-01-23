@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { X, ChevronLeft, ChevronRight, RotateCcw, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -71,6 +72,7 @@ const OnboardingTour = ({ onComplete, isVisible }: OnboardingTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -276,14 +278,29 @@ const OnboardingTour = ({ onComplete, isVisible }: OnboardingTourProps) => {
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-muted-foreground hover:text-foreground"
-                onClick={() => handleFinish(true)}
-              >
-                Skip tour
-              </Button>
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <Checkbox 
+                    id="dont-show-again" 
+                    checked={dontShowAgain}
+                    onCheckedChange={(checked) => setDontShowAgain(checked === true)}
+                  />
+                  <label 
+                    htmlFor="dont-show-again" 
+                    className="text-xs text-muted-foreground cursor-pointer"
+                  >
+                    Don't show again
+                  </label>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => handleFinish(dontShowAgain)}
+                >
+                  Skip tour
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
