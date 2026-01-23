@@ -140,36 +140,36 @@ const HostBookingHistory = ({ hostId, hostName, isOpen, onClose }: HostBookingHi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            Booking History - {hostName}
+            <span className="truncate">Booking History - {hostName}</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             View all bookings assigned to this host
           </DialogDescription>
         </DialogHeader>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          <Card className="p-3">
-            <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold">{stats.total}</p>
+        {/* Summary Stats - Mobile optimized */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4">
+          <Card className="p-2 sm:p-3">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
+            <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
           </Card>
-          <Card className="p-3">
-            <p className="text-xs text-green-600">Accepted</p>
-            <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+          <Card className="p-2 sm:p-3">
+            <p className="text-[10px] sm:text-xs text-green-600">Accepted</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-600">{stats.accepted}</p>
           </Card>
-          <Card className="p-3">
-            <p className="text-xs text-red-600">Declined</p>
-            <p className="text-2xl font-bold text-red-600">{stats.declined}</p>
+          <Card className="p-2 sm:p-3">
+            <p className="text-[10px] sm:text-xs text-red-600">Declined</p>
+            <p className="text-lg sm:text-2xl font-bold text-red-600">{stats.declined}</p>
           </Card>
-          <Card className="p-3">
-            <p className="text-xs text-muted-foreground">Pending</p>
-            <p className="text-2xl font-bold">{stats.pending}</p>
+          <Card className="p-2 sm:p-3">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Pending</p>
+            <p className="text-lg sm:text-2xl font-bold">{stats.pending}</p>
           </Card>
         </div>
 

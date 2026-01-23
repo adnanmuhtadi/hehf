@@ -87,7 +87,7 @@ const Contact = () => {
       description="Get in touch with Herts & Essex Host Families. Find our contact details, office information, and enquiry options for hosts and students."
     >
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-primary via-primary to-primary/90 overflow-hidden">
+      <section className="relative py-12 sm:py-20 bg-gradient-to-br from-primary via-primary to-primary/90 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/hero1.jpg')] bg-cover bg-center opacity-10" />
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
@@ -96,10 +96,10 @@ const Contact = () => {
             transition={{ duration: 0.6 }}
             className="text-center text-primary-foreground"
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
               Get In Touch
             </h1>
-            <p className="text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl opacity-90 max-w-2xl mx-auto">
               We'd love to hear from you. Reach out with any questions about hosting or our programmes.
             </p>
           </motion.div>
@@ -107,9 +107,9 @@ const Contact = () => {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-10 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {contactInfo.map((item, index) => (
               <motion.div
                 key={item.title}
@@ -117,14 +117,14 @@ const Contact = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300 bg-card border-border">
+                <Card className="p-4 sm:p-6 h-full hover:shadow-lg transition-shadow duration-300 bg-card border-border">
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <item.icon className="w-7 h-7 text-primary" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4">
+                      <item.icon className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-lg text-foreground mb-1">{item.title}</h3>
-                    <p className="text-primary font-medium mb-1">{item.details}</p>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <h3 className="font-semibold text-sm sm:text-lg text-foreground mb-1">{item.title}</h3>
+                    <p className="text-primary font-medium mb-1 text-xs sm:text-base break-all sm:break-normal">{item.details}</p>
+                    <p className="text-[10px] sm:text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </Card>
               </motion.div>
@@ -134,10 +134,10 @@ const Contact = () => {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-20 bg-background">
+      <section className="py-12 sm:py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="grid lg:grid-cols-5 gap-12">
+            <div className="grid lg:grid-cols-5 gap-8 lg:gap-12">
               {/* Left side - Info */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -145,7 +145,7 @@ const Contact = () => {
                 transition={{ duration: 0.6 }}
                 className="lg:col-span-2"
               >
-                <h2 className="text-3xl font-bold text-foreground mb-4">
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
                   Send Us a Message
                 </h2>
                 <p className="text-muted-foreground mb-8">
@@ -191,7 +191,7 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="lg:col-span-3"
               >
-                <Card className="p-8 shadow-lg border-border bg-card">
+                <Card className="p-4 sm:p-8 shadow-lg border-border bg-card">
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid sm:grid-cols-2 gap-5">
                       <div>
