@@ -199,6 +199,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_students_capacity: number | null
+          must_reset_password: boolean | null
           pets: string | null
           phone: string | null
           preferred_locations: string[] | null
@@ -218,6 +219,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
+          must_reset_password?: boolean | null
           pets?: string | null
           phone?: string | null
           preferred_locations?: string[] | null
@@ -237,6 +239,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_students_capacity?: number | null
+          must_reset_password?: boolean | null
           pets?: string | null
           phone?: string | null
           preferred_locations?: string[] | null

@@ -17,6 +17,7 @@ interface Profile {
   max_students_capacity?: number;
   shared_bed_capacity?: number;
   single_bed_capacity?: number;
+  must_reset_password?: boolean;
   created_at: string;
   updated_at: string;
 }
