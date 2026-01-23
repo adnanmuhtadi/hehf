@@ -145,51 +145,6 @@ export type Database = {
           },
         ]
       }
-      host_ratings: {
-        Row: {
-          booking_id: string
-          created_at: string | null
-          feedback: string | null
-          host_id: string
-          id: string
-          rated_by: string
-          rating: number
-        }
-        Insert: {
-          booking_id: string
-          created_at?: string | null
-          feedback?: string | null
-          host_id: string
-          id?: string
-          rated_by: string
-          rating: number
-        }
-        Update: {
-          booking_id?: string
-          created_at?: string | null
-          feedback?: string | null
-          host_id?: string
-          id?: string
-          rated_by?: string
-          rating?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "host_ratings_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "host_ratings_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
           booking_id: string | null
@@ -245,8 +200,6 @@ export type Database = {
           phone: string | null
           preferred_locations: string[] | null
           rate_per_student_per_night: number | null
-          rating: number | null
-          rating_count: number | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
           user_id: string
@@ -264,8 +217,6 @@ export type Database = {
           phone?: string | null
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
-          rating?: number | null
-          rating_count?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
           user_id: string
@@ -283,8 +234,6 @@ export type Database = {
           phone?: string | null
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
-          rating?: number | null
-          rating_count?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
           user_id?: string

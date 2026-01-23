@@ -11,8 +11,6 @@ interface Profile {
   phone?: string;
   address?: string;
   preferred_locations?: string[];
-  rating: number;
-  rating_count: number;
   is_active: boolean;
   handbook_downloaded: boolean;
   created_at: string;
