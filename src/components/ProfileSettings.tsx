@@ -230,17 +230,23 @@ const ProfileSettings = () => {
                   {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Rate per Student per Night</Label>
                   <p className="text-sm font-medium">
-                    £{((profile as any).rate_per_student_per_night || 0).toFixed(2)}
+                    £{(profile.rate_per_student_per_night || 0).toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Max Students Capacity</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Single Bed Capacity</Label>
                   <p className="text-sm font-medium">
-                    {(profile as any).max_students_capacity || 0} students
+                    {profile.single_bed_capacity || 0} students
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Shared Bed Capacity</Label>
+                  <p className="text-sm font-medium">
+                    {profile.shared_bed_capacity || 0} students
                   </p>
                 </div>
               </div>
