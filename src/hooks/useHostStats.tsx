@@ -88,11 +88,12 @@ export const useHostStats = (locationFilter?: string) => {
         .eq('host_id', user.id)
         .eq('response', 'accepted');
 
-      // Calculate actual earnings from accepted bookings
+      // Calculate actual earnings from accepted bookings (using bed capacity)
       let actualEarnings = 0;
-      const totalStudents = acceptedBookingsData?.reduce((sum, item) => {
-        const students = item.students_assigned || 0;
-        if (students > 0 && ratePerStudentPerNight > 0) {
+      let totalStudents = 0;
+      
+      if (acceptedBookingsData && ratePerStudentPerNight > 0) {
+        acceptedBookingsData.forEach((item) => {
           const booking = item.bookings as any;
           const nights = booking.number_of_nights ||
             Math.ceil(
@@ -100,12 +101,17 @@ export const useHostStats = (locationFilter?: string) => {
                 new Date(booking.arrival_date).getTime()) /
                 (1000 * 60 * 60 * 24)
             );
-          const baseEarnings = ratePerStudentPerNight * students * nights;
+          
+          // Use the appropriate capacity based on booking bed type
+          const capacity = booking.bed_type === 'shared_beds' ? sharedBedCapacity : singleBedCapacity;
+          const baseEarnings = ratePerStudentPerNight * capacity * nights;
           const locationBonus = getBonusForLocation(booking.location) * nights;
           actualEarnings += baseEarnings + locationBonus;
-        }
-        return sum + students;
-      }, 0) || 0;
+          
+          // Track students assigned for the hosted count
+          totalStudents += item.students_assigned || 0;
+        });
+      }
 
       // Fetch all available bookings (scoped by the current location filter) for potential earnings
       let potentialEarnings = 0;
