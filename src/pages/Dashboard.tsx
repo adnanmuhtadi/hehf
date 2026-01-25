@@ -107,7 +107,11 @@ const Dashboard = () => {
   return (
     <>
       <Dialog open={showPasswordReset} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogContent 
+          className="sm:max-w-md" 
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Password Reset Required</DialogTitle>
             <DialogDescription>
