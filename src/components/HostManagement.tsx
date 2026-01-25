@@ -185,6 +185,30 @@ const HostManagement = () => {
 
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
+      
+      // Check if email has changed - if so, update auth user first
+      if (formData.email !== selectedHost.email) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const response = await supabase.functions.invoke('update-host-auth', {
+          body: {
+            host_user_id: selectedHost.user_id,
+            email: formData.email,
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session?.access_token}`,
+          },
+        });
+
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to update auth email');
+        }
+        
+        const responseData = response.data as { error?: string };
+        if (responseData?.error) {
+          throw new Error(responseData.error);
+        }
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .update({
