@@ -2,3 +2,12 @@ project_id = "rivswwdjhwgnnqqlysjh"
 
 [functions.send-contact-email]
 verify_jwt = false
+
+[functions.reset-host-password]
+verify_jwt = false
+
+[functions.update-host-auth]
+verify_jwt = false
+
+[functions.bulk-import-users]
+verify_jwt = false
