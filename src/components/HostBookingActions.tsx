@@ -352,19 +352,27 @@ const HostBookingActions = ({
                   response === "accepted" 
                     ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
                     : response === "declined"
-                    ? "border-muted bg-muted/30"
+                    ? "border-destructive/30 bg-destructive/5 dark:bg-destructive/10 opacity-75"
                     : hasConflict
                     ? "border-amber-400"
                     : "border-border hover:border-primary/30"
                 }`}
               >
+                {/* Declined Banner */}
+                {response === "declined" && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border-b border-destructive/20">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                    <span className="text-xs font-medium text-destructive">You declined this booking</span>
+                  </div>
+                )}
+
                 {/* Main Content Row */}
                 <div className="p-3 sm:p-4">
                   {/* Top: Reference + Status */}
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-semibold text-sm sm:text-base truncate">{booking.booking_reference}</span>
-                      {hasConflict && (
+                      <span className={`font-semibold text-sm sm:text-base truncate ${response === "declined" ? "text-muted-foreground" : ""}`}>{booking.booking_reference}</span>
+                      {hasConflict && response !== "declined" && (
                         <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] shrink-0">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           Conflict
@@ -373,9 +381,6 @@ const HostBookingActions = ({
                     </div>
                     {response === "accepted" && (
                       <Badge className="bg-green-600 text-white text-[10px] sm:text-xs shrink-0">Accepted</Badge>
-                    )}
-                    {response === "declined" && (
-                      <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">Declined</Badge>
                     )}
                   </div>
 
