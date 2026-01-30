@@ -47,7 +47,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type SortField = "location" | "arrival_date" | "country_of_students" | "status" | "hosts_available";
+type SortField = "booking_reference" | "location" | "arrival_date" | "country_of_students" | "status" | "hosts_available";
 type SortDirection = "asc" | "desc";
 
 interface Booking {
@@ -139,9 +139,10 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       let comparison = 0;
 
       switch (sortField) {
-        case "location":
-          comparison = a.location.localeCompare(b.location);
+        case "booking_reference":
+          comparison = a.booking_reference.localeCompare(b.booking_reference);
           break;
+        case "location":
         case "arrival_date":
           comparison = new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime();
           break;
@@ -729,6 +730,15 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
             <TableRow>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50 select-none"
+                onClick={() => handleSort("booking_reference")}
+              >
+                <div className="flex items-center">
+                  Reference
+                  {getSortIcon("booking_reference")}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50 select-none"
                 onClick={() => handleSort("location")}
               >
                 <div className="flex items-center">
@@ -776,13 +786,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
           <TableBody>
             {filteredAndSortedBookings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   {hasActiveFilters ? "No bookings match your filters" : "No bookings found"}
                 </TableCell>
               </TableRow>
             ) : (
               filteredAndSortedBookings.map((booking) => (
                 <TableRow key={booking.id}>
+                  <TableCell className="font-mono text-xs">{booking.booking_reference}</TableCell>
                   <TableCell className="font-medium">{booking.location}</TableCell>
                   <TableCell>
                     <div className="text-sm">
@@ -881,13 +892,16 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
           filteredAndSortedBookings.map((booking) => (
             <Card key={booking.id} className="overflow-hidden">
               <CardHeader className="p-3 pb-2">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-sm font-semibold truncate">{booking.location}</CardTitle>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-mono text-muted-foreground">{booking.booking_reference}</p>
+                    <CardTitle className="text-sm font-semibold truncate">{booking.location}</CardTitle>
+                  </div>
                   <Select
                     value={booking.status}
                     onValueChange={(value: "pending" | "confirmed") => handleStatusChange(booking.id, value)}
                   >
-                    <SelectTrigger className="w-auto h-6 px-2 gap-1">
+                    <SelectTrigger className="w-auto h-6 px-2 gap-1 shrink-0">
                       <Badge variant={getStatusBadgeVariant(booking.status)} className="text-[10px] px-1.5 py-0">
                         {booking.status}
                       </Badge>
@@ -898,7 +912,6 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="text-[10px] text-muted-foreground">{booking.booking_reference}</p>
               </CardHeader>
               <CardContent className="p-3 pt-0 space-y-2">
                 <div className="grid grid-cols-2 gap-2 text-xs">
