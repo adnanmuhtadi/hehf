@@ -27,8 +27,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed, Filter } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -76,6 +77,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showAcceptedOnly, setShowAcceptedOnly] = useState(false);
+  const [timestampSort, setTimestampSort] = useState<"asc" | "desc" | null>(null);
   const [editLoading, setEditLoading] = useState(false);
 
   const [editBooking, setEditBooking] = useState({
@@ -550,50 +552,98 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
           {(() => {
-            const filteredHosts = showAcceptedOnly 
+            let filteredHosts = showAcceptedOnly 
               ? bookingHosts.filter(h => h.response === "accepted")
               : bookingHosts;
             
+            // Apply timestamp sorting if set
+            if (timestampSort) {
+              filteredHosts = [...filteredHosts].sort((a, b) => {
+                if (!a.responded_at && !b.responded_at) return 0;
+                if (!a.responded_at) return timestampSort === "asc" ? 1 : -1;
+                if (!b.responded_at) return timestampSort === "asc" ? -1 : 1;
+                const diff = new Date(a.responded_at).getTime() - new Date(b.responded_at).getTime();
+                return timestampSort === "asc" ? diff : -diff;
+              });
+            }
+
+            const toggleTimestampSort = () => {
+              if (timestampSort === null) setTimestampSort("asc");
+              else if (timestampSort === "asc") setTimestampSort("desc");
+              else setTimestampSort(null);
+            };
+            
             return filteredHosts.length > 0 ? (
-            <div className="space-y-2 sm:space-y-4">
-              {filteredHosts.map((hostAssignment, index) => (
-                <div key={hostAssignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border rounded-lg">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-xs sm:text-sm truncate">{hostAssignment.profiles.full_name}</p>
-                      {hostAssignment.response === "accepted" && index === 0 && (
-                        <Badge variant="secondary" className="text-[10px] shrink-0">1st</Badge>
-                      )}
-                    </div>
-                    <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{hostAssignment.profiles.email}</p>
-                    {hostAssignment.profiles.phone && (
-                      <p className="text-[10px] sm:text-sm text-muted-foreground">{hostAssignment.profiles.phone}</p>
-                    )}
-                    {hostAssignment.responded_at && hostAssignment.response !== "pending" && (
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {hostAssignment.response === "accepted" ? "Accepted" : "Declined"}: {format(new Date(hostAssignment.responded_at), "MMM d, yyyy 'at' h:mm a")}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
-                    <Badge variant={getResponseBadgeVariant(hostAssignment.response)} className="text-[10px] sm:text-xs">{hostAssignment.response}</Badge>
-                    {hostAssignment.response === "accepted" && (
-                      <Badge variant="outline" className="text-[10px] sm:text-xs">
-                        {booking.bed_type === "shared_beds"
-                          ? hostAssignment.profiles.shared_bed_capacity || 0
-                          : hostAssignment.profiles.single_bed_capacity || 0}{" "}
-                        students
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-center py-4 sm:py-8 text-xs sm:text-sm">
-              {showAcceptedOnly ? "No accepted hosts yet" : "No hosts assigned yet"}
-            </p>
-          );
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Host</TableHead>
+                      <TableHead className="text-xs hidden sm:table-cell">Contact</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                      <TableHead 
+                        className="text-xs cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={toggleTimestampSort}
+                      >
+                        <div className="flex items-center gap-1">
+                          Responded
+                          {timestampSort === null && <ArrowUpDown className="h-3 w-3 text-muted-foreground" />}
+                          {timestampSort === "asc" && <ArrowUp className="h-3 w-3" />}
+                          {timestampSort === "desc" && <ArrowDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-xs text-right">Capacity</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredHosts.map((hostAssignment, index) => (
+                      <TableRow key={hostAssignment.id}>
+                        <TableCell className="py-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-xs sm:text-sm">{hostAssignment.profiles.full_name}</span>
+                            {hostAssignment.response === "accepted" && index === 0 && !timestampSort && (
+                              <Badge variant="secondary" className="text-[10px] shrink-0">1st</Badge>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground sm:hidden">{hostAssignment.profiles.email}</p>
+                        </TableCell>
+                        <TableCell className="py-2 hidden sm:table-cell">
+                          <p className="text-xs text-muted-foreground">{hostAssignment.profiles.email}</p>
+                          {hostAssignment.profiles.phone && (
+                            <p className="text-xs text-muted-foreground">{hostAssignment.profiles.phone}</p>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Badge variant={getResponseBadgeVariant(hostAssignment.response)} className="text-[10px] sm:text-xs">
+                            {hostAssignment.response}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 text-xs text-muted-foreground">
+                          {hostAssignment.responded_at && hostAssignment.response !== "pending" 
+                            ? format(new Date(hostAssignment.responded_at), "MMM d, yyyy h:mm a")
+                            : "-"
+                          }
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          {hostAssignment.response === "accepted" ? (
+                            <Badge variant="outline" className="text-[10px] sm:text-xs">
+                              {booking.bed_type === "shared_beds"
+                                ? hostAssignment.profiles.shared_bed_capacity || 0
+                                : hostAssignment.profiles.single_bed_capacity || 0}{" "}
+                              students
+                            </Badge>
+                          ) : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-4 sm:py-8 text-xs sm:text-sm">
+                {showAcceptedOnly ? "No accepted hosts yet" : "No hosts assigned yet"}
+              </p>
+            );
           })()}
         </CardContent>
       </Card>
