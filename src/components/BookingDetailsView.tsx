@@ -53,6 +53,7 @@ interface BookingHost {
   id: string;
   response: "pending" | "accepted" | "declined";
   students_assigned: number;
+  responded_at: string | null;
   profiles: {
     full_name: string;
     email: string;
@@ -144,7 +145,26 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         .eq("booking_id", bookingId);
 
       if (hostsError) throw hostsError;
-      setBookingHosts(hostsData || []);
+      
+      // Sort hosts: accepted first (by responded_at), then pending, then declined
+      const sortedHosts = (hostsData || []).sort((a, b) => {
+        // Priority: accepted > pending > declined
+        const responsePriority = { accepted: 0, pending: 1, declined: 2 };
+        const aPriority = responsePriority[a.response as keyof typeof responsePriority] ?? 3;
+        const bPriority = responsePriority[b.response as keyof typeof responsePriority] ?? 3;
+        
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        
+        // For same response type, sort by responded_at (earliest first)
+        if (a.responded_at && b.responded_at) {
+          return new Date(a.responded_at).getTime() - new Date(b.responded_at).getTime();
+        }
+        if (a.responded_at) return -1;
+        if (b.responded_at) return 1;
+        return 0;
+      });
+      
+      setBookingHosts(sortedHosts);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -516,16 +536,26 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         <CardContent className="p-3 sm:p-6 pt-0">
           {bookingHosts.length > 0 ? (
             <div className="space-y-2 sm:space-y-4">
-              {bookingHosts.map((hostAssignment) => (
+              {bookingHosts.map((hostAssignment, index) => (
                 <div key={hostAssignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border rounded-lg">
-                  <div className="min-w-0">
-                    <p className="font-medium text-xs sm:text-sm truncate">{hostAssignment.profiles.full_name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-xs sm:text-sm truncate">{hostAssignment.profiles.full_name}</p>
+                      {hostAssignment.response === "accepted" && index === 0 && (
+                        <Badge variant="secondary" className="text-[10px] shrink-0">1st</Badge>
+                      )}
+                    </div>
                     <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{hostAssignment.profiles.email}</p>
                     {hostAssignment.profiles.phone && (
                       <p className="text-[10px] sm:text-sm text-muted-foreground">{hostAssignment.profiles.phone}</p>
                     )}
+                    {hostAssignment.responded_at && hostAssignment.response !== "pending" && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {hostAssignment.response === "accepted" ? "Accepted" : "Declined"}: {format(new Date(hostAssignment.responded_at), "MMM d, yyyy 'at' h:mm a")}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
                     <Badge variant={getResponseBadgeVariant(hostAssignment.response)} className="text-[10px] sm:text-xs">{hostAssignment.response}</Badge>
                     {hostAssignment.response === "accepted" && (
                       <Badge variant="outline" className="text-[10px] sm:text-xs">
