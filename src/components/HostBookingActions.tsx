@@ -8,15 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import {
   MapPin,
-  Users,
   Calendar,
   CheckCircle,
   XCircle,
-  Edit2,
   PoundSterling,
   AlertTriangle,
-  TrendingUp,
-  Bed,
 } from "lucide-react";
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
@@ -312,16 +308,16 @@ const HostBookingActions = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Location Filter */}
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium">Filter by location:</label>
+      <div className="flex items-center gap-2 sm:gap-4">
+        <label className="text-xs sm:text-sm font-medium text-muted-foreground">Location:</label>
         <Select value={locationFilter} onValueChange={setLocationFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-40 sm:w-48 h-8 sm:h-9 text-xs sm:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="preferred">My Preferred Location</SelectItem>
+            <SelectItem value="preferred">My Preferred</SelectItem>
             <SelectItem value="all">All Locations</SelectItem>
             {AVAILABLE_LOCATIONS.map((location) => (
               <SelectItem key={location} value={location}>
@@ -334,162 +330,155 @@ const HostBookingActions = ({
 
       {/* Bookings List */}
       {loading ? (
-        <div className="text-center py-8">Loading bookings...</div>
+        <div className="text-center py-8 text-muted-foreground text-sm">Loading bookings...</div>
       ) : bookings.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">No bookings found for the selected location.</p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-8 text-muted-foreground text-sm border rounded-lg bg-muted/20">
+          No bookings found for the selected location.
+        </div>
       ) : (
-        <div className="grid gap-4">
-          {bookings.map((booking) => (
-            <Card key={booking.id} className={conflictMap.has(booking.id) ? "border-amber-400" : ""}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">{booking.booking_reference}</CardTitle>
-                    {conflictMap.has(booking.id) && (
-                      <Badge variant="outline" className="border-amber-400 text-amber-600 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Conflict
-                      </Badge>
+        <div className="space-y-3">
+          {bookings.map((booking) => {
+            const response = booking.booking_hosts?.[0]?.response || "available";
+            const nights = booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
+            const earnings = calculatePotentialEarnings(nights, booking.location);
+            const hasBonus = earnings.totalBonus > 0;
+            const hasConflict = conflictMap.has(booking.id);
+            const isBlocked = isBlockedByConflict(booking.id);
+            
+            return (
+              <div 
+                key={booking.id} 
+                className={`border rounded-lg overflow-hidden transition-all ${
+                  response === "accepted" 
+                    ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
+                    : response === "declined"
+                    ? "border-muted bg-muted/30"
+                    : hasConflict
+                    ? "border-amber-400"
+                    : "border-border hover:border-primary/30"
+                }`}
+              >
+                {/* Main Content Row */}
+                <div className="p-3 sm:p-4">
+                  {/* Top: Reference + Status */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-semibold text-sm sm:text-base truncate">{booking.booking_reference}</span>
+                      {hasConflict && (
+                        <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] shrink-0">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Conflict
+                        </Badge>
+                      )}
+                    </div>
+                    {response === "accepted" && (
+                      <Badge className="bg-green-600 text-white text-[10px] sm:text-xs shrink-0">Accepted</Badge>
+                    )}
+                    {response === "declined" && (
+                      <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">Declined</Badge>
                     )}
                   </div>
-                  {getResponseBadge(booking.booking_hosts?.[0]?.response || "pending")}
-                </div>
-                <CardDescription>
-                  {booking.country_of_students} •{" "}
-                  {booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date)} nights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{booking.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{booking.number_of_students} students</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Bed className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+
+                  {/* Key Info: Location + Dates */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-3">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {booking.location}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} - {new Date(booking.departure_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      <span className="text-muted-foreground/70">({nights}n)</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      {new Date(booking.arrival_date).toLocaleDateString()} -{" "}
-                      {new Date(booking.departure_date).toLocaleDateString()}
-                    </span>
+
+                  {/* Secondary Info Row */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
+                    <span>{booking.country_of_students}</span>
+                    <span>•</span>
+                    <span>{booking.number_of_students} students</span>
+                    <span>•</span>
+                    <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
                   </div>
-                </div>
 
-                {/* Potential Earnings Display */}
-                {ratePerStudentPerNight > 0 &&
-                  maxStudentsCapacity > 0 &&
-                  (() => {
-                    const nights =
-                      booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
-                    const earnings = calculatePotentialEarnings(nights, booking.location);
-                    const hasBonus = earnings.totalBonus > 0;
-
-                    return (
-                      <div className="flex items-center gap-2 p-3 mb-4 bg-muted/50 rounded-lg">
-                        <PoundSterling className="h-5 w-5 text-primary" />
-                        <div className="flex flex-col flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">
-                              Potential Earnings: £{earnings.total.toFixed(2)}
-                            </span>
-                            {hasBonus && (
-                              <Badge
-                                variant="outline"
-                                className="border-green-500 text-green-600 text-xs flex items-center gap-1"
-                              >
-                                <TrendingUp className="h-3 w-3" />
-                                +£{earnings.totalBonus.toFixed(2)} bonus
-                              </Badge>
-                            )}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {maxStudentsCapacity} students × {nights} nights × £{ratePerStudentPerNight}/night
-                            {hasBonus && ` + £${getBonusForLocation(booking.location)}/night location bonus`}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                {booking.booking_hosts?.[0]?.response === "pending" ||
-                booking.booking_hosts?.[0]?.response === "available" ? (
-                  <div className="space-y-2">
-                    {isBlockedByConflict(booking.id) && (
-                      <div className="flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-sm">
-                        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                        <span>
-                          You already marked <strong>{getConflictingAcceptedRef(booking.id)}</strong> as available for
-                          these dates. Mark it unavailable first to select this one.
+                  {/* Earnings (compact) */}
+                  {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm mb-3 py-2 px-2.5 bg-primary/5 rounded-md">
+                      <PoundSterling className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium">£{earnings.total.toFixed(2)}</span>
+                      {hasBonus && (
+                        <span className="text-green-600 text-xs">
+                          (incl. £{earnings.totalBonus.toFixed(2)} bonus)
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  )}
+
+                  {/* Conflict Warning */}
+                  {isBlocked && (
+                    <div className="flex items-start gap-2 p-2 mb-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-amber-700 dark:text-amber-400 text-xs">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        You already accepted <strong>{getConflictingAcceptedRef(booking.id)}</strong> for these dates.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {response === "pending" || response === "available" ? (
                     <div className="flex gap-2">
                       <Button
-                        size="sm"
-                        variant="success"
                         onClick={() => handleBookingResponse(booking.id, "accepted")}
-                        disabled={actionLoading === booking.id || isBlockedByConflict(booking.id)}
-                        className="flex items-center gap-2"
+                        disabled={actionLoading === booking.id || isBlocked}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium h-10 sm:h-11"
                       >
-                        <CheckCircle className="h-4 w-4" />
-                        Available
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        I Can Host
                       </Button>
                       <Button
-                        size="sm"
-                        variant="destructive"
+                        variant="outline"
                         onClick={() => handleBookingResponse(booking.id, "declined")}
                         disabled={actionLoading === booking.id}
-                        className="flex items-center gap-2"
+                        className="flex-1 text-muted-foreground hover:text-foreground h-10 sm:h-11"
                       >
-                        <XCircle className="h-4 w-4" />
-                        Unavailable
+                        <XCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        Can't Host
                       </Button>
                     </div>
-                  </div>
-                ) : booking.booking_hosts?.[0]?.response === "accepted" ? (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-green-600 font-medium">✓ You marked yourself as available</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleBookingResponse(booking.id, "declined")}
-                      disabled={actionLoading === booking.id}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Change to Unavailable
-                    </Button>
-                  </div>
-                ) : booking.booking_hosts?.[0]?.response === "declined" ? (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">You marked yourself as unavailable</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleBookingResponse(booking.id, "accepted")}
-                      disabled={actionLoading === booking.id}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Change to Available
-                    </Button>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          ))}
+                  ) : response === "accepted" ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs sm:text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4" />
+                        You can host this booking
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleBookingResponse(booking.id, "declined")}
+                        disabled={actionLoading === booking.id}
+                        className="text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  ) : response === "declined" ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs sm:text-sm text-muted-foreground">Not available for this booking</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleBookingResponse(booking.id, "accepted")}
+                        disabled={actionLoading === booking.id}
+                        className="text-xs text-primary hover:text-primary"
+                      >
+                        Change to Available
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
