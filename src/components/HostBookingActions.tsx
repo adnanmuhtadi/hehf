@@ -418,9 +418,9 @@ const HostBookingActions = ({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
-                        <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <PoundSterling className="h-3 w-3" />
-                          £{earnings.total.toFixed(2)}
+                          £{earnings.total.toFixed(0)}
                         </span>
                       )}
                       <Badge variant="outline" className="border-destructive/50 text-destructive text-[10px]">Declined</Badge>
