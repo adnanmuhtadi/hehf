@@ -27,7 +27,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed, Filter } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -74,6 +75,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [showAcceptedOnly, setShowAcceptedOnly] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
 
   const [editBooking, setEditBooking] = useState({
@@ -528,15 +530,33 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       {/* Host Assignments */}
       <Card>
         <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-            Host Assignments ({bookingHosts.length})
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+              Host Assignments ({showAcceptedOnly ? bookingHosts.filter(h => h.response === "accepted").length : bookingHosts.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="accepted-filter" className="text-xs text-muted-foreground flex items-center gap-1">
+                <Filter className="h-3 w-3" />
+                Accepted only
+              </Label>
+              <Switch
+                id="accepted-filter"
+                checked={showAcceptedOnly}
+                onCheckedChange={setShowAcceptedOnly}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          {bookingHosts.length > 0 ? (
+          {(() => {
+            const filteredHosts = showAcceptedOnly 
+              ? bookingHosts.filter(h => h.response === "accepted")
+              : bookingHosts;
+            
+            return filteredHosts.length > 0 ? (
             <div className="space-y-2 sm:space-y-4">
-              {bookingHosts.map((hostAssignment, index) => (
+              {filteredHosts.map((hostAssignment, index) => (
                 <div key={hostAssignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-4 border rounded-lg">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -570,8 +590,11 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-4 sm:py-8 text-xs sm:text-sm">No hosts assigned yet</p>
-          )}
+            <p className="text-muted-foreground text-center py-4 sm:py-8 text-xs sm:text-sm">
+              {showAcceptedOnly ? "No accepted hosts yet" : "No hosts assigned yet"}
+            </p>
+          );
+          })()}
         </CardContent>
       </Card>
     </div>
