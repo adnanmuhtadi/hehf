@@ -402,20 +402,28 @@ const HostBookingActions = ({
               return (
                 <div 
                   key={booking.id} 
-                  className="border border-muted bg-muted/20 rounded-lg overflow-hidden opacity-60 hover:opacity-80 transition-opacity cursor-pointer"
+                  className="border border-destructive/30 bg-destructive/5 dark:bg-destructive/10 rounded-lg overflow-hidden opacity-70 hover:opacity-90 transition-opacity cursor-pointer"
                   onClick={() => toggleDeclinedExpand(booking.id)}
                 >
-                  <div className="flex items-center justify-between px-3 py-2.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex items-center justify-between px-3 py-2.5 gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0" />
                       <span className="text-sm text-muted-foreground font-medium truncate">{booking.booking_reference}</span>
                       <span className="text-xs text-muted-foreground/70 hidden sm:inline">• {booking.location}</span>
-                      <span className="text-xs text-muted-foreground/70 hidden sm:inline">
-                        • {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      <span className="text-xs text-muted-foreground/70 flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} - {new Date(booking.departure_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                        <span className="hidden sm:inline">({nights}n)</span>
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant="secondary" className="text-[10px]">Declined</Badge>
+                      {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+                        <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
+                          <PoundSterling className="h-3 w-3" />
+                          £{earnings.total.toFixed(2)}
+                        </span>
+                      )}
+                      <Badge variant="outline" className="border-destructive/50 text-destructive text-[10px]">Declined</Badge>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
