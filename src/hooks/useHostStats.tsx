@@ -47,13 +47,23 @@ export const useHostStats = (locationFilter?: string) => {
 
       const bonusMap = new Map<string, number>();
       (locationBonuses || []).forEach((b: LocationBonus) => {
-        bonusMap.set(b.location.toLowerCase(), b.bonus_per_night);
+        // Normalize location names by trimming and lowercasing
+        bonusMap.set(b.location.trim().toLowerCase(), b.bonus_per_night);
       });
 
-      // Helper to get bonus for a location
+      // Helper to get bonus for a location - check for exact match first, then partial
       const getBonusForLocation = (location: string): number => {
+        if (!location) return 0;
+        const normalizedLocation = location.trim().toLowerCase();
+        
+        // First try exact match
+        if (bonusMap.has(normalizedLocation)) {
+          return bonusMap.get(normalizedLocation) || 0;
+        }
+        
+        // Then try partial matching
         for (const [bonusLoc, bonus] of bonusMap.entries()) {
-          if (location.toLowerCase().includes(bonusLoc) || bonusLoc.includes(location.toLowerCase())) {
+          if (normalizedLocation.includes(bonusLoc) || bonusLoc.includes(normalizedLocation)) {
             return bonus;
           }
         }
