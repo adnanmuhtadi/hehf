@@ -13,9 +13,13 @@ import {
   XCircle,
   PoundSterling,
   AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  EyeOff,
 } from "lucide-react";
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Booking {
   id: string;
@@ -58,6 +62,8 @@ const HostBookingActions = ({
   const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
   const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [hideDeclined, setHideDeclined] = useState(true);
+  const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
 
   // Get rate and capacity from profile
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
@@ -307,43 +313,115 @@ const HostBookingActions = ({
     }
   };
 
+  // Toggle expand/collapse for declined bookings
+  const toggleDeclinedExpand = (bookingId: string) => {
+    setExpandedDeclined(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(bookingId)) {
+        newSet.delete(bookingId);
+      } else {
+        newSet.add(bookingId);
+      }
+      return newSet;
+    });
+  };
+
+  // Count declined bookings
+  const declinedCount = bookings.filter(b => b.booking_hosts?.[0]?.response === "declined").length;
+
+  // Filter bookings based on hideDeclined
+  const filteredBookings = hideDeclined 
+    ? bookings.filter(b => b.booking_hosts?.[0]?.response !== "declined")
+    : bookings;
+
   return (
     <div className="space-y-4">
-      {/* Location Filter */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        <label className="text-xs sm:text-sm font-medium text-muted-foreground">Location:</label>
-        <Select value={locationFilter} onValueChange={setLocationFilter}>
-          <SelectTrigger className="w-40 sm:w-48 h-8 sm:h-9 text-xs sm:text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="preferred">My Preferred</SelectItem>
-            <SelectItem value="all">All Locations</SelectItem>
-            {AVAILABLE_LOCATIONS.map((location) => (
-              <SelectItem key={location} value={location}>
-                {location}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Filters Row */}
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        {/* Location Filter */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Location:</label>
+          <Select value={locationFilter} onValueChange={setLocationFilter}>
+            <SelectTrigger className="w-40 sm:w-48 h-8 sm:h-9 text-xs sm:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="preferred">My Preferred</SelectItem>
+              <SelectItem value="all">All Locations</SelectItem>
+              {AVAILABLE_LOCATIONS.map((location) => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Hide Declined Toggle */}
+        {declinedCount > 0 && (
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              id="hide-declined" 
+              checked={hideDeclined}
+              onCheckedChange={(checked) => setHideDeclined(checked as boolean)}
+            />
+            <label 
+              htmlFor="hide-declined" 
+              className="text-xs sm:text-sm text-muted-foreground cursor-pointer flex items-center gap-1"
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+              Hide declined ({declinedCount})
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Bookings List */}
       {loading ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Loading bookings...</div>
-      ) : bookings.length === 0 ? (
+      ) : filteredBookings.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm border rounded-lg bg-muted/20">
-          No bookings found for the selected location.
+          {hideDeclined && declinedCount > 0 
+            ? `No active bookings found. ${declinedCount} declined booking${declinedCount !== 1 ? 's' : ''} hidden.`
+            : "No bookings found for the selected location."
+          }
         </div>
       ) : (
         <div className="space-y-3">
-          {bookings.map((booking) => {
+          {filteredBookings.map((booking) => {
             const response = booking.booking_hosts?.[0]?.response || "available";
             const nights = booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
             const earnings = calculatePotentialEarnings(nights, booking.location);
             const hasBonus = earnings.totalBonus > 0;
             const hasConflict = conflictMap.has(booking.id);
             const isBlocked = isBlockedByConflict(booking.id);
+            const isDeclinedExpanded = expandedDeclined.has(booking.id);
+            
+            // Collapsed declined card
+            if (response === "declined" && !isDeclinedExpanded) {
+              return (
+                <div 
+                  key={booking.id} 
+                  className="border border-muted bg-muted/20 rounded-lg overflow-hidden opacity-60 hover:opacity-80 transition-opacity cursor-pointer"
+                  onClick={() => toggleDeclinedExpand(booking.id)}
+                >
+                  <div className="flex items-center justify-between px-3 py-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm text-muted-foreground font-medium truncate">{booking.booking_reference}</span>
+                      <span className="text-xs text-muted-foreground/70 hidden sm:inline">• {booking.location}</span>
+                      <span className="text-xs text-muted-foreground/70 hidden sm:inline">
+                        • {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="secondary" className="text-[10px]">Declined</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+              );
+            }
             
             return (
               <div 
@@ -358,11 +436,17 @@ const HostBookingActions = ({
                     : "border-border hover:border-primary/30"
                 }`}
               >
-                {/* Declined Banner */}
+                {/* Declined Banner - with collapse button */}
                 {response === "declined" && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border-b border-destructive/20">
-                    <XCircle className="h-4 w-4 text-destructive" />
-                    <span className="text-xs font-medium text-destructive">You declined this booking</span>
+                  <div 
+                    className="flex items-center justify-between gap-2 px-3 py-2 bg-destructive/10 border-b border-destructive/20 cursor-pointer hover:bg-destructive/15 transition-colors"
+                    onClick={() => toggleDeclinedExpand(booking.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-destructive" />
+                      <span className="text-xs font-medium text-destructive">You declined this booking</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-destructive" />
                   </div>
                 )}
 
@@ -406,8 +490,8 @@ const HostBookingActions = ({
                     <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
                   </div>
 
-                  {/* Earnings (compact) */}
-                  {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+                  {/* Earnings (compact) - hide for declined */}
+                  {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && response !== "declined" && (
                     <div className="flex items-center gap-2 text-xs sm:text-sm mb-3 py-2 px-2.5 bg-primary/5 rounded-md">
                       <PoundSterling className="h-4 w-4 text-primary shrink-0" />
                       <span className="font-medium">£{earnings.total.toFixed(2)}</span>
@@ -420,7 +504,7 @@ const HostBookingActions = ({
                   )}
 
                   {/* Conflict Warning */}
-                  {isBlocked && (
+                  {isBlocked && response !== "declined" && (
                     <div className="flex items-start gap-2 p-2 mb-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-amber-700 dark:text-amber-400 text-xs">
                       <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                       <span>
