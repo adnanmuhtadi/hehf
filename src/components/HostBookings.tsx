@@ -182,6 +182,19 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-[10px] sm:text-xs">Confirmed</Badge>;
+      case "completed":
+        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 text-[10px] sm:text-xs">Completed</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive" className="text-[10px] sm:text-xs">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] sm:text-xs">Pending</Badge>;
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading your bookings...</div>;
   }
@@ -220,7 +233,10 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
           <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-base sm:text-lg truncate">{assignment.bookings.booking_reference}</CardTitle>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-base sm:text-lg truncate">{assignment.bookings.booking_reference}</CardTitle>
+                  {getStatusBadge(assignment.bookings.status)}
+                </div>
                 <CardDescription className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />

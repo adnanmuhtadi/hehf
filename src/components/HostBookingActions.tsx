@@ -320,6 +320,19 @@ const HostBookingActions = ({
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Confirmed</Badge>;
+      case "completed":
+        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">Completed</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline" className="border-amber-400 text-amber-600">Pending</Badge>;
+    }
+  };
+
   // Toggle expand/collapse for declined bookings
   const toggleDeclinedExpand = (bookingId: string) => {
     setExpandedDeclined(prev => {
@@ -469,8 +482,9 @@ const HostBookingActions = ({
                 <div className="p-3 sm:p-4">
                   {/* Top: Reference + Status */}
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
                       <span className={`font-semibold text-sm sm:text-base truncate ${response === "declined" ? "text-muted-foreground" : ""}`}>{booking.booking_reference}</span>
+                      {getStatusBadge(booking.status)}
                       {hasConflict && response !== "declined" && (
                         <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] shrink-0">
                           <AlertTriangle className="h-3 w-3 mr-1" />
