@@ -65,9 +65,15 @@ const HostBookingActions = ({
   const [hideDeclined, setHideDeclined] = useState(true);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
 
-  // Get rate and capacity from profile
+  // Get rate and capacities from profile
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
-  const maxStudentsCapacity = (profile as any)?.max_students_capacity || 0;
+  const singleBedCapacity = (profile as any)?.single_bed_capacity || 0;
+  const sharedBedCapacity = (profile as any)?.shared_bed_capacity || 0;
+
+  // Get capacity based on bed type
+  const getCapacityForBedType = (bedType?: "single_beds_only" | "shared_beds") => {
+    return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
+  };
 
   // Get bonus for a specific location
   const getBonusForLocation = (location: string): number => {
@@ -80,8 +86,9 @@ const HostBookingActions = ({
   };
 
   // Calculate potential earnings for a booking (including location bonus)
-  const calculatePotentialEarnings = (nights: number, location: string) => {
-    const baseEarnings = ratePerStudentPerNight * nights * maxStudentsCapacity;
+  const calculatePotentialEarnings = (nights: number, location: string, bedType?: "single_beds_only" | "shared_beds") => {
+    const capacity = getCapacityForBedType(bedType);
+    const baseEarnings = ratePerStudentPerNight * nights * capacity;
     const bonusPerNight = getBonusForLocation(location);
     const totalBonus = bonusPerNight * nights;
     return { baseEarnings, totalBonus, total: baseEarnings + totalBonus };
@@ -391,7 +398,7 @@ const HostBookingActions = ({
           {filteredBookings.map((booking) => {
             const response = booking.booking_hosts?.[0]?.response || "available";
             const nights = booking.number_of_nights || calculateNights(booking.arrival_date, booking.departure_date);
-            const earnings = calculatePotentialEarnings(nights, booking.location);
+            const earnings = calculatePotentialEarnings(nights, booking.location, booking.bed_type);
             const hasBonus = earnings.totalBonus > 0;
             const hasConflict = conflictMap.has(booking.id);
             const isBlocked = isBlockedByConflict(booking.id);
@@ -417,7 +424,7 @@ const HostBookingActions = ({
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && (
+                      {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <PoundSterling className="h-3 w-3" />
                           £{earnings.total.toFixed(0)}
@@ -499,7 +506,7 @@ const HostBookingActions = ({
                   </div>
 
                   {/* Earnings (compact) - hide for declined */}
-                  {ratePerStudentPerNight > 0 && maxStudentsCapacity > 0 && response !== "declined" && (
+                  {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && response !== "declined" && (
                     <div className="flex items-center gap-2 text-xs sm:text-sm mb-3 py-2 px-2.5 bg-primary/5 rounded-md">
                       <PoundSterling className="h-4 w-4 text-primary shrink-0" />
                       <span className="font-medium">£{earnings.total.toFixed(2)}</span>
