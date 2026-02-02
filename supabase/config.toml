@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.bulk-import-users]
 verify_jwt = false
+
+[functions.sync-all-auth-emails]
+verify_jwt = false

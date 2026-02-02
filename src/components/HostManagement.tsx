@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import HostLocationBonuses from './HostLocationBonuses';
@@ -47,6 +47,7 @@ const HostManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
+  const [syncingEmails, setSyncingEmails] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -355,6 +356,69 @@ const HostManagement = () => {
     }
   };
 
+  const handleSyncAllEmails = async () => {
+    setSyncingEmails(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
+      const response = await fetch(
+        `https://rivswwdjhwgnnqqlysjh.supabase.co/functions/v1/sync-all-auth-emails`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to sync emails');
+      }
+
+      const { summary, results } = result;
+      
+      // Show detailed results
+      if (summary.synced > 0) {
+        toast({
+          title: "Emails Synced",
+          description: `Synced ${summary.synced} emails, ${summary.skipped} already matched, ${summary.failed} failed`,
+        });
+        
+        // Log synced details for admin visibility
+        console.log('Synced emails:', results.synced);
+      } else if (summary.failed > 0) {
+        toast({
+          title: "Sync Issues",
+          description: `${summary.failed} failed to sync. Check console for details.`,
+          variant: "destructive",
+        });
+        console.log('Failed syncs:', results.failed);
+      } else {
+        toast({
+          title: "All Emails Match",
+          description: `All ${summary.skipped} host emails are already synced with Auth`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error syncing emails:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sync emails",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingEmails(false);
+    }
+  };
+
   const openCreateDialog = () => {
     setSelectedHost(null);
     setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
@@ -395,13 +459,34 @@ const HostManagement = () => {
           <p className="text-xs sm:text-sm text-muted-foreground">Manage all hosts</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog} size="sm" className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Host
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            onClick={handleSyncAllEmails} 
+            size="sm" 
+            variant="outline"
+            disabled={syncingEmails}
+            className="w-full sm:w-auto"
+          >
+            {syncingEmails ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Sync Auth Emails
+              </>
+            )}
+          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openCreateDialog} size="sm" className="w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Host
+              </Button>
+            </DialogTrigger>
           <DialogContent className="w-[95vw] sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{selectedHost ? 'Edit Host' : 'Create New Host'}</DialogTitle>
@@ -747,6 +832,7 @@ const HostManagement = () => {
             )}
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
