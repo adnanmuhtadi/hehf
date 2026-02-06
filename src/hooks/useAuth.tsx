@@ -83,10 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer profile fetching to avoid potential auth state change loops
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
+          // Fetch profile before setting loading to false
+          await fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }

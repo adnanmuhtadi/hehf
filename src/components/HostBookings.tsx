@@ -97,9 +97,11 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   };
 
   useEffect(() => {
-    fetchLocationBonuses();
-    fetchBookingAssignments();
-  }, [user]);
+    if (user?.id) {
+      fetchLocationBonuses();
+      fetchBookingAssignments();
+    }
+  }, [user?.id]);
 
   const fetchBookingAssignments = async () => {
     if (!user) return;
