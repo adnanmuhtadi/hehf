@@ -303,9 +303,11 @@ const HostBookingActions = ({
   };
 
   useEffect(() => {
-    fetchLocationBonuses();
-    fetchBookings();
-  }, [profile, locationFilter]);
+    if (profile?.user_id) {
+      fetchLocationBonuses();
+      fetchBookings();
+    }
+  }, [profile?.user_id, locationFilter]);
 
   const getResponseBadge = (response: string) => {
     switch (response) {
