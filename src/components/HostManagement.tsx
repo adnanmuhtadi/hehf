@@ -156,6 +156,11 @@ const HostManagement = () => {
             phone: formData.phone || null,
             address: formData.address || null,
             is_active: formData.is_active,
+            pets: formData.pets || null,
+            rate_per_student_per_night: formData.rate_per_student_per_night || 0,
+            single_bed_capacity: formData.single_bed_capacity || 0,
+            shared_bed_capacity: formData.shared_bed_capacity || 0,
+            preferred_locations: formData.preferred_locations || [],
           })
           .eq('user_id', authData.user.id);
 
