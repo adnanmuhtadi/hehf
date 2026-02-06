@@ -20,6 +20,9 @@ const ProfileSettings = () => {
     phone: '',
     address: '',
     preferred_locations: [] as string[],
+    pets: '',
+    single_bed_capacity: 0,
+    shared_bed_capacity: 0,
   });
 
   useEffect(() => {
@@ -30,6 +33,9 @@ const ProfileSettings = () => {
         phone: profile.phone || '',
         address: profile.address || '',
         preferred_locations: (profile as any).preferred_locations || [],
+        pets: (profile as any).pets || '',
+        single_bed_capacity: profile.single_bed_capacity || 0,
+        shared_bed_capacity: profile.shared_bed_capacity || 0,
       });
     }
   }, [profile]);
@@ -50,14 +56,28 @@ const ProfileSettings = () => {
     setLoading(true);
     
     try {
+      // Build update object - hosts can edit pets and capacities
+      const updateData: any = {
+        full_name: profileData.full_name,
+        address: profileData.address,
+        preferred_locations: profileData.preferred_locations,
+      };
+      
+      // Only include phone if user is admin (hosts can't edit phone)
+      if (profile?.role !== 'host') {
+        updateData.phone = profileData.phone;
+      }
+      
+      // Hosts can edit pets and bed capacities
+      if (profile?.role === 'host') {
+        updateData.pets = profileData.pets;
+        updateData.single_bed_capacity = profileData.single_bed_capacity;
+        updateData.shared_bed_capacity = profileData.shared_bed_capacity;
+      }
+      
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: profileData.full_name,
-          phone: profileData.phone,
-          address: profileData.address,
-          preferred_locations: profileData.preferred_locations,
-        })
+        .update(updateData)
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -161,6 +181,61 @@ const ProfileSettings = () => {
             </div>
 
             {profile?.role === 'host' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="pets">Pets</Label>
+                  <Textarea
+                    id="pets"
+                    placeholder="Describe any pets you have (e.g., 1 friendly dog, 2 cats)"
+                    value={profileData.pets}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, pets: e.target.value })
+                    }
+                    rows={2}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Let us know about any pets in your home so we can match you with suitable students.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="single_bed_capacity">Single Bed Capacity</Label>
+                    <Input
+                      id="single_bed_capacity"
+                      type="number"
+                      min="0"
+                      value={profileData.single_bed_capacity}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, single_bed_capacity: parseInt(e.target.value) || 0 })
+                      }
+                      onFocus={(e) => e.target.select()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of students you can host in single beds
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shared_bed_capacity">Shared Bed Capacity</Label>
+                    <Input
+                      id="shared_bed_capacity"
+                      type="number"
+                      min="0"
+                      value={profileData.shared_bed_capacity}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, shared_bed_capacity: parseInt(e.target.value) || 0 })
+                      }
+                      onFocus={(e) => e.target.select()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of students you can host in shared beds
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {profile?.role === 'host' && (
               <div className="space-y-2">
                 <Label>Preferred Locations</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border rounded-md p-3">
@@ -230,25 +305,14 @@ const ProfileSettings = () => {
                   {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Rate per Student per Night</Label>
-                  <p className="text-sm font-medium">
-                    £{(profile.rate_per_student_per_night || 0).toFixed(2)}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Single Bed Capacity</Label>
-                  <p className="text-sm font-medium">
-                    {profile.single_bed_capacity || 0} students
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Shared Bed Capacity</Label>
-                  <p className="text-sm font-medium">
-                    {profile.shared_bed_capacity || 0} students
-                  </p>
-                </div>
+              <div className="pt-4 border-t">
+                <Label className="text-sm font-medium text-muted-foreground">Rate per Student per Night</Label>
+                <p className="text-sm font-medium">
+                  £{(profile.rate_per_student_per_night || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This rate is set by the admin
+                </p>
               </div>
             </>
           )}
