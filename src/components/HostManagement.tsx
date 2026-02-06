@@ -155,12 +155,7 @@ const HostManagement = () => {
           .update({
             phone: formData.phone || null,
             address: formData.address || null,
-            pets: formData.pets || null,
-            preferred_locations: formData.preferred_locations,
             is_active: formData.is_active,
-            rate_per_student_per_night: formData.rate_per_student_per_night,
-            shared_bed_capacity: formData.shared_bed_capacity,
-            single_bed_capacity: formData.single_bed_capacity,
           })
           .eq('user_id', authData.user.id);
 
