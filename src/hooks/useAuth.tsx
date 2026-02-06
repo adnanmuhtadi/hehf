@@ -77,51 +77,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Handle token errors by signing out cleanly
-        if (event === 'TOKEN_REFRESHED' && !session) {
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-          return;
-        }
+    let isMounted = true;
 
+    // Listener for ONGOING auth changes (does NOT control loading)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Fetch profile before setting loading to false
-          await fetchProfile(session.user.id);
+          // Defer profile fetch to avoid Supabase deadlock
+          setTimeout(() => {
+            if (isMounted) fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    }).catch(() => {
-      // If getSession fails (e.g. invalid refresh token), clear state
-      setSession(null);
-      setUser(null);
-      setProfile(null);
-      setLoading(false);
-    });
+    // INITIAL load (controls loading state)
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
 
-    return () => subscription.unsubscribe();
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+      } catch {
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (identifier: string, password: string) => {
