@@ -19,6 +19,7 @@ interface Profile {
   single_bed_capacity?: number;
   must_reset_password?: boolean;
   has_completed_tour?: boolean;
+  pets?: string;
   created_at: string;
   updated_at: string;
 }

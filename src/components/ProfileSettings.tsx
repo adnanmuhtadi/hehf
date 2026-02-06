@@ -33,7 +33,7 @@ const ProfileSettings = () => {
         phone: profile.phone || '',
         address: profile.address || '',
         preferred_locations: (profile as any).preferred_locations || [],
-        pets: (profile as any).pets || '',
+        pets: profile.pets || '',
         single_bed_capacity: profile.single_bed_capacity || 0,
         shared_bed_capacity: profile.shared_bed_capacity || 0,
       });
