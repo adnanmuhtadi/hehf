@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed, TrendingUp } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed, TrendingUp, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +44,9 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [acceptDialogAssignmentId, setAcceptDialogAssignmentId] = useState<string | null>(null);
+  const [acceptDialogBedType, setAcceptDialogBedType] = useState<"single_beds_only" | "shared_beds" | undefined>();
+  const [studentCount, setStudentCount] = useState<number>(0);
 
   // Get rate and capacities from profile
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
@@ -143,14 +149,19 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     }
   };
 
-  const handleResponse = async (assignmentId: string, response: "accepted" | "declined") => {
+  const handleResponse = async (assignmentId: string, response: "accepted" | "declined", studentsAssigned?: number) => {
     try {
+      const updateData: any = {
+        response,
+        responded_at: new Date().toISOString(),
+      };
+      if (response === "accepted" && studentsAssigned !== undefined) {
+        updateData.students_assigned = studentsAssigned;
+      }
+
       const { error } = await supabase
         .from("booking_hosts")
-        .update({
-          response,
-          responded_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", assignmentId);
 
       if (error) throw error;
@@ -169,6 +180,20 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         description: "Failed to update booking response",
       });
     }
+  };
+
+  const openAcceptDialog = (assignmentId: string, bedType?: "single_beds_only" | "shared_beds") => {
+    const capacity = getCapacityForBedType(bedType);
+    setStudentCount(capacity);
+    setAcceptDialogBedType(bedType);
+    setAcceptDialogAssignmentId(assignmentId);
+  };
+
+  const confirmAccept = () => {
+    if (!acceptDialogAssignmentId) return;
+    handleResponse(acceptDialogAssignmentId, "accepted", studentCount);
+    setAcceptDialogAssignmentId(null);
+    setStudentCount(0);
   };
 
   const getResponseBadgeVariant = (response: string) => {
@@ -357,7 +382,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
               <div className="flex gap-2 pt-1">
                 <Button
                   size="sm"
-                  onClick={() => handleResponse(assignment.id, "accepted")}
+                  onClick={() => openAcceptDialog(assignment.id, assignment.bookings.bed_type)}
                   className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9"
                 >
                   <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -376,7 +401,10 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
             )}
 
             {assignment.response === "accepted" && (
-              <div className="text-xs sm:text-sm text-success">✓ You have accepted this booking</div>
+              <div className="text-xs sm:text-sm text-success flex items-center gap-1">
+                <CheckCircle className="h-4 w-4" />
+                You can host {assignment.students_assigned || 0} student{(assignment.students_assigned || 0) !== 1 ? 's' : ''}
+              </div>
             )}
 
             {assignment.response === "declined" && (
@@ -385,6 +413,48 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
           </CardContent>
         </Card>
       ))}
+
+      {/* Accept Dialog */}
+      <Dialog open={!!acceptDialogAssignmentId} onOpenChange={(open) => { if (!open) setAcceptDialogAssignmentId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>How many students can you host?</DialogTitle>
+            <DialogDescription>
+              Enter the number of students you can accommodate for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="student-count-bookings">Number of Students</Label>
+              <Input
+                id="student-count-bookings"
+                type="number"
+                min={1}
+                value={studentCount}
+                onChange={(e) => setStudentCount(parseInt(e.target.value) || 0)}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={confirmAccept}
+                disabled={studentCount < 1}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirm
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setAcceptDialogAssignmentId(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
