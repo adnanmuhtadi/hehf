@@ -131,50 +131,41 @@ const HostManagement = () => {
     e.preventDefault();
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-      // Generate password from first name + 1234
       const password = `${formData.first_name.toLowerCase().replace(/\s+/g, '')}1234`;
       
-      // First create the user via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: 'host',
-          }
-        }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error('No authentication token');
+
+      const response = await supabase.functions.invoke('create-host', {
+        body: {
+          email: formData.email,
+          password,
+          full_name: fullName,
+          phone: formData.phone,
+          address: formData.address,
+          pets: formData.pets,
+          preferred_locations: formData.preferred_locations,
+          is_active: formData.is_active,
+          rate_per_student_per_night: formData.rate_per_student_per_night,
+          single_bed_capacity: formData.single_bed_capacity,
+          shared_bed_capacity: formData.shared_bed_capacity,
+        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (authError) throw authError;
+      if (response.error) throw new Error(response.error.message);
+      const result = response.data as { error?: string; password?: string };
+      if (result?.error) throw new Error(result.error);
 
-      if (authData.user) {
-        // Update the profile with additional information
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            phone: formData.phone || null,
-            address: formData.address || null,
-            is_active: formData.is_active,
-            pets: formData.pets || null,
-            rate_per_student_per_night: formData.rate_per_student_per_night || 0,
-            single_bed_capacity: formData.single_bed_capacity || 0,
-            shared_bed_capacity: formData.shared_bed_capacity || 0,
-            preferred_locations: formData.preferred_locations || [],
-          })
-          .eq('user_id', authData.user.id);
+      toast({
+        title: "Success",
+        description: `Host created successfully. Password: ${password}`,
+      });
 
-        if (profileError) throw profileError;
-
-        toast({
-          title: "Success",
-          description: `Host created successfully. Password: ${password}`,
-        });
-
-        setIsDialogOpen(false);
-        setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
-        fetchHosts();
-      }
+      setIsDialogOpen(false);
+      setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
+      fetchHosts();
     } catch (error: any) {
       console.error('Error creating host:', error);
       toast({
