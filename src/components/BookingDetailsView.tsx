@@ -592,7 +592,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                           {timestampSort === "desc" && <ArrowDown className="h-3 w-3" />}
                         </div>
                       </TableHead>
-                      <TableHead className="text-xs text-right">Capacity</TableHead>
+                      <TableHead className="text-xs text-right">Can Host</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -625,13 +625,12 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                           }
                         </TableCell>
                         <TableCell className="py-2 text-right">
-                          {hostAssignment.response === "accepted" ? (
+                          {hostAssignment.response === "accepted" && hostAssignment.students_assigned > 0 ? (
                             <Badge variant="outline" className="text-[10px] sm:text-xs">
-                              {booking.bed_type === "shared_beds"
-                                ? hostAssignment.profiles.shared_bed_capacity || 0
-                                : hostAssignment.profiles.single_bed_capacity || 0}{" "}
-                              students
+                              {hostAssignment.students_assigned} student{hostAssignment.students_assigned !== 1 ? 's' : ''}
                             </Badge>
+                          ) : hostAssignment.response === "accepted" ? (
+                            <span className="text-xs text-muted-foreground">-</span>
                           ) : "-"}
                         </TableCell>
                       </TableRow>

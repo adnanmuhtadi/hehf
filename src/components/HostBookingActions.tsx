@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -16,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   EyeOff,
+  Users,
 } from "lucide-react";
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
@@ -64,6 +68,8 @@ const HostBookingActions = ({
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [hideDeclined, setHideDeclined] = useState(true);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
+  const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
+  const [studentCount, setStudentCount] = useState<number>(0);
 
   // Get rate and capacities from profile
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
@@ -246,7 +252,7 @@ const HostBookingActions = ({
     }
   };
 
-  const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined") => {
+  const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined", studentsAssigned?: number) => {
     if (!profile) return;
 
     setActionLoading(bookingId);
@@ -259,25 +265,27 @@ const HostBookingActions = ({
         .eq("host_id", profile.user_id)
         .single();
 
+      const updateData: any = {
+        response,
+        responded_at: new Date().toISOString(),
+      };
+      if (response === "accepted" && studentsAssigned !== undefined) {
+        updateData.students_assigned = studentsAssigned;
+      }
+
       if (existingRecord) {
-        // Update existing record
         const { error } = await supabase
           .from("booking_hosts")
-          .update({
-            response,
-            responded_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq("booking_id", bookingId)
           .eq("host_id", profile.user_id);
 
         if (error) throw error;
       } else {
-        // Create new record for available booking
         const { error } = await supabase.from("booking_hosts").insert({
           booking_id: bookingId,
           host_id: profile.user_id,
-          response,
-          responded_at: new Date().toISOString(),
+          ...updateData,
           assigned_at: new Date().toISOString(),
         });
 
@@ -300,6 +308,19 @@ const HostBookingActions = ({
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const openAcceptDialog = (bookingId: string, bedType?: "single_beds_only" | "shared_beds") => {
+    const capacity = getCapacityForBedType(bedType);
+    setStudentCount(capacity);
+    setAcceptDialogBookingId(bookingId);
+  };
+
+  const confirmAccept = () => {
+    if (!acceptDialogBookingId) return;
+    handleBookingResponse(acceptDialogBookingId, "accepted", studentCount);
+    setAcceptDialogBookingId(null);
+    setStudentCount(0);
   };
 
   useEffect(() => {
@@ -548,7 +569,7 @@ const HostBookingActions = ({
                   {response === "pending" || response === "available" ? (
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => handleBookingResponse(booking.id, "accepted")}
+                        onClick={() => openAcceptDialog(booking.id, booking.bed_type)}
                         disabled={actionLoading === booking.id || isBlocked}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium h-10 sm:h-11"
                       >
@@ -569,7 +590,7 @@ const HostBookingActions = ({
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs sm:text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
                         <CheckCircle className="h-4 w-4" />
-                        You can host this booking
+                        You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
                       </span>
                       <Button
                         size="sm"
@@ -587,7 +608,7 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleBookingResponse(booking.id, "accepted")}
+                        onClick={() => openAcceptDialog(booking.id, booking.bed_type)}
                         disabled={actionLoading === booking.id}
                         className="text-xs text-primary hover:text-primary"
                       >
@@ -601,6 +622,47 @@ const HostBookingActions = ({
           })}
         </div>
       )}
+      {/* Accept Dialog - How many students? */}
+      <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) setAcceptDialogBookingId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>How many students can you host?</DialogTitle>
+            <DialogDescription>
+              Enter the number of students you can accommodate for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="student-count">Number of Students</Label>
+              <Input
+                id="student-count"
+                type="number"
+                min={1}
+                value={studentCount}
+                onChange={(e) => setStudentCount(parseInt(e.target.value) || 0)}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={confirmAccept}
+                disabled={studentCount < 1}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirm
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setAcceptDialogBookingId(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
