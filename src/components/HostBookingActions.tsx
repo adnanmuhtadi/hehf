@@ -482,8 +482,8 @@ const HostBookingActions = ({
                     ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
                     : response === "declined"
                     ? "border-destructive/30 bg-destructive/5 dark:bg-destructive/10 opacity-75"
-                    : isBlocked
-                    ? "border-amber-400/50 opacity-60"
+                    : hasConflict
+                    ? "border-amber-400"
                     : "border-border hover:border-primary/30"
                 }`}
               >
@@ -501,30 +501,26 @@ const HostBookingActions = ({
                   </div>
                 )}
 
-                {/* Main Content */}
+                {/* Main Content Row */}
                 <div className="p-3 sm:p-4">
-                  {/* Header: Reference + Badges */}
+                  {/* Top: Reference + Status */}
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className={`font-semibold text-sm sm:text-base truncate ${response === "declined" ? "text-muted-foreground" : ""}`}>
-                      {booking.booking_reference}
-                    </span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isBlocked && response !== "declined" && (
-                        <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px]">
-                          <AlertTriangle className="h-3 w-3 mr-0.5" />
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <span className={`font-semibold text-sm sm:text-base truncate ${response === "declined" ? "text-muted-foreground" : ""}`}>{booking.booking_reference}</span>
+                      {getStatusBadge(booking.status)}
+                      {hasConflict && response !== "declined" && (
+                        <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] shrink-0">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
                           Conflict
                         </Badge>
                       )}
-                      {response === "accepted" && (
-                        <Badge className="bg-green-600 text-white text-[10px] sm:text-xs">Accepted</Badge>
-                      )}
-                      <Badge variant="outline" className="text-[10px]">
-                        {booking.bed_type === "shared_beds" ? "Shared" : "Single"}
-                      </Badge>
                     </div>
+                    {response === "accepted" && (
+                      <Badge className="bg-green-600 text-white text-[10px] sm:text-xs shrink-0">Accepted</Badge>
+                    )}
                   </div>
 
-                  {/* Key Info: Location + Dates (single line) */}
+                  {/* Key Info: Location + Dates */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-3">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
@@ -532,16 +528,42 @@ const HostBookingActions = ({
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
-                      {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – {new Date(booking.departure_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      {new Date(booking.arrival_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} - {new Date(booking.departure_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       <span className="text-muted-foreground/70">({nights}n)</span>
                     </span>
-                    {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && response !== "declined" && (
-                      <span className="flex items-center gap-1 font-medium text-foreground">
-                        <PoundSterling className="h-3.5 w-3.5" />
-                        £{earnings.total.toFixed(0)}
-                      </span>
-                    )}
                   </div>
+
+                  {/* Secondary Info Row */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
+                    <span>{booking.country_of_students}</span>
+                    <span>•</span>
+                    <span>{booking.number_of_students} students</span>
+                    <span>•</span>
+                    <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
+                  </div>
+
+                  {/* Earnings (compact) - hide for declined */}
+                  {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && response !== "declined" && (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm mb-3 py-2 px-2.5 bg-primary/5 rounded-md">
+                      <PoundSterling className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium">£{earnings.total.toFixed(2)}</span>
+                      {hasBonus && (
+                        <span className="text-green-600 text-xs">
+                          (incl. £{earnings.totalBonus.toFixed(2)} bonus)
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Conflict Warning */}
+                  {isBlocked && response !== "declined" && (
+                    <div className="flex items-start gap-2 p-2 mb-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-amber-700 dark:text-amber-400 text-xs">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        You already accepted <strong>{getConflictingAcceptedRef(booking.id)}</strong> for these dates.
+                      </span>
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
                   {response === "pending" || response === "available" ? (
