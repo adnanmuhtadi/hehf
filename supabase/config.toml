@@ -14,6 +14,3 @@ verify_jwt = false
 
 [functions.sync-all-auth-emails]
 verify_jwt = false
-
-[functions.send-auth-email]
-verify_jwt = false
