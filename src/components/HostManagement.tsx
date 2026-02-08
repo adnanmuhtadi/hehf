@@ -131,7 +131,7 @@ const HostManagement = () => {
     e.preventDefault();
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-      const password = `${formData.first_name.toLowerCase().replace(/\s+/g, '')}1234`;
+      const password = "password1234";
       
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -650,7 +650,7 @@ const HostManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Reset Password</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Reset password to {formData.first_name.toLowerCase()}1234? The host will be required to change it on their next login.
+                              Reset password to password1234? The host will be required to change it on their next login.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
