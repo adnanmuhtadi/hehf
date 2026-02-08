@@ -65,6 +65,7 @@ interface Booking {
   created_at: string;
   hosts_registered?: number;
   hosts_available?: number;
+  total_students_assigned?: number;
   bed_type?: "single_beds_only" | "shared_beds";
 }
 
@@ -297,8 +298,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         .eq("role", "host")
         .eq("is_active", true);
 
-      // Fetch all booking_hosts to count available responses
-      const { data: bookingHostsData } = await supabase.from("booking_hosts").select("booking_id, response");
+      // Fetch all booking_hosts to count available responses and students assigned
+      const { data: bookingHostsData } = await supabase.from("booking_hosts").select("booking_id, response, students_assigned");
 
       // Enrich bookings with host stats
       const enrichedBookings = (bookingsData || []).map((booking) => {
@@ -307,15 +308,18 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
           profile.preferred_locations?.includes(booking.location),
         ).length;
 
-        // Count hosts who marked themselves as available for this booking
-        const hostsAvailable = (bookingHostsData || []).filter(
+        const acceptedHosts = (bookingHostsData || []).filter(
           (bh) => bh.booking_id === booking.id && bh.response === "accepted",
-        ).length;
+        );
+
+        const hostsAvailable = acceptedHosts.length;
+        const totalStudentsAssigned = acceptedHosts.reduce((sum, bh) => sum + (bh.students_assigned || 0), 0);
 
         return {
           ...booking,
           hosts_registered: hostsRegistered,
           hosts_available: hostsAvailable,
+          total_students_assigned: totalStudentsAssigned,
         };
       });
 
@@ -810,9 +814,12 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                       <span className="text-sm">
                         <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
                         <span className="font-medium text-green-600"> / {booking.hosts_available || 0}</span>
+                        {booking.total_students_assigned ? (
+                          <span className="font-medium text-blue-600"> ({booking.total_students_assigned})</span>
+                        ) : null}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">registered / available</p>
+                    <p className="text-xs text-muted-foreground">registered / available {booking.total_students_assigned ? "(students)" : ""}</p>
                   </TableCell>
                   <TableCell>{booking.country_of_students}</TableCell>
                   <TableCell>
@@ -934,6 +941,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                       <Users className="h-3 w-3 text-muted-foreground" />
                       <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
                       <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
+                      {booking.total_students_assigned ? (
+                        <span className="font-medium text-blue-600">({booking.total_students_assigned})</span>
+                      ) : null}
                       <span className="text-[10px] text-muted-foreground ml-1">hosts</span>
                     </div>
                   </div>
