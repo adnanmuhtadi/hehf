@@ -73,8 +73,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate new password from first name + 1234
-    const newPassword = `${first_name.toLowerCase().replace(/\s+/g, '')}1234`;
+    // Generate new password
+    const newPassword = "password1234";
 
     // Update the user's password and confirm email using admin API
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
