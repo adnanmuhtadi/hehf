@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import TermsConditions from "./pages/TermsConditions";
 import Travel from "./pages/Travel";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import ScrollToTop from "@/components/ScrollToTop";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
@@ -43,6 +44,7 @@ const App = () =>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/become-partner" element={<BecomePartner />} />
