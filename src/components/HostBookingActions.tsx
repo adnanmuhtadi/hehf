@@ -537,8 +537,7 @@ const HostBookingActions = ({
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
                     <span>{booking.country_of_students}</span>
                     <span>•</span>
-                    <span>{booking.number_of_students} students</span>
-                    <span>•</span>
+                    <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
                     <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
                   </div>
 
