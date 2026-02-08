@@ -538,7 +538,6 @@ const HostBookingActions = ({
                     <span>{booking.country_of_students}</span>
                     <span>•</span>
                     <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
-                    <span>{booking.bed_type === "shared_beds" ? "Shared beds" : "Single beds"}</span>
                   </div>
 
                   {/* Earnings (compact) - hide for declined */}
