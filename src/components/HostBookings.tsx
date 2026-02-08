@@ -270,12 +270,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                     <span className="truncate">{assignment.bookings.location}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                    {assignment.bookings.number_of_students} students
-                  </span>
-                  <span className="flex items-center gap-1">
                     <Bed className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                    {assignment.bookings.bed_type === "shared_beds" ? "Shared" : "Single"}
+                    {assignment.bookings.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
                   </span>
                   <span className="text-muted-foreground">from {assignment.bookings.country_of_students}</span>
                 </CardDescription>
