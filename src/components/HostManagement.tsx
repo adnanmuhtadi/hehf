@@ -107,7 +107,7 @@ const HostManagement = () => {
         .from('profiles')
         .select('*')
         .eq('role', 'host')
-        .order('created_at', { ascending: false });
+        .order('full_name', { ascending: true });
 
       if (error) throw error;
       setHosts(data || []);
