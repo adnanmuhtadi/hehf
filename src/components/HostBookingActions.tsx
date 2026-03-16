@@ -650,12 +650,14 @@ const HostBookingActions = ({
         </div>
       )}
       {/* Accept Dialog - How many students? */}
-      <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) setAcceptDialogBookingId(null); }}>
+      <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) { setAcceptDialogBookingId(null); setAcceptDialogAction("accept"); } }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>How many students can you host?</DialogTitle>
+            <DialogTitle>{acceptDialogAction === "update" ? "Update student count" : "How many students can you host?"}</DialogTitle>
             <DialogDescription>
-              Enter the number of students you can accommodate for this booking.
+              {acceptDialogAction === "update"
+                ? "Change the number of students you can accommodate for this booking."
+                : "Enter the number of students you can accommodate for this booking."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
@@ -677,11 +679,14 @@ const HostBookingActions = ({
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm
+                {acceptDialogAction === "update" ? "Update" : "Confirm"}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setAcceptDialogBookingId(null)}
+                onClick={() => {
+                  setAcceptDialogBookingId(null);
+                  setAcceptDialogAction("accept");
+                }}
                 className="flex-1"
               >
                 Cancel
