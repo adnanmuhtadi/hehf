@@ -66,9 +66,10 @@ const HostBookingActions = ({
   const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
   const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [hideDeclined, setHideDeclined] = useState(true);
+  const [hideDeclined, setHideDeclined] = useState(false);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
+  const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
   const [studentCount, setStudentCount] = useState<number>(0);
 
   // Get rate and capacities from profile
