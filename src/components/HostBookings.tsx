@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, X, Calendar, MapPin, Users, PoundSterling, Bed, TrendingUp, CheckCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Check, X, Eye, ArrowLeft, CheckCircle, PoundSterling } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,16 +45,16 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedAssignment, setSelectedAssignment] = useState<BookingAssignment | null>(null);
   const [acceptDialogAssignmentId, setAcceptDialogAssignmentId] = useState<string | null>(null);
   const [acceptDialogBedType, setAcceptDialogBedType] = useState<"single_beds_only" | "shared_beds" | undefined>();
   const [studentCount, setStudentCount] = useState<number>(0);
+  const [hideDeclined, setHideDeclined] = useState(false);
 
-  // Get rate and capacities from profile
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
   const singleBedCapacity = profile?.single_bed_capacity || 0;
   const sharedBedCapacity = profile?.shared_bed_capacity || 0;
 
-  // Get bonus for a specific location
   const getBonusForLocation = (location: string): number => {
     const bonus = locationBonuses.find(
       (b) =>
@@ -63,38 +64,23 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     return bonus?.bonus_per_night || 0;
   };
 
-  // Calculate earnings for a booking (including location bonus)
+  const getCapacityForBedType = (bedType?: "single_beds_only" | "shared_beds") => {
+    return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
+  };
+
   const calculateEarningsWithBonus = (nights: number, capacity: number, location: string) => {
     const baseEarnings = ratePerStudentPerNight * nights * capacity;
     const locationBonus = getBonusForLocation(location) * nights;
     return { baseEarnings, locationBonus, total: baseEarnings + locationBonus };
   };
 
-  // Get capacity based on bed type
-  const getCapacityForBedType = (bedType?: "single_beds_only" | "shared_beds") => {
-    return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
-  };
-
-  // Calculate total actual earnings from accepted bookings (using bed capacity + location bonuses)
-  const totalActualEarnings = assignments
-    .filter((a) => a.response === "accepted")
-    .reduce((sum, a) => {
-      const capacity = getCapacityForBedType(a.bookings.bed_type);
-      const earnings = calculateEarningsWithBonus(a.bookings.number_of_nights, capacity, a.bookings.location);
-      return sum + earnings.total;
-    }, 0);
-  
-  const acceptedBookingsCount = assignments.filter((a) => a.response === "accepted").length;
-
   const fetchLocationBonuses = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from("host_location_bonuses")
         .select("location, bonus_per_night")
         .eq("host_id", user.id);
-
       if (error) throw error;
       setLocationBonuses(data || []);
     } catch (error) {
@@ -111,39 +97,23 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   const fetchBookingAssignments = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from("booking_hosts")
-        .select(
-          `
+        .select(`
           *,
           bookings (
-            id,
-            booking_reference,
-            arrival_date,
-            departure_date,
-            number_of_nights,
-            location,
-            country_of_students,
-            number_of_students,
-            status,
-            notes,
-            bed_type
+            id, booking_reference, arrival_date, departure_date,
+            number_of_nights, location, country_of_students,
+            number_of_students, status, notes, bed_type
           )
-        `,
-        )
+        `)
         .eq("host_id", user.id)
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       setAssignments(data || []);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch booking assignments",
-      });
+      toast({ variant: "destructive", title: "Error", description: "Failed to fetch booking assignments" });
     } finally {
       setLoading(false);
     }
@@ -151,34 +121,21 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   const handleResponse = async (assignmentId: string, response: "accepted" | "declined", studentsAssigned?: number) => {
     try {
-      const updateData: any = {
-        response,
-        responded_at: new Date().toISOString(),
-      };
+      const updateData: any = { response, responded_at: new Date().toISOString() };
       if (response === "accepted" && studentsAssigned !== undefined) {
         updateData.students_assigned = studentsAssigned;
       }
-
-      const { error } = await supabase
-        .from("booking_hosts")
-        .update(updateData)
-        .eq("id", assignmentId);
-
+      const { error } = await supabase.from("booking_hosts").update(updateData).eq("id", assignmentId);
       if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `Booking ${response} successfully`,
-      });
-
+      toast({ title: "Success", description: `Booking ${response} successfully` });
       fetchBookingAssignments();
       onResponseUpdate?.();
+      // Refresh the selected assignment if we're in detail view
+      if (selectedAssignment?.id === assignmentId) {
+        setSelectedAssignment(prev => prev ? { ...prev, response, students_assigned: studentsAssigned || prev.students_assigned } : null);
+      }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update booking response",
-      });
+      toast({ variant: "destructive", title: "Error", description: "Failed to update booking response" });
     }
   };
 
@@ -196,31 +153,53 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     setStudentCount(0);
   };
 
-  const getResponseBadgeVariant = (response: string) => {
-    switch (response) {
-      case "accepted":
-        return "default";
-      case "declined":
-        return "destructive";
-      case "pending":
-        return "secondary";
-      default:
-        return "secondary";
+  const getHostStatusBadge = (assignment: BookingAssignment) => {
+    if (assignment.response === "accepted") {
+      return (
+        <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
+          Available (awaiting details)
+        </Badge>
+      );
     }
+    if (assignment.response === "pending") {
+      return (
+        <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] sm:text-xs whitespace-nowrap">
+          Pending availability
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="destructive" className="text-[10px] sm:text-xs whitespace-nowrap">
+        Declined
+      </Badge>
+    );
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-[10px] sm:text-xs">Confirmed</Badge>;
-      case "completed":
-        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 text-[10px] sm:text-xs">Completed</Badge>;
-      case "cancelled":
-        return <Badge variant="destructive" className="text-[10px] sm:text-xs">Cancelled</Badge>;
-      default:
-        return <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] sm:text-xs">Pending</Badge>;
+  const getStatusMessage = (assignment: BookingAssignment) => {
+    if (assignment.response === "accepted") {
+      return {
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        text: "Your availability is confirmed, details of members will follow shortly",
+        color: "text-green-700 dark:text-green-400",
+      };
     }
+    if (assignment.response === "pending") {
+      return {
+        icon: null,
+        text: "Awaiting your response",
+        color: "text-amber-600",
+      };
+    }
+    return {
+      icon: <X className="h-4 w-4 text-destructive" />,
+      text: "You declined this booking",
+      color: "text-destructive",
+    };
   };
+
+  const filteredAssignments = hideDeclined
+    ? assignments.filter(a => a.response !== "declined")
+    : assignments;
 
   if (loading) {
     return <div className="text-center py-8">Loading your bookings...</div>;
@@ -234,181 +213,249 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     );
   }
 
-  return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Total Earnings Summary */}
-      {ratePerStudentPerNight > 0 && (
-        <Card className="border-green-500/20 bg-green-500/5">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                <span className="text-sm sm:text-base font-medium">Total Actual Earnings</span>
-              </div>
-              <span className="text-xl sm:text-2xl font-bold text-green-600">
-                £{totalActualEarnings.toFixed(2)}
-              </span>
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              From {acceptedBookingsCount} booking{acceptedBookingsCount !== 1 ? 's' : ''} marked available
-            </p>
-          </CardContent>
-        </Card>
-      )}
-      {assignments.map((assignment) => (
-        <Card key={assignment.id} className="relative">
-          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <CardTitle className="text-base sm:text-lg truncate">{assignment.bookings.booking_reference}</CardTitle>
-                  {getStatusBadge(assignment.bookings.status)}
-                </div>
-                <CardDescription className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                    <span className="truncate">{assignment.bookings.location}</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Bed className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                    {assignment.bookings.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
-                  </span>
-                  <span className="text-muted-foreground">from {assignment.bookings.country_of_students}</span>
-                </CardDescription>
-              </div>
-              <Badge variant={getResponseBadgeVariant(assignment.response)} className="text-[10px] sm:text-xs shrink-0">
-                {assignment.response}
-              </Badge>
-            </div>
-          </CardHeader>
+  // ─── DETAIL VIEW ───
+  if (selectedAssignment) {
+    const booking = selectedAssignment.bookings;
+    const statusMsg = getStatusMessage(selectedAssignment);
+    const capacity = selectedAssignment.response === "accepted" && selectedAssignment.students_assigned > 0
+      ? selectedAssignment.students_assigned
+      : getCapacityForBedType(booking.bed_type);
+    const earnings = calculateEarningsWithBonus(booking.number_of_nights, capacity, booking.location);
+    const bonusPerNight = getBonusForLocation(booking.location);
 
-          <CardContent className="p-3 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-            {/* Booking Dates */}
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
-              <span className="whitespace-nowrap">
-                {format(new Date(assignment.bookings.arrival_date), "MMM dd")} -
-                {format(new Date(assignment.bookings.departure_date), "MMM dd, yyyy")}
-              </span>
-              <Badge variant="outline" className="text-[10px] sm:text-xs">
-                {assignment.bookings.number_of_nights}n
-              </Badge>
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setSelectedAssignment(null)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Bookings
+        </Button>
+
+        {/* Booking Information Card */}
+        <Card>
+          <CardHeader className="p-4 sm:p-6 pb-2">
+            <CardTitle className="text-sm sm:text-base text-primary">Booking Information</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-2 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Reference</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm font-medium">{booking.booking_reference}</div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">Nationality</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.country_of_students}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Location</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.location}</div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">Number of nights</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.number_of_nights}</div>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-primary">Bed Type</Label>
+              <div className="mt-1 p-2 bg-muted rounded text-sm">
+                {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+              </div>
+            </div>
+
+            {/* Status Message */}
+            <div>
+              <Label className="text-xs text-primary">Status</Label>
+              <div className={`mt-1 flex items-center gap-2 text-sm ${statusMsg.color}`}>
+                {statusMsg.icon}
+                {statusMsg.text}
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Start Date</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">
+                  {format(new Date(booking.arrival_date), "dd/MM/yyyy")}
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">End Date</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">
+                  {format(new Date(booking.departure_date), "dd/MM/yyyy")}
+                </div>
+              </div>
             </div>
 
             {/* Notes */}
-            {assignment.bookings.notes && (
-              <div className="text-xs sm:text-sm">
-                <span className="font-medium text-muted-foreground">Notes: </span>
-                {assignment.bookings.notes}
-              </div>
-            )}
-
-            {/* Earnings Summary */}
-            {ratePerStudentPerNight > 0 && (singleBedCapacity > 0 || sharedBedCapacity > 0) && (
-              <div className="space-y-2">
-                {/* Confirmed Earnings - shown when students are assigned */}
-                {assignment.response === "accepted" && assignment.students_assigned > 0 && (() => {
-                  const earnings = calculateEarningsWithBonus(
-                    assignment.bookings.number_of_nights,
-                    assignment.students_assigned,
-                    assignment.bookings.location
-                  );
-                  const hasBonus = earnings.locationBonus > 0;
-                  return (
-                    <div className="flex items-start sm:items-center gap-2 p-2 sm:p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-                      <PoundSterling className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 shrink-0 mt-0.5 sm:mt-0" />
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                          <span className="text-xs sm:text-sm font-semibold text-green-700 dark:text-green-400">
-                            Confirmed: £{earnings.total.toFixed(2)}
-                          </span>
-                          {hasBonus && (
-                            <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] sm:text-xs flex items-center gap-0.5">
-                              <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                              +£{earnings.locationBonus.toFixed(0)}
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-green-600 dark:text-green-500">
-                          {assignment.students_assigned} × {assignment.bookings.number_of_nights}n × £{ratePerStudentPerNight}
-                          {hasBonus && ` + bonus`}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Potential Earnings - show for pending/available or when no students assigned yet */}
-                {(assignment.response !== "accepted" || assignment.students_assigned === 0) && (() => {
-                  const capacity = getCapacityForBedType(assignment.bookings.bed_type);
-                  const earnings = calculateEarningsWithBonus(
-                    assignment.bookings.number_of_nights,
-                    capacity,
-                    assignment.bookings.location
-                  );
-                  const hasBonus = earnings.locationBonus > 0;
-                  return (
-                    <div className="flex items-start sm:items-center gap-2 p-2 sm:p-3 bg-muted/50 rounded-lg">
-                      <PoundSterling className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                          <span className="text-xs sm:text-sm font-medium">
-                            Potential: £{earnings.total.toFixed(2)}
-                          </span>
-                          {hasBonus && (
-                            <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] sm:text-xs flex items-center gap-0.5">
-                              <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                              +£{earnings.locationBonus.toFixed(0)}
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">
-                          {capacity} × {assignment.bookings.number_of_nights}n × £{ratePerStudentPerNight}
-                          {hasBonus && ` + bonus`}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
+            {booking.notes && (
+              <div>
+                <Label className="text-xs text-primary">Notes</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm whitespace-pre-line">{booking.notes}</div>
               </div>
             )}
 
             {/* Action Buttons */}
-            {assignment.response === "pending" && (
-              <div className="flex gap-2 pt-1">
+            {selectedAssignment.response === "pending" && (
+              <div className="flex gap-2 pt-2">
                 <Button
                   size="sm"
-                  onClick={() => openAcceptDialog(assignment.id, assignment.bookings.bed_type)}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9"
+                  onClick={() => openAcceptDialog(selectedAssignment.id, booking.bed_type)}
+                  className="text-xs sm:text-sm"
                 >
-                  <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  Accept
+                  <Check className="h-4 w-4 mr-1" />
+                  I Can Host
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleResponse(assignment.id, "declined")}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm h-8 sm:h-9"
+                  onClick={() => handleResponse(selectedAssignment.id, "declined")}
+                  className="text-xs sm:text-sm"
                 >
-                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                  Decline
+                  <X className="h-4 w-4 mr-1" />
+                  Can't Host
                 </Button>
               </div>
             )}
-
-            {assignment.response === "accepted" && (
-              <div className="text-xs sm:text-sm text-success flex items-center gap-1">
-                <CheckCircle className="h-4 w-4" />
-                You can host {assignment.students_assigned || 0} student{(assignment.students_assigned || 0) !== 1 ? 's' : ''}
-              </div>
-            )}
-
-            {assignment.response === "declined" && (
-              <div className="text-xs sm:text-sm text-muted-foreground">You declined this booking</div>
-            )}
           </CardContent>
         </Card>
-      ))}
+
+        {/* Payment Details Card */}
+        {ratePerStudentPerNight > 0 && (
+          <Card>
+            <CardHeader className="p-4 sm:p-6 pb-2">
+              <CardTitle className="text-sm sm:text-base text-primary">Payment Details</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-2">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Students:</span>
+                  <span>{capacity}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Rate per Student per Night:</span>
+                  <span>£{ratePerStudentPerNight.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Number of Nights:</span>
+                  <span>{booking.number_of_nights}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Base Payment:</span>
+                  <span>£{earnings.baseEarnings.toFixed(2)}</span>
+                </div>
+                {bonusPerNight > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold">Location Bonus ({booking.location}):</span>
+                      <span>£{bonusPerNight.toFixed(2)} × {booking.number_of_nights} nights</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold">Total Bonus:</span>
+                      <span>£{earnings.locationBonus.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="border-t border-border pt-3 flex justify-between text-sm font-bold">
+                  <span>Total Payment Due:</span>
+                  <span className="text-green-600">£{earnings.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // ─── TABLE VIEW ───
+  return (
+    <div className="space-y-3">
+      {/* Toggle */}
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={hideDeclined}
+            onChange={(e) => setHideDeclined(e.target.checked)}
+            className="rounded"
+          />
+          Hide declined
+        </label>
+        <span className="text-xs text-muted-foreground">({filteredAssignments.length} bookings)</span>
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block">
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm text-primary">Your Bookings</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAssignments.map((assignment) => (
+                  <TableRow key={assignment.id}>
+                    <TableCell className="font-medium">{assignment.bookings.booking_reference}</TableCell>
+                    <TableCell>{assignment.bookings.location}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(assignment.bookings.arrival_date), "dd MMM")} - {format(new Date(assignment.bookings.departure_date), "dd MMM yyyy")}
+                    </TableCell>
+                    <TableCell>{getHostStatusBadge(assignment)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setSelectedAssignment(assignment)}
+                        className="text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="sm:hidden space-y-2">
+        {filteredAssignments.map((assignment) => (
+          <Card key={assignment.id} className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{assignment.bookings.booking_reference}</p>
+                <p className="text-xs text-muted-foreground">{assignment.bookings.location}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {getHostStatusBadge(assignment)}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSelectedAssignment(assignment)}
+                  className="text-xs h-7 px-2"
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  View
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       {/* Accept Dialog */}
       <Dialog open={!!acceptDialogAssignmentId} onOpenChange={(open) => { if (!open) setAcceptDialogAssignmentId(null); }}>
