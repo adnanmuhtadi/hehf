@@ -466,7 +466,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
   };
 
-  const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled") => {
+  const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled" | "completed") => {
     try {
       const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
 
