@@ -48,6 +48,8 @@ const HostManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
   const [syncingEmails, setSyncingEmails] = useState(false);
+  const [sortField, setSortField] = useState<string>('full_name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
