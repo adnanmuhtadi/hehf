@@ -825,7 +825,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   <TableCell>
                     <Select
                       value={booking.status}
-                      onValueChange={(value: "pending" | "confirmed") => handleStatusChange(booking.id, value)}
+                      onValueChange={(value: "pending" | "confirmed" | "cancelled") => handleStatusChange(booking.id, value)}
                     >
                       <SelectTrigger className="w-[130px]">
                         <Badge variant={getStatusBadgeVariant(booking.status)} className="mr-1">
@@ -835,6 +835,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
