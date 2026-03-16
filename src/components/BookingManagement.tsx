@@ -466,7 +466,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
   };
 
-  const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled") => {
+  const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled" | "completed") => {
     try {
       const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
 
@@ -825,7 +825,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   <TableCell>
                     <Select
                       value={booking.status}
-                      onValueChange={(value: "pending" | "confirmed" | "cancelled") => handleStatusChange(booking.id, value)}
+                      onValueChange={(value: "pending" | "confirmed" | "cancelled" | "completed") => handleStatusChange(booking.id, value)}
                     >
                       <SelectTrigger className="w-[130px]">
                         <Badge variant={getStatusBadgeVariant(booking.status)} className="mr-1">
@@ -836,6 +836,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="confirmed">Confirmed</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -907,7 +908,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </div>
                   <Select
                     value={booking.status}
-                    onValueChange={(value: "pending" | "confirmed" | "cancelled") => handleStatusChange(booking.id, value)}
+                    onValueChange={(value: "pending" | "confirmed" | "cancelled" | "completed") => handleStatusChange(booking.id, value)}
                   >
                     <SelectTrigger className="w-auto h-6 px-2 gap-1 shrink-0">
                       <Badge variant={getStatusBadgeVariant(booking.status)} className="text-[10px] px-1.5 py-0">
@@ -918,6 +919,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="confirmed">Confirmed</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

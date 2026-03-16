@@ -154,6 +154,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   };
 
   const getHostStatusBadge = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return (
+        <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+          Completed
+        </Badge>
+      );
+    }
     if (assignment.response === "accepted") {
       return (
         <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
@@ -168,6 +175,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         </Badge>
       );
     }
+    if (assignment.bookings.status === "cancelled") {
+      return (
+        <Badge variant="outline" className="border-destructive text-destructive text-[10px] sm:text-xs whitespace-nowrap">
+          Cancelled
+        </Badge>
+      );
+    }
     return (
       <Badge variant="destructive" className="text-[10px] sm:text-xs whitespace-nowrap">
         Declined
@@ -176,6 +190,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   };
 
   const getStatusMessage = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return {
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        text: "This booking is completed — payment details below",
+        color: "text-green-700 dark:text-green-400",
+      };
+    }
     if (assignment.response === "accepted") {
       return {
         icon: <CheckCircle className="h-4 w-4 text-green-600" />,
@@ -188,6 +209,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         icon: null,
         text: "Awaiting your response",
         color: "text-amber-600",
+      };
+    }
+    if (assignment.bookings.status === "cancelled") {
+      return {
+        icon: <X className="h-4 w-4 text-destructive" />,
+        text: "This booking has been cancelled",
+        color: "text-destructive",
       };
     }
     return {
@@ -323,9 +351,11 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
         {/* Payment Details Card */}
         {ratePerStudentPerNight > 0 && (
-          <Card>
+          <Card className={booking.status === "completed" && selectedAssignment.response === "accepted" ? "border-green-500/30 bg-green-500/5" : ""}>
             <CardHeader className="p-4 sm:p-6 pb-2">
-              <CardTitle className="text-sm sm:text-base text-primary">Payment Details</CardTitle>
+              <CardTitle className="text-sm sm:text-base text-primary">
+                {booking.status === "completed" && selectedAssignment.response === "accepted" ? "Payment Received" : "Payment Details"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-2">
               <div className="space-y-3">
@@ -358,7 +388,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                   </>
                 )}
                 <div className="border-t border-border pt-3 flex justify-between text-sm font-bold">
-                  <span>Total Payment Due:</span>
+                  <span>{booking.status === "completed" && selectedAssignment.response === "accepted" ? "Total Payment Received:" : "Total Payment Due:"}</span>
                   <span className="text-green-600">£{earnings.total.toFixed(2)}</span>
                 </div>
               </div>
