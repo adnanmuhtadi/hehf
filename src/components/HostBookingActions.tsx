@@ -66,9 +66,10 @@ const HostBookingActions = ({
   const locationFilter = controlledLocationFilter ?? uncontrolledLocationFilter;
   const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [hideDeclined, setHideDeclined] = useState(true);
+  const [hideDeclined, setHideDeclined] = useState(false);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
+  const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
   const [studentCount, setStudentCount] = useState<number>(0);
 
   // Get rate and capacities from profile
@@ -263,7 +264,7 @@ const HostBookingActions = ({
         .select("id")
         .eq("booking_id", bookingId)
         .eq("host_id", profile.user_id)
-        .single();
+        .maybeSingle();
 
       const updateData: any = {
         response,
@@ -292,9 +293,15 @@ const HostBookingActions = ({
         if (error) throw error;
       }
 
+      const successDescription = existingRecord
+        ? response === "accepted"
+          ? "Availability updated successfully"
+          : "Availability marked as unavailable"
+        : `Booking ${response} successfully`;
+
       toast({
         title: "Success",
-        description: `Booking ${response} successfully`,
+        description: successDescription,
       });
 
       fetchBookings();
@@ -310,9 +317,15 @@ const HostBookingActions = ({
     }
   };
 
-  const openAcceptDialog = (bookingId: string, bedType?: "single_beds_only" | "shared_beds") => {
+  const openAcceptDialog = (
+    bookingId: string,
+    bedType?: "single_beds_only" | "shared_beds",
+    currentStudentsAssigned?: number,
+    action: "accept" | "update" = "accept",
+  ) => {
     const capacity = getCapacityForBedType(bedType);
-    setStudentCount(capacity);
+    setStudentCount(currentStudentsAssigned ?? capacity);
+    setAcceptDialogAction(action);
     setAcceptDialogBookingId(bookingId);
   };
 
@@ -320,6 +333,7 @@ const HostBookingActions = ({
     if (!acceptDialogBookingId) return;
     handleBookingResponse(acceptDialogBookingId, "accepted", studentCount);
     setAcceptDialogBookingId(null);
+    setAcceptDialogAction("accept");
     setStudentCount(0);
   };
 
@@ -590,15 +604,30 @@ const HostBookingActions = ({
                         <CheckCircle className="h-4 w-4" />
                         You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
                       </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleBookingResponse(booking.id, "declined")}
-                        disabled={actionLoading === booking.id}
-                        className="text-xs text-muted-foreground hover:text-destructive"
-                      >
-                        Change
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openAcceptDialog(booking.id, booking.bed_type, booking.booking_hosts?.[0]?.students_assigned || getCapacityForBedType(booking.bed_type), "update")}
+                          disabled={actionLoading === booking.id}
+                          className="text-xs"
+                        >
+                          Change students
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (window.confirm("Mark yourself as unavailable for this booking?")) {
+                              handleBookingResponse(booking.id, "declined");
+                            }
+                          }}
+                          disabled={actionLoading === booking.id}
+                          className="text-xs text-muted-foreground hover:text-destructive"
+                        >
+                          Can't Host
+                        </Button>
+                      </div>
                     </div>
                   ) : response === "declined" ? (
                     <div className="flex items-center justify-between gap-2">
@@ -621,12 +650,14 @@ const HostBookingActions = ({
         </div>
       )}
       {/* Accept Dialog - How many students? */}
-      <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) setAcceptDialogBookingId(null); }}>
+      <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) { setAcceptDialogBookingId(null); setAcceptDialogAction("accept"); } }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>How many students can you host?</DialogTitle>
+            <DialogTitle>{acceptDialogAction === "update" ? "Update student count" : "How many students can you host?"}</DialogTitle>
             <DialogDescription>
-              Enter the number of students you can accommodate for this booking.
+              {acceptDialogAction === "update"
+                ? "Change the number of students you can accommodate for this booking."
+                : "Enter the number of students you can accommodate for this booking."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
@@ -648,11 +679,14 @@ const HostBookingActions = ({
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm
+                {acceptDialogAction === "update" ? "Update" : "Confirm"}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setAcceptDialogBookingId(null)}
+                onClick={() => {
+                  setAcceptDialogBookingId(null);
+                  setAcceptDialogAction("accept");
+                }}
                 className="flex-1"
               >
                 Cancel
