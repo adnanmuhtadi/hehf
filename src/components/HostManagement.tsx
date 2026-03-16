@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AVAILABLE_LOCATIONS } from '@/data/locations';
 import HostLocationBonuses from './HostLocationBonuses';
@@ -48,6 +48,8 @@ const HostManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
   const [syncingEmails, setSyncingEmails] = useState(false);
+  const [sortField, setSortField] = useState<string>('full_name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -89,8 +91,57 @@ const HostManagement = () => {
       result = result.filter(h => !h.is_active);
     }
     
+    // Sort
+    result = [...result].sort((a, b) => {
+      let valA: any, valB: any;
+      switch (sortField) {
+        case 'full_name':
+          valA = a.full_name.toLowerCase();
+          valB = b.full_name.toLowerCase();
+          break;
+        case 'email':
+          valA = a.email.toLowerCase();
+          valB = b.email.toLowerCase();
+          break;
+        case 'locations':
+          valA = (a.preferred_locations || []).join(', ').toLowerCase();
+          valB = (b.preferred_locations || []).join(', ').toLowerCase();
+          break;
+        case 'bed_capacity':
+          valA = (a.single_bed_capacity || 0) + (a.shared_bed_capacity || 0);
+          valB = (b.single_bed_capacity || 0) + (b.shared_bed_capacity || 0);
+          break;
+        case 'status':
+          valA = a.is_active ? 1 : 0;
+          valB = b.is_active ? 1 : 0;
+          break;
+        default:
+          valA = a.full_name.toLowerCase();
+          valB = b.full_name.toLowerCase();
+      }
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     return result;
-  }, [hosts, locationFilter, statusFilter, searchQuery]);
+  }, [hosts, locationFilter, statusFilter, searchQuery, sortField, sortDirection]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-1 h-3 w-3" /> 
+      : <ArrowDown className="ml-1 h-3 w-3" />;
+  };
 
   const toggleLocation = (location: string) => {
     setFormData(prev => ({
@@ -897,11 +948,19 @@ const HostManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Host</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('full_name')}>
+                    <span className="flex items-center">Host<SortIcon field="full_name" /></span>
+                  </TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Locations</TableHead>
-                  <TableHead>Bed Capacity</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('locations')}>
+                    <span className="flex items-center">Locations<SortIcon field="locations" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('bed_capacity')}>
+                    <span className="flex items-center">Bed Capacity<SortIcon field="bed_capacity" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('status')}>
+                    <span className="flex items-center">Status<SortIcon field="status" /></span>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
