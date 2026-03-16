@@ -351,9 +351,11 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
         {/* Payment Details Card */}
         {ratePerStudentPerNight > 0 && (
-          <Card>
+          <Card className={booking.status === "completed" && selectedAssignment.response === "accepted" ? "border-green-500/30 bg-green-500/5" : ""}>
             <CardHeader className="p-4 sm:p-6 pb-2">
-              <CardTitle className="text-sm sm:text-base text-primary">Payment Details</CardTitle>
+              <CardTitle className="text-sm sm:text-base text-primary">
+                {booking.status === "completed" && selectedAssignment.response === "accepted" ? "Payment Received" : "Payment Details"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-2">
               <div className="space-y-3">
@@ -386,7 +388,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                   </>
                 )}
                 <div className="border-t border-border pt-3 flex justify-between text-sm font-bold">
-                  <span>Total Payment Due:</span>
+                  <span>{booking.status === "completed" && selectedAssignment.response === "accepted" ? "Total Payment Received:" : "Total Payment Due:"}</span>
                   <span className="text-green-600">£{earnings.total.toFixed(2)}</span>
                 </div>
               </div>
