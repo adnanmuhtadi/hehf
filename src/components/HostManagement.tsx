@@ -948,11 +948,19 @@ const HostManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Host</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('full_name')}>
+                    <span className="flex items-center">Host<SortIcon field="full_name" /></span>
+                  </TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Locations</TableHead>
-                  <TableHead>Bed Capacity</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('locations')}>
+                    <span className="flex items-center">Locations<SortIcon field="locations" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('bed_capacity')}>
+                    <span className="flex items-center">Bed Capacity<SortIcon field="bed_capacity" /></span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('status')}>
+                    <span className="flex items-center">Status<SortIcon field="status" /></span>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
