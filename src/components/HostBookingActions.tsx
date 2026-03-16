@@ -264,7 +264,7 @@ const HostBookingActions = ({
         .select("id")
         .eq("booking_id", bookingId)
         .eq("host_id", profile.user_id)
-        .single();
+        .maybeSingle();
 
       const updateData: any = {
         response,
@@ -293,9 +293,15 @@ const HostBookingActions = ({
         if (error) throw error;
       }
 
+      const successDescription = existingRecord
+        ? response === "accepted"
+          ? "Availability updated successfully"
+          : "Availability marked as unavailable"
+        : `Booking ${response} successfully`;
+
       toast({
         title: "Success",
-        description: `Booking ${response} successfully`,
+        description: successDescription,
       });
 
       fetchBookings();
