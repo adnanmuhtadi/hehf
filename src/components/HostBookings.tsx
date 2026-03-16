@@ -190,6 +190,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   };
 
   const getStatusMessage = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return {
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        text: "This booking is completed — payment details below",
+        color: "text-green-700 dark:text-green-400",
+      };
+    }
     if (assignment.response === "accepted") {
       return {
         icon: <CheckCircle className="h-4 w-4 text-green-600" />,
@@ -202,6 +209,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         icon: null,
         text: "Awaiting your response",
         color: "text-amber-600",
+      };
+    }
+    if (assignment.bookings.status === "cancelled") {
+      return {
+        icon: <X className="h-4 w-4 text-destructive" />,
+        text: "This booking has been cancelled",
+        color: "text-destructive",
       };
     }
     return {
