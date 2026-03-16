@@ -91,8 +91,57 @@ const HostManagement = () => {
       result = result.filter(h => !h.is_active);
     }
     
+    // Sort
+    result = [...result].sort((a, b) => {
+      let valA: any, valB: any;
+      switch (sortField) {
+        case 'full_name':
+          valA = a.full_name.toLowerCase();
+          valB = b.full_name.toLowerCase();
+          break;
+        case 'email':
+          valA = a.email.toLowerCase();
+          valB = b.email.toLowerCase();
+          break;
+        case 'locations':
+          valA = (a.preferred_locations || []).join(', ').toLowerCase();
+          valB = (b.preferred_locations || []).join(', ').toLowerCase();
+          break;
+        case 'bed_capacity':
+          valA = (a.single_bed_capacity || 0) + (a.shared_bed_capacity || 0);
+          valB = (b.single_bed_capacity || 0) + (b.shared_bed_capacity || 0);
+          break;
+        case 'status':
+          valA = a.is_active ? 1 : 0;
+          valB = b.is_active ? 1 : 0;
+          break;
+        default:
+          valA = a.full_name.toLowerCase();
+          valB = b.full_name.toLowerCase();
+      }
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     return result;
-  }, [hosts, locationFilter, statusFilter, searchQuery]);
+  }, [hosts, locationFilter, statusFilter, searchQuery, sortField, sortDirection]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-1 h-3 w-3" /> 
+      : <ArrowDown className="ml-1 h-3 w-3" />;
+  };
 
   const toggleLocation = (location: string) => {
     setFormData(prev => ({
