@@ -27,10 +27,10 @@ const Dashboard = () => {
   const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !profile) {
       navigate('/auth');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, profile, navigate]);
 
   useEffect(() => {
     if (profile?.must_reset_password) {
