@@ -289,6 +289,21 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      update_own_profile: {
+        Args: {
+          _address?: string
+          _full_name?: string
+          _handbook_downloaded?: boolean
+          _has_completed_tour?: boolean
+          _must_reset_password?: boolean
+          _pets?: string
+          _phone?: string
+          _preferred_locations?: string[]
+          _shared_bed_capacity?: number
+          _single_bed_capacity?: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "host"
