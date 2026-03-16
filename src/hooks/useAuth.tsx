@@ -81,18 +81,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Listener for ONGOING auth changes (does NOT control loading)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event, newSession) => {
         if (!isMounted) return;
-        setSession(session);
-        setUser(session?.user ?? null);
+        
+        // Only process meaningful auth events
+        // Ignore TOKEN_REFRESHED if we already have a session to prevent flicker
+        if (event === 'TOKEN_REFRESHED' && newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
+          return;
+        }
 
-        if (session?.user) {
-          // Defer profile fetch to avoid Supabase deadlock
-          setTimeout(() => {
-            if (isMounted) fetchProfile(session.user.id);
-          }, 0);
-        } else {
+        // Handle explicit sign out
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
           setProfile(null);
+          return;
+        }
+
+        // Handle sign in or initial session
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+
+          if (newSession?.user) {
+            // Defer profile fetch to avoid Supabase deadlock
+            setTimeout(() => {
+              if (isMounted) fetchProfile(newSession.user.id);
+            }, 0);
+          }
+          return;
+        }
+
+        // For any other event, only update if session state actually changed
+        if (newSession) {
+          setSession(newSession);
+          setUser(newSession.user);
         }
       }
     );
@@ -100,14 +125,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // INITIAL load (controls loading state)
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
 
-        if (session?.user) {
-          await fetchProfile(session.user.id);
+        if (initialSession?.user) {
+          await fetchProfile(initialSession.user.id);
         }
       } catch {
         if (isMounted) {
