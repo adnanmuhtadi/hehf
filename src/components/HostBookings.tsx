@@ -154,6 +154,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   };
 
   const getHostStatusBadge = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return (
+        <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+          Completed
+        </Badge>
+      );
+    }
     if (assignment.response === "accepted") {
       return (
         <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
@@ -165,6 +172,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       return (
         <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] sm:text-xs whitespace-nowrap">
           Pending availability
+        </Badge>
+      );
+    }
+    if (assignment.bookings.status === "cancelled") {
+      return (
+        <Badge variant="outline" className="border-destructive text-destructive text-[10px] sm:text-xs whitespace-nowrap">
+          Cancelled
         </Badge>
       );
     }
