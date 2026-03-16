@@ -604,15 +604,30 @@ const HostBookingActions = ({
                         <CheckCircle className="h-4 w-4" />
                         You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
                       </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleBookingResponse(booking.id, "declined")}
-                        disabled={actionLoading === booking.id}
-                        className="text-xs text-muted-foreground hover:text-destructive"
-                      >
-                        Change
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openAcceptDialog(booking.id, booking.bed_type, booking.booking_hosts?.[0]?.students_assigned || getCapacityForBedType(booking.bed_type), "update")}
+                          disabled={actionLoading === booking.id}
+                          className="text-xs"
+                        >
+                          Change students
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (window.confirm("Mark yourself as unavailable for this booking?")) {
+                              handleBookingResponse(booking.id, "declined");
+                            }
+                          }}
+                          disabled={actionLoading === booking.id}
+                          className="text-xs text-muted-foreground hover:text-destructive"
+                        >
+                          Can't Host
+                        </Button>
+                      </div>
                     </div>
                   ) : response === "declined" ? (
                     <div className="flex items-center justify-between gap-2">
