@@ -317,9 +317,15 @@ const HostBookingActions = ({
     }
   };
 
-  const openAcceptDialog = (bookingId: string, bedType?: "single_beds_only" | "shared_beds") => {
+  const openAcceptDialog = (
+    bookingId: string,
+    bedType?: "single_beds_only" | "shared_beds",
+    currentStudentsAssigned?: number,
+    action: "accept" | "update" = "accept",
+  ) => {
     const capacity = getCapacityForBedType(bedType);
-    setStudentCount(capacity);
+    setStudentCount(currentStudentsAssigned ?? capacity);
+    setAcceptDialogAction(action);
     setAcceptDialogBookingId(bookingId);
   };
 
@@ -327,6 +333,7 @@ const HostBookingActions = ({
     if (!acceptDialogBookingId) return;
     handleBookingResponse(acceptDialogBookingId, "accepted", studentCount);
     setAcceptDialogBookingId(null);
+    setAcceptDialogAction("accept");
     setStudentCount(0);
   };
 
