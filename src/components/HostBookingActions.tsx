@@ -369,6 +369,21 @@ const HostBookingActions = ({
     }
   }, [profile?.user_id, locationFilter]);
 
+  useEffect(() => {
+    if (!profile?.user_id) return;
+    const channel = supabase
+      .channel(`host-actions-approvals-${profile.user_id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "booking_hosts", filter: `host_id=eq.${profile.user_id}` },
+        () => fetchBookings(true),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.user_id]);
+
   const getResponseBadge = (response: string) => {
     switch (response) {
       case "accepted":
