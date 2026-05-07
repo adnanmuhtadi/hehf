@@ -16,6 +16,7 @@ interface BookingAssignment {
   id: string;
   response: "pending" | "accepted" | "declined";
   students_assigned: number;
+  approved_at?: string | null;
   bookings: {
     id: string;
     booking_reference: string;
@@ -168,6 +169,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       );
     }
     if (assignment.response === "accepted") {
+      if (assignment.approved_at) {
+        return (
+          <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+            ✓ Approved
+          </Badge>
+        );
+      }
       return (
         <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
           Available (awaiting details)
@@ -204,6 +212,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       };
     }
     if (assignment.response === "accepted") {
+      if (assignment.approved_at) {
+        return {
+          icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+          text: "Admin has approved your acceptance — details will follow shortly",
+          color: "text-green-700 dark:text-green-400",
+        };
+      }
       return {
         icon: <CheckCircle className="h-4 w-4 text-green-600" />,
         text: "Your availability is confirmed, details of members will follow shortly",

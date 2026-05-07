@@ -50,6 +50,7 @@ interface Booking {
   booking_hosts?: {
     response: string;
     students_assigned: number;
+    approved_at?: string | null;
   }[];
 }
 
@@ -651,10 +652,17 @@ const HostBookingActions = ({
                     </div>
                   ) : response === "accepted" ? (
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs sm:text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" />
-                        You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs sm:text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
+                          <CheckCircle className="h-4 w-4" />
+                          You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
+                        </span>
+                        {booking.booking_hosts?.[0]?.approved_at && (
+                          <Badge className="bg-green-600 text-white text-[10px] w-fit">
+                            ✓ Approved by admin
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
