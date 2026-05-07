@@ -479,15 +479,30 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                     </TableCell>
                     <TableCell>{getHostStatusBadge(assignment)}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setSelectedAssignment(assignment)}
-                        className="text-xs"
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        {(assignment.response === "accepted" || assignment.response === "declined") &&
+                          assignment.bookings.status !== "completed" &&
+                          assignment.bookings.status !== "cancelled" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleResponse(assignment.id, "pending")}
+                            className="text-xs text-primary hover:text-primary"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Reinstate
+                          </Button>
+                        )}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setSelectedAssignment(assignment)}
+                          className="text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -508,6 +523,18 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {getHostStatusBadge(assignment)}
+                {(assignment.response === "accepted" || assignment.response === "declined") &&
+                  assignment.bookings.status !== "completed" &&
+                  assignment.bookings.status !== "cancelled" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleResponse(assignment.id, "pending")}
+                    className="text-xs h-7 px-2 text-primary hover:text-primary"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
+                )}
                 <Button
                   variant="secondary"
                   size="sm"
