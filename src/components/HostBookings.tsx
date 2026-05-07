@@ -169,6 +169,13 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       );
     }
     if (assignment.response === "accepted") {
+      if (assignment.approved_at) {
+        return (
+          <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+            ✓ Approved
+          </Badge>
+        );
+      }
       return (
         <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
           Available (awaiting details)
