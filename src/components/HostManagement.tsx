@@ -974,6 +974,9 @@ const HostManagement = () => {
                   <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('status')}>
                     <span className="flex items-center">Status<SortIcon field="status" /></span>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('last_sign_in')}>
+                    <span className="flex items-center">Last Login<SortIcon field="last_sign_in" /></span>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1040,6 +1043,15 @@ const HostManagement = () => {
                       <Badge variant={host.is_active ? "default" : "secondary"}>
                         {host.is_active ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {lastSignIns[host.user_id] ? (
+                        <span className="text-sm" title={new Date(lastSignIns[host.user_id] as string).toLocaleString()}>
+                          {new Date(lastSignIns[host.user_id] as string).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Never</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
