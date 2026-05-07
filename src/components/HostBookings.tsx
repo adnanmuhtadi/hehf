@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, Eye, ArrowLeft, CheckCircle, PoundSterling } from "lucide-react";
+import { Check, X, Eye, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,11 +120,15 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     }
   };
 
-  const handleResponse = async (assignmentId: string, response: "accepted" | "declined", studentsAssigned?: number) => {
+  const handleResponse = async (assignmentId: string, response: "accepted" | "declined" | "pending", studentsAssigned?: number) => {
     try {
       const updateData: any = { response, responded_at: new Date().toISOString() };
       if (response === "accepted" && studentsAssigned !== undefined) {
         updateData.students_assigned = studentsAssigned;
+      }
+      if (response === "pending") {
+        updateData.responded_at = null;
+        updateData.students_assigned = 0;
       }
       const { error } = await supabase.from("booking_hosts").update(updateData).eq("id", assignmentId);
       if (error) throw error;
@@ -351,6 +355,21 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                 >
                   <X className="h-4 w-4 mr-1" />
                   Can't Host
+                </Button>
+              </div>
+            )}
+
+            {(selectedAssignment.response === "accepted" || selectedAssignment.response === "declined") &&
+              booking.status !== "completed" && booking.status !== "cancelled" && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleResponse(selectedAssignment.id, "pending")}
+                  className="text-xs sm:text-sm"
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Reinstate booking
                 </Button>
               </div>
             )}
