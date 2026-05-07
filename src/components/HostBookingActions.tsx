@@ -77,6 +77,7 @@ const HostBookingActions = ({
   const setLocationFilter = onLocationFilterChange ?? setUncontrolledLocationFilter;
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [hideDeclined, setHideDeclined] = useState(false);
+  const [showPast, setShowPast] = useState(false);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
   const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
@@ -398,10 +399,17 @@ const HostBookingActions = ({
   // Count declined bookings
   const declinedCount = bookings.filter(b => b.booking_hosts?.[0]?.response === "declined").length;
 
-  // Filter bookings based on hideDeclined
-  const filteredBookings = hideDeclined 
-    ? bookings.filter(b => b.booking_hosts?.[0]?.response !== "declined")
-    : bookings;
+  // Filter bookings based on hideDeclined and showPast
+  const filteredBookings = (() => {
+    let list = bookings;
+    if (hideDeclined) list = list.filter(b => b.booking_hosts?.[0]?.response !== "declined");
+    if (!showPast) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      list = list.filter(b => new Date(b.departure_date).getTime() >= todayStart.getTime());
+    }
+    return list;
+  })();
 
   return (
     <div className="space-y-4">
@@ -443,6 +451,21 @@ const HostBookingActions = ({
             </label>
           </div>
         )}
+
+        {/* Show Past Bookings Toggle */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="show-past"
+            checked={showPast}
+            onCheckedChange={(checked) => setShowPast(checked as boolean)}
+          />
+          <label
+            htmlFor="show-past"
+            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+          >
+            Show past bookings
+          </label>
+        </div>
       </div>
 
       {/* Bookings List */}
