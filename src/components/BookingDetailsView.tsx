@@ -34,6 +34,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { preserveScrollPosition } from "@/lib/preserveScroll";
 
 interface Booking {
   id: string;
@@ -109,7 +110,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
   const fetchBookingDetails = async (preserveScroll = false) => {
     if (!bookingId) return;
-    const scrollY = preserveScroll ? window.scrollY : 0;
+    const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
     if (!preserveScroll) setLoading(true);
     try {
       // Fetch booking details
@@ -180,13 +181,12 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       onBack();
     } finally {
       setLoading(false);
-      if (preserveScroll) {
-        requestAnimationFrame(() => window.scrollTo({ top: scrollY, left: 0, behavior: "instant" as ScrollBehavior }));
-      }
+      restoreScroll?.();
     }
   };
 
   const handleApprove = async (assignmentId: string) => {
+    const restoreScroll = preserveScrollPosition();
     try {
       const { data: userData } = await supabase.auth.getUser();
       const approvedAt = new Date().toISOString();
@@ -201,6 +201,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       );
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      restoreScroll();
     }
   };
 
