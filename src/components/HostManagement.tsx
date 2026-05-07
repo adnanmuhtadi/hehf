@@ -40,6 +40,7 @@ interface Host {
 
 const HostManagement = () => {
   const [hosts, setHosts] = useState<Host[]>([]);
+  const [lastSignIns, setLastSignIns] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -115,6 +116,10 @@ const HostManagement = () => {
           valA = a.is_active ? 1 : 0;
           valB = b.is_active ? 1 : 0;
           break;
+        case 'last_sign_in':
+          valA = lastSignIns[a.user_id] ? new Date(lastSignIns[a.user_id] as string).getTime() : 0;
+          valB = lastSignIns[b.user_id] ? new Date(lastSignIns[b.user_id] as string).getTime() : 0;
+          break;
         default:
           valA = a.full_name.toLowerCase();
           valB = b.full_name.toLowerCase();
@@ -125,7 +130,7 @@ const HostManagement = () => {
     });
 
     return result;
-  }, [hosts, locationFilter, statusFilter, searchQuery, sortField, sortDirection]);
+  }, [hosts, locationFilter, statusFilter, searchQuery, sortField, sortDirection, lastSignIns]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -162,6 +167,14 @@ const HostManagement = () => {
 
       if (error) throw error;
       setHosts(data || []);
+
+      // Fetch last sign-in times (admin-only RPC)
+      const { data: signIns, error: siError } = await (supabase as any).rpc('get_hosts_last_sign_in');
+      if (!siError && Array.isArray(signIns)) {
+        const map: Record<string, string | null> = {};
+        signIns.forEach((row: any) => { map[row.user_id] = row.last_sign_in_at; });
+        setLastSignIns(map);
+      }
     } catch (error) {
       console.error('Error fetching hosts:', error);
       toast({
@@ -961,6 +974,9 @@ const HostManagement = () => {
                   <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('status')}>
                     <span className="flex items-center">Status<SortIcon field="status" /></span>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:bg-muted/50" onClick={() => handleSort('last_sign_in')}>
+                    <span className="flex items-center">Last Login<SortIcon field="last_sign_in" /></span>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1027,6 +1043,15 @@ const HostManagement = () => {
                       <Badge variant={host.is_active ? "default" : "secondary"}>
                         {host.is_active ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {lastSignIns[host.user_id] ? (
+                        <span className="text-sm" title={new Date(lastSignIns[host.user_id] as string).toLocaleString()}>
+                          {new Date(lastSignIns[host.user_id] as string).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Never</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
