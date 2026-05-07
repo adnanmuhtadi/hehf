@@ -592,6 +592,36 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reinstate Confirmation Dialog */}
+      <Dialog open={!!reinstateDialogId} onOpenChange={(open) => { if (!open) setReinstateDialogId(null); }}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-primary/10 to-transparent px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 mb-3">
+              <RotateCcw className="h-7 w-7 text-primary" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">Reinstate this booking?</DialogTitle>
+              <DialogDescription className="text-center">
+                This resets your previous response and moves the booking back to pending so you can accept or decline again.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 flex gap-2">
+            <Button variant="outline" onClick={() => setReinstateDialogId(null)} className="flex-1 h-11">Cancel</Button>
+            <Button
+              onClick={() => {
+                if (reinstateDialogId) handleResponse(reinstateDialogId, "pending");
+                setReinstateDialogId(null);
+              }}
+              className="flex-1 h-11"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Yes, reinstate
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
