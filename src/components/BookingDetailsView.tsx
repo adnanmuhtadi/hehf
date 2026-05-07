@@ -255,6 +255,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const handleDeleteBooking = async () => {
     if (!booking) return;
 
+    const restoreScroll = preserveScrollPosition();
     try {
       const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
 
@@ -272,6 +273,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         title: "Error",
         description: error.message,
       });
+    } finally {
+      restoreScroll();
     }
   };
 
