@@ -660,20 +660,27 @@ const HostBookingActions = ({
           })}
         </div>
       )}
-      {/* Accept Dialog - How many students? */}
+      {/* Accept Confirmation Dialog */}
       <Dialog open={!!acceptDialogBookingId} onOpenChange={(open) => { if (!open) { setAcceptDialogBookingId(null); setAcceptDialogAction("accept"); } }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{acceptDialogAction === "update" ? "Update student count" : "How many students can you host?"}</DialogTitle>
-            <DialogDescription>
-              {acceptDialogAction === "update"
-                ? "Change the number of students you can accommodate for this booking."
-                : "Enter the number of students you can accommodate for this booking."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-green-50 to-transparent dark:from-green-950/40 px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50 mb-3">
+              <CheckCircle className="h-7 w-7 text-green-600 dark:text-green-400" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">
+                {acceptDialogAction === "update" ? "Update student count" : "Confirm you can host"}
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                {acceptDialogAction === "update"
+                  ? "Change the number of students you can accommodate for this booking."
+                  : "Please confirm how many students you can accommodate. The admin will be notified."}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="student-count">Number of Students</Label>
+              <Label htmlFor="student-count" className="text-center block">Number of Students</Label>
               <Input
                 id="student-count"
                 type="number"
@@ -681,60 +688,74 @@ const HostBookingActions = ({
                 value={studentCount}
                 onChange={(e) => setStudentCount(parseInt(e.target.value) || 0)}
                 onFocus={(e) => e.target.select()}
+                className="text-center text-lg font-semibold h-12"
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={confirmAccept}
-                disabled={studentCount < 1}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                {acceptDialogAction === "update" ? "Update" : "Confirm"}
-              </Button>
               <Button
                 variant="outline"
                 onClick={() => {
                   setAcceptDialogBookingId(null);
                   setAcceptDialogAction("accept");
                 }}
-                className="flex-1"
+                className="flex-1 h-11"
               >
                 Cancel
+              </Button>
+              <Button
+                onClick={confirmAccept}
+                disabled={studentCount < 1}
+                className="flex-1 h-11 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {acceptDialogAction === "update" ? "Update" : "Yes, I can host"}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
       {/* Decline Confirmation Dialog */}
-      <AlertDialog open={!!declineDialogBookingId} onOpenChange={(open) => { if (!open) setDeclineDialogBookingId(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {declineContext === "accepted" ? "Cancel your acceptance?" : "Decline this booking?"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {declineContext === "accepted"
-                ? "You previously accepted this booking. Marking yourself unavailable will remove your acceptance and notify the admin."
-                : "Confirm you cannot host this booking. The admin will be informed of your unavailability."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Go back</AlertDialogCancel>
-            <AlertDialogAction
+      <Dialog open={!!declineDialogBookingId} onOpenChange={(open) => { if (!open) setDeclineDialogBookingId(null); }}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-destructive/10 to-transparent px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/15 mb-3">
+              <XCircle className="h-7 w-7 text-destructive" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">
+                {declineContext === "accepted" ? "Cancel your acceptance?" : "Decline this booking?"}
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                {declineContext === "accepted"
+                  ? "You previously accepted this booking. Marking yourself unavailable will remove your acceptance and notify the admin."
+                  : "Please confirm you cannot host this booking. The admin will be informed of your unavailability."}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeclineDialogBookingId(null)}
+              className="flex-1 h-11"
+            >
+              Go back
+            </Button>
+            <Button
               onClick={() => {
                 if (declineDialogBookingId) {
                   handleBookingResponse(declineDialogBookingId, "declined");
                 }
                 setDeclineDialogBookingId(null);
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="flex-1 h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
+              <XCircle className="h-4 w-4 mr-2" />
               Yes, I can't host
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
