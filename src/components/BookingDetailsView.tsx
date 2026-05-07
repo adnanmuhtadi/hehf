@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { CalendarIcon, Edit, Trash2, ArrowLeft, Users, MapPin, Globe, Bed, Filter, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -56,6 +56,8 @@ interface BookingHost {
   response: "pending" | "accepted" | "declined";
   students_assigned: number;
   responded_at: string | null;
+  approved_at?: string | null;
+  approved_by?: string | null;
   profiles: {
     full_name: string;
     email: string;
@@ -593,6 +595,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                         </div>
                       </TableHead>
                       <TableHead className="text-xs text-right">Can Host</TableHead>
+                      <TableHead className="text-xs text-right">Approval</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -632,6 +635,28 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                           ) : hostAssignment.response === "accepted" ? (
                             <span className="text-xs text-muted-foreground">-</span>
                           ) : "-"}
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          {hostAssignment.response === "accepted" ? (
+                            hostAssignment.approved_at ? (
+                              <Badge className="bg-green-600 text-white text-[10px] sm:text-xs">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Approved
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] sm:text-xs border-green-600 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+                                onClick={() => handleApprove(hostAssignment.id)}
+                              >
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Approve
+                              </Button>
+                            )
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
