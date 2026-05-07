@@ -184,6 +184,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   };
 
   const handleUpdateBooking = async (e: React.FormEvent) => {
+    void 0;
     e.preventDefault();
     if (!editBooking.arrival_date || !editBooking.departure_date || !booking) {
       toast({
