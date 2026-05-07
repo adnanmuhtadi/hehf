@@ -237,7 +237,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       });
 
       setIsEditOpen(false);
-      fetchBookingDetails();
+      fetchBookingDetails(true);
       onBookingUpdated?.();
     } catch (error: any) {
       toast({
