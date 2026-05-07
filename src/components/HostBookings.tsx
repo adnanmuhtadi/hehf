@@ -50,6 +50,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [acceptDialogBedType, setAcceptDialogBedType] = useState<"single_beds_only" | "shared_beds" | undefined>();
   const [studentCount, setStudentCount] = useState<number>(0);
   const [hideDeclined, setHideDeclined] = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
   const singleBedCapacity = profile?.single_bed_capacity || 0;
@@ -225,9 +226,16 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     };
   };
 
-  const filteredAssignments = hideDeclined
-    ? assignments.filter(a => a.response !== "declined")
-    : assignments;
+  const filteredAssignments = (() => {
+    let list = assignments;
+    if (hideDeclined) list = list.filter(a => a.response !== "declined");
+    if (!showPast) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      list = list.filter(a => new Date(a.bookings.departure_date).getTime() >= todayStart.getTime());
+    }
+    return list;
+  })();
 
   if (loading) {
     return <div className="text-center py-8">Loading your bookings...</div>;
@@ -403,7 +411,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   return (
     <div className="space-y-3">
       {/* Toggle */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
@@ -412,6 +420,15 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
             className="rounded"
           />
           Hide declined
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showPast}
+            onChange={(e) => setShowPast(e.target.checked)}
+            className="rounded"
+          />
+          Show past bookings
         </label>
         <span className="text-xs text-muted-foreground">({filteredAssignments.length} bookings)</span>
       </div>
