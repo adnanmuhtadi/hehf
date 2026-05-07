@@ -51,6 +51,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [studentCount, setStudentCount] = useState<number>(0);
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
   const singleBedCapacity = profile?.single_bed_capacity || 0;
@@ -365,7 +366,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleResponse(selectedAssignment.id, "pending")}
+                  onClick={() => setReinstateDialogId(selectedAssignment.id)}
                   className="text-xs sm:text-sm"
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
@@ -486,7 +487,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleResponse(assignment.id, "pending")}
+                            onClick={() => setReinstateDialogId(assignment.id)}
                             className="text-xs text-primary hover:text-primary"
                           >
                             <RotateCcw className="h-3 w-3 mr-1" />
@@ -529,7 +530,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleResponse(assignment.id, "pending")}
+                    onClick={() => setReinstateDialogId(assignment.id)}
                     className="text-xs h-7 px-2 text-primary hover:text-primary"
                   >
                     <RotateCcw className="h-3 w-3" />
@@ -588,6 +589,36 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reinstate Confirmation Dialog */}
+      <Dialog open={!!reinstateDialogId} onOpenChange={(open) => { if (!open) setReinstateDialogId(null); }}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-primary/10 to-transparent px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 mb-3">
+              <RotateCcw className="h-7 w-7 text-primary" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">Reinstate this booking?</DialogTitle>
+              <DialogDescription className="text-center">
+                This resets your previous response and moves the booking back to pending so you can accept or decline again.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 flex gap-2">
+            <Button variant="outline" onClick={() => setReinstateDialogId(null)} className="flex-1 h-11">Cancel</Button>
+            <Button
+              onClick={() => {
+                if (reinstateDialogId) handleResponse(reinstateDialogId, "pending");
+                setReinstateDialogId(null);
+              }}
+              className="flex-1 h-11"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Yes, reinstate
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
