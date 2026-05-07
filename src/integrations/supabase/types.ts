@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       booking_hosts: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           assigned_at: string | null
           booking_id: string
           created_at: string | null
@@ -26,6 +28,8 @@ export type Database = {
           students_assigned: number | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_at?: string | null
           booking_id: string
           created_at?: string | null
@@ -36,6 +40,8 @@ export type Database = {
           students_assigned?: number | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           assigned_at?: string | null
           booking_id?: string
           created_at?: string | null
