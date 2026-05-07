@@ -108,7 +108,6 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   }, [bookingId]);
 
   const fetchBookingDetails = async () => {
-    // intentionally no-op marker
     if (!bookingId) return;
 
     setLoading(true);
