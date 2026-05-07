@@ -89,6 +89,22 @@ const NotificationDropdown = () => {
     }
   };
 
+  const clearAll = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setNotifications([]);
+      toast({ title: "Success", description: "All notifications cleared" });
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast({ title: "Error", description: "Failed to clear notifications", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
 
@@ -147,11 +163,18 @@ const NotificationDropdown = () => {
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notifications</span>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto p-1 text-xs">
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto p-1 text-xs">
+                Mark all read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAll} className="h-auto p-1 text-xs text-destructive hover:text-destructive">
+                Clear all
+              </Button>
+            )}
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {loading ? (
