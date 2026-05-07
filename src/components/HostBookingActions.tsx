@@ -4,6 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -71,6 +81,8 @@ const HostBookingActions = ({
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
   const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
   const [studentCount, setStudentCount] = useState<number>(0);
+  const [declineDialogBookingId, setDeclineDialogBookingId] = useState<string | null>(null);
+  const [declineContext, setDeclineContext] = useState<"pending" | "accepted">("pending");
 
   // Get rate and capacities from profile
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
@@ -590,7 +602,7 @@ const HostBookingActions = ({
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => handleBookingResponse(booking.id, "declined")}
+                        onClick={() => { setDeclineContext("pending"); setDeclineDialogBookingId(booking.id); }}
                         disabled={actionLoading === booking.id}
                         className="flex-1 text-muted-foreground hover:text-foreground h-10 sm:h-11"
                       >
@@ -618,9 +630,8 @@ const HostBookingActions = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            if (window.confirm("Mark yourself as unavailable for this booking?")) {
-                              handleBookingResponse(booking.id, "declined");
-                            }
+                            setDeclineContext("accepted");
+                            setDeclineDialogBookingId(booking.id);
                           }}
                           disabled={actionLoading === booking.id}
                           className="text-xs text-muted-foreground hover:text-destructive"
@@ -695,6 +706,35 @@ const HostBookingActions = ({
           </div>
         </DialogContent>
       </Dialog>
+      {/* Decline Confirmation Dialog */}
+      <AlertDialog open={!!declineDialogBookingId} onOpenChange={(open) => { if (!open) setDeclineDialogBookingId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {declineContext === "accepted" ? "Cancel your acceptance?" : "Decline this booking?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {declineContext === "accepted"
+                ? "You previously accepted this booking. Marking yourself unavailable will remove your acceptance and notify the admin."
+                : "Confirm you cannot host this booking. The admin will be informed of your unavailability."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (declineDialogBookingId) {
+                  handleBookingResponse(declineDialogBookingId, "declined");
+                }
+                setDeclineDialogBookingId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, I can't host
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
