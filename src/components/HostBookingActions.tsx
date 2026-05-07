@@ -85,6 +85,7 @@ const HostBookingActions = ({
   const [studentCount, setStudentCount] = useState<number>(0);
   const [declineDialogBookingId, setDeclineDialogBookingId] = useState<string | null>(null);
   const [declineContext, setDeclineContext] = useState<"pending" | "accepted">("pending");
+  const [reinstateDialogBookingId, setReinstateDialogBookingId] = useState<string | null>(null);
 
   // Get rate and capacities from profile
   const ratePerStudentPerNight = (profile as any)?.rate_per_student_per_night || 0;
@@ -524,7 +525,7 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={(e) => { e.stopPropagation(); handleBookingResponse(booking.id, "pending"); }}
+                        onClick={(e) => { e.stopPropagation(); setReinstateDialogBookingId(booking.id); }}
                         disabled={actionLoading === booking.id}
                         className="h-7 px-2 text-xs text-primary hover:text-primary"
                       >
@@ -667,7 +668,7 @@ const HostBookingActions = ({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleBookingResponse(booking.id, "pending")}
+                          onClick={() => setReinstateDialogBookingId(booking.id)}
                           disabled={actionLoading === booking.id}
                           className="text-xs text-muted-foreground hover:text-foreground"
                         >
@@ -694,7 +695,7 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleBookingResponse(booking.id, "pending")}
+                        onClick={() => setReinstateDialogBookingId(booking.id)}
                         disabled={actionLoading === booking.id}
                         className="text-xs text-primary hover:text-primary"
                       >
@@ -801,6 +802,38 @@ const HostBookingActions = ({
             >
               <XCircle className="h-4 w-4 mr-2" />
               Yes, I can't host
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reinstate Confirmation Dialog */}
+      <Dialog open={!!reinstateDialogBookingId} onOpenChange={(open) => { if (!open) setReinstateDialogBookingId(null); }}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-primary/10 to-transparent px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 mb-3">
+              <RotateCcw className="h-7 w-7 text-primary" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">Reinstate this booking?</DialogTitle>
+              <DialogDescription className="text-center">
+                This will reset your previous response and move the booking back to pending so you can accept or decline it again.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 flex gap-2">
+            <Button variant="outline" onClick={() => setReinstateDialogBookingId(null)} className="flex-1 h-11">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (reinstateDialogBookingId) handleBookingResponse(reinstateDialogBookingId, "pending");
+                setReinstateDialogBookingId(null);
+              }}
+              className="flex-1 h-11"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Yes, reinstate
             </Button>
           </div>
         </DialogContent>
