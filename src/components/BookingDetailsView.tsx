@@ -186,13 +186,16 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const handleApprove = async (assignmentId: string) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
+      const approvedAt = new Date().toISOString();
       const { error } = await supabase
         .from("booking_hosts")
-        .update({ approved_at: new Date().toISOString(), approved_by: userData.user?.id })
+        .update({ approved_at: approvedAt, approved_by: userData.user?.id })
         .eq("id", assignmentId);
       if (error) throw error;
       toast({ title: "Approved", description: "Host acceptance approved. The host will be notified." });
-      fetchBookingDetails();
+      setBookingHosts((prev) =>
+        prev.map((h) => (h.id === assignmentId ? { ...h, approved_at: approvedAt, approved_by: userData.user?.id } : h)),
+      );
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     }
