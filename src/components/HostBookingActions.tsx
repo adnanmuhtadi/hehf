@@ -30,6 +30,7 @@ import {
   ChevronRight,
   EyeOff,
   Users,
+  RotateCcw,
 } from "lucide-react";
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
@@ -266,7 +267,7 @@ const HostBookingActions = ({
     }
   };
 
-  const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined", studentsAssigned?: number) => {
+  const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined" | "pending", studentsAssigned?: number) => {
     if (!profile) return;
 
     setActionLoading(bookingId);
@@ -285,6 +286,10 @@ const HostBookingActions = ({
       };
       if (response === "accepted" && studentsAssigned !== undefined) {
         updateData.students_assigned = studentsAssigned;
+      }
+      if (response === "pending") {
+        updateData.responded_at = null;
+        updateData.students_assigned = 0;
       }
 
       if (existingRecord) {
@@ -652,6 +657,16 @@ const HostBookingActions = ({
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => handleBookingResponse(booking.id, "pending")}
+                          disabled={actionLoading === booking.id}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <RotateCcw className="h-3 w-3 mr-1" />
+                          Reinstate
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => {
                             setDeclineContext("accepted");
                             setDeclineDialogBookingId(booking.id);
@@ -669,11 +684,12 @@ const HostBookingActions = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => openAcceptDialog(booking.id, booking.bed_type)}
+                        onClick={() => handleBookingResponse(booking.id, "pending")}
                         disabled={actionLoading === booking.id}
                         className="text-xs text-primary hover:text-primary"
                       >
-                        Change to Available
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reinstate
                       </Button>
                     </div>
                   ) : null}
