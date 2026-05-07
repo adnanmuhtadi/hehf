@@ -107,10 +107,10 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     }
   }, [bookingId]);
 
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = async (preserveScroll = false) => {
     if (!bookingId) return;
-
-    setLoading(true);
+    const scrollY = preserveScroll ? window.scrollY : 0;
+    if (!preserveScroll) setLoading(true);
     try {
       // Fetch booking details
       const { data: bookingData, error: bookingError } = await supabase
@@ -180,6 +180,9 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       onBack();
     } finally {
       setLoading(false);
+      if (preserveScroll) {
+        requestAnimationFrame(() => window.scrollTo({ top: scrollY, left: 0, behavior: "instant" as ScrollBehavior }));
+      }
     }
   };
 
@@ -234,7 +237,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       });
 
       setIsEditOpen(false);
-      fetchBookingDetails();
+      fetchBookingDetails(true);
       onBookingUpdated?.();
     } catch (error: any) {
       toast({
