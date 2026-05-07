@@ -719,6 +719,19 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   className="h-9 w-full sm:w-[180px]"
                 />
               </div>
+
+              <div className="space-y-1 col-span-2 sm:col-span-1">
+                <Label className="text-xs text-muted-foreground">Past Bookings</Label>
+                <Button
+                  type="button"
+                  variant={showPast ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowPast((v) => !v)}
+                  className="h-9 w-full sm:w-auto justify-start"
+                >
+                  {showPast ? "Showing past" : "Hidden"}
+                </Button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-2 sm:pt-0 sm:flex-1">
