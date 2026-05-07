@@ -521,6 +521,16 @@ const HostBookingActions = ({
                         </span>
                       )}
                       <Badge variant="outline" className="border-destructive/50 text-destructive text-[10px]">Declined</Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => { e.stopPropagation(); handleBookingResponse(booking.id, "pending"); }}
+                        disabled={actionLoading === booking.id}
+                        className="h-7 px-2 text-xs text-primary hover:text-primary"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Reinstate
+                      </Button>
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
