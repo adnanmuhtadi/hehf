@@ -16,6 +16,7 @@ interface BookingAssignment {
   id: string;
   response: "pending" | "accepted" | "declined";
   students_assigned: number;
+  approved_at?: string | null;
   bookings: {
     id: string;
     booking_reference: string;
