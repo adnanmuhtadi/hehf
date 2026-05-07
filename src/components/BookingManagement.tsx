@@ -46,6 +46,7 @@ import {
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { preserveScrollPosition } from "@/lib/preserveScroll";
 
 type SortField = "booking_reference" | "location" | "arrival_date" | "country_of_students" | "status" | "hosts_available";
 type SortDirection = "asc" | "desc";
@@ -247,6 +248,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       return;
     }
 
+    const restoreScroll = preserveScrollPosition();
     setLoading(true);
 
     try {
@@ -274,7 +276,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
       setIsEditBookingOpen(false);
       setEditingBooking(null);
-      fetchBookings();
+      fetchBookings(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -283,6 +285,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       });
     } finally {
       setLoading(false);
+      restoreScroll();
     }
   };
 
@@ -290,7 +293,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     fetchBookings();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (preserveScroll = false) => {
+    const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
     try {
       // Fetch bookings
       const { data: bookingsData, error: bookingsError } = await supabase
@@ -339,6 +343,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         title: "Error",
         description: "Failed to fetch bookings",
       });
+    } finally {
+      restoreScroll?.();
     }
   };
 
@@ -387,6 +393,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       return;
     }
 
+    const restoreScroll = preserveScrollPosition();
     setLoading(true);
 
     try {
@@ -429,7 +436,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         notes: "",
         bed_type: "single_beds_only",
       });
-      fetchBookings();
+      fetchBookings(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -438,6 +445,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       });
     } finally {
       setLoading(false);
+      restoreScroll();
     }
   };
 
@@ -476,6 +484,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   };
 
   const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled" | "completed") => {
+    const restoreScroll = preserveScrollPosition();
     try {
       const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
 
@@ -486,17 +495,20 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         description: `Booking status updated to ${newStatus}`,
       });
 
-      fetchBookings();
+      fetchBookings(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to update booking status",
       });
+    } finally {
+      restoreScroll();
     }
   };
 
   const handleDeleteBooking = async (bookingId: string) => {
+    const restoreScroll = preserveScrollPosition();
     setDeletingBookingId(bookingId);
     try {
       // First delete related booking_hosts
@@ -514,7 +526,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         description: "Booking deleted successfully",
       });
 
-      fetchBookings();
+      fetchBookings(true);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -523,6 +535,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       });
     } finally {
       setDeletingBookingId(null);
+      restoreScroll();
     }
   };
 

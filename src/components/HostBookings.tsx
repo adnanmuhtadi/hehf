@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { preserveScrollPosition } from "@/lib/preserveScroll";
 
 interface BookingAssignment {
   id: string;
@@ -98,8 +99,9 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     }
   }, [user?.id]);
 
-  const fetchBookingAssignments = async () => {
+  const fetchBookingAssignments = async (preserveScroll = false) => {
     if (!user) return;
+    const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
     try {
       const { data, error } = await supabase
         .from("booking_hosts")
@@ -119,10 +121,12 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       toast({ variant: "destructive", title: "Error", description: "Failed to fetch booking assignments" });
     } finally {
       setLoading(false);
+      restoreScroll?.();
     }
   };
 
   const handleResponse = async (assignmentId: string, response: "accepted" | "declined" | "pending", studentsAssigned?: number) => {
+    const restoreScroll = preserveScrollPosition();
     try {
       const updateData: any = { response, responded_at: new Date().toISOString() };
       if (response === "accepted" && studentsAssigned !== undefined) {
@@ -135,7 +139,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       const { error } = await supabase.from("booking_hosts").update(updateData).eq("id", assignmentId);
       if (error) throw error;
       toast({ title: "Success", description: `Booking ${response} successfully` });
-      fetchBookingAssignments();
+      fetchBookingAssignments(true);
       onResponseUpdate?.();
       // Refresh the selected assignment if we're in detail view
       if (selectedAssignment?.id === assignmentId) {
@@ -143,6 +147,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       }
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Failed to update booking response" });
+    } finally {
+      restoreScroll();
     }
   };
 

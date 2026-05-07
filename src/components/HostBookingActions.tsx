@@ -35,6 +35,7 @@ import {
 import { useMemo } from "react";
 import { AVAILABLE_LOCATIONS } from "@/data/locations";
 import { Checkbox } from "@/components/ui/checkbox";
+import { preserveScrollPosition } from "@/lib/preserveScroll";
 
 interface Booking {
   id: string;
@@ -190,10 +191,11 @@ const HostBookingActions = ({
     }
   };
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (preserveScroll = false) => {
     if (!profile) return;
 
-    setLoading(true);
+    const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
+    if (!preserveScroll) setLoading(true);
     try {
       // First get bookings with existing assignments for this host
       let assignedQuery = supabase
@@ -266,12 +268,14 @@ const HostBookingActions = ({
       });
     } finally {
       setLoading(false);
+      restoreScroll?.();
     }
   };
 
   const handleBookingResponse = async (bookingId: string, response: "accepted" | "declined" | "pending", studentsAssigned?: number) => {
     if (!profile) return;
 
+    const restoreScroll = preserveScrollPosition();
     setActionLoading(bookingId);
     try {
       // Check if booking_host record exists
@@ -324,7 +328,7 @@ const HostBookingActions = ({
         description: successDescription,
       });
 
-      fetchBookings();
+      fetchBookings(true);
       onResponseUpdate?.();
     } catch (error: any) {
       toast({
@@ -334,6 +338,7 @@ const HostBookingActions = ({
       });
     } finally {
       setActionLoading(null);
+      restoreScroll();
     }
   };
 
