@@ -203,7 +203,7 @@ const HostBookingActions = ({
         .select(
           `
           *,
-          booking_hosts!inner(response, students_assigned)
+          booking_hosts!inner(response, students_assigned, approved_at)
         `,
         )
         .eq("booking_hosts.host_id", profile.user_id);
