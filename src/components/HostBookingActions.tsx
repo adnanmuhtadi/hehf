@@ -203,7 +203,7 @@ const HostBookingActions = ({
         .select(
           `
           *,
-          booking_hosts!inner(response, students_assigned)
+          booking_hosts!inner(response, students_assigned, approved_at)
         `,
         )
         .eq("booking_hosts.host_id", profile.user_id);
@@ -368,6 +368,21 @@ const HostBookingActions = ({
       fetchBookings();
     }
   }, [profile?.user_id, locationFilter]);
+
+  useEffect(() => {
+    if (!profile?.user_id) return;
+    const channel = supabase
+      .channel(`host-actions-approvals-${profile.user_id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "booking_hosts", filter: `host_id=eq.${profile.user_id}` },
+        () => fetchBookings(true),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.user_id]);
 
   const getResponseBadge = (response: string) => {
     switch (response) {
@@ -549,7 +564,9 @@ const HostBookingActions = ({
               <div 
                 key={booking.id} 
                 className={`border rounded-lg overflow-hidden transition-all ${
-                  response === "accepted" 
+                  response === "accepted" && booking.booking_hosts?.[0]?.approved_at
+                    ? "border-green-600 bg-green-50 dark:bg-green-950/30 ring-1 ring-green-600/40"
+                    : response === "accepted" 
                     ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
                     : response === "declined"
                     ? "border-destructive/30 bg-destructive/5 dark:bg-destructive/10 opacity-75"
@@ -558,6 +575,13 @@ const HostBookingActions = ({
                     : "border-border hover:border-primary/30"
                 }`}
               >
+                {/* Approved banner */}
+                {response === "accepted" && booking.booking_hosts?.[0]?.approved_at && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-xs font-semibold">Approved by admin — you're confirmed to host this booking</span>
+                  </div>
+                )}
                 {/* Declined Banner - with collapse button */}
                 {response === "declined" && (
                   <div 

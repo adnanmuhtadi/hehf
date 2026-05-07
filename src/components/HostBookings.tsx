@@ -99,6 +99,21 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     }
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`host-bookings-approvals-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "booking_hosts", filter: `host_id=eq.${user.id}` },
+        () => fetchBookingAssignments(true),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   const fetchBookingAssignments = async (preserveScroll = false) => {
     if (!user) return;
     const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
