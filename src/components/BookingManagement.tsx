@@ -249,7 +249,6 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
 
     const restoreScroll = preserveScrollPosition();
-    const restoreScroll = preserveScrollPosition();
     setLoading(true);
 
     try {
@@ -394,6 +393,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       return;
     }
 
+    const restoreScroll = preserveScrollPosition();
     setLoading(true);
 
     try {
