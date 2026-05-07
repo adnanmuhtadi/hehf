@@ -51,6 +51,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [studentCount, setStudentCount] = useState<number>(0);
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
   const singleBedCapacity = profile?.single_bed_capacity || 0;
@@ -365,7 +366,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleResponse(selectedAssignment.id, "pending")}
+                  onClick={() => setReinstateDialogId(selectedAssignment.id)}
                   className="text-xs sm:text-sm"
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
@@ -486,7 +487,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleResponse(assignment.id, "pending")}
+                            onClick={() => setReinstateDialogId(assignment.id)}
                             className="text-xs text-primary hover:text-primary"
                           >
                             <RotateCcw className="h-3 w-3 mr-1" />
@@ -529,7 +530,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleResponse(assignment.id, "pending")}
+                    onClick={() => setReinstateDialogId(assignment.id)}
                     className="text-xs h-7 px-2 text-primary hover:text-primary"
                   >
                     <RotateCcw className="h-3 w-3" />
