@@ -98,6 +98,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("");
+  const [showPast, setShowPast] = useState<boolean>(false);
 
   // Sort states
   const [sortField, setSortField] = useState<SortField>("arrival_date");
@@ -123,6 +124,13 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   // Filter and sort bookings
   const filteredAndSortedBookings = useMemo(() => {
     let result = [...bookings];
+
+    // Hide past bookings (departure date before today) unless toggled
+    if (!showPast) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      result = result.filter((b) => new Date(b.departure_date).getTime() >= todayStart.getTime());
+    }
 
     // Apply filters
     if (locationFilter !== "all") {
@@ -162,7 +170,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     });
 
     return result;
-  }, [bookings, locationFilter, statusFilter, countryFilter, sortField, sortDirection]);
+  }, [bookings, locationFilter, statusFilter, countryFilter, sortField, sortDirection, showPast]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -184,9 +192,10 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     setLocationFilter("all");
     setStatusFilter("all");
     setCountryFilter("");
+    setShowPast(false);
   };
 
-  const hasActiveFilters = locationFilter !== "all" || statusFilter !== "all" || countryFilter !== "";
+  const hasActiveFilters = locationFilter !== "all" || statusFilter !== "all" || countryFilter !== "" || showPast;
 
   // Edit booking state
   const [editBookingForm, setEditBookingForm] = useState({
