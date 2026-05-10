@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -15,6 +15,7 @@ import ProfileSettings from '@/components/ProfileSettings';
 import HostBookingActions from '@/components/HostBookingActions';
 import NotificationDropdown from '@/components/NotificationDropdown';
 import OnboardingTour from '@/components/OnboardingTour';
+import HostHelpCenter from '@/components/HostHelpCenter';
 
 const HostDashboard = () => {
   const { user, profile, signOut, refreshProfile } = useAuth();
@@ -107,11 +108,12 @@ const HostDashboard = () => {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5">
               <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap" data-tour="overview-tab">Overview</TabsTrigger>
               <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap" data-tour="bookings-tab">Bookings</TabsTrigger>
               <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap" data-tour="calendar-tab">Calendar</TabsTrigger>
               <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap" data-tour="profile-tab">Profile</TabsTrigger>
+              <TabsTrigger value="help" className="text-xs sm:text-sm whitespace-nowrap">Help</TabsTrigger>
             </TabsList>
           </div>
 
@@ -269,6 +271,23 @@ const HostDashboard = () => {
               </CardHeader>
               <CardContent className="p-3 sm:p-6 pt-0">
                 <ProfileSettings />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="help" className="mt-4 sm:mt-6">
+            <Card>
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <LifeBuoy className="h-5 w-5 text-primary" />
+                  Help & FAQ
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Understand your dashboard and get support
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6 pt-0">
+                <HostHelpCenter />
               </CardContent>
             </Card>
           </TabsContent>
