@@ -844,17 +844,24 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-3">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
-                        <span className="font-medium text-green-600"> / {booking.hosts_available || 0}</span>
-                        {booking.total_students_assigned ? (
-                          <span className="font-medium text-blue-600"> ({booking.total_students_assigned})</span>
-                        ) : null}
-                      </span>
+                      <div className="flex items-end gap-3 text-sm">
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="text-muted-foreground font-medium">{booking.hosts_registered || 0}</span>
+                          <span className="text-[10px] text-muted-foreground">Registered</span>
+                        </div>
+                        <span className="text-muted-foreground pb-4">/</span>
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="font-medium text-green-600">{booking.hosts_available || 0}</span>
+                          <span className="text-[10px] text-muted-foreground">Accepted</span>
+                        </div>
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="font-medium text-blue-600">({booking.total_students_assigned || 0})</span>
+                          <span className="text-[10px] text-muted-foreground">Students</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">registered / available {booking.total_students_assigned ? "(students)" : ""}</p>
                   </TableCell>
                   <TableCell>{booking.country_of_students}</TableCell>
                   <TableCell>
@@ -975,15 +982,20 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-2 border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs">
-                      <Users className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{booking.hosts_registered || 0}</span>
-                      <span className="font-medium text-green-600">/ {booking.hosts_available || 0}</span>
-                      {booking.total_students_assigned ? (
-                        <span className="font-medium text-blue-600">({booking.total_students_assigned})</span>
-                      ) : null}
-                      <span className="text-[10px] text-muted-foreground ml-1">hosts</span>
+                  <div className="flex items-center gap-3 text-xs">
+                    <Users className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="text-muted-foreground font-medium">{booking.hosts_registered || 0}</span>
+                      <span className="text-[9px] text-muted-foreground">Registered</span>
+                    </div>
+                    <span className="text-muted-foreground pb-3">/</span>
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="font-medium text-green-600">{booking.hosts_available || 0}</span>
+                      <span className="text-[9px] text-muted-foreground">Accepted</span>
+                    </div>
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="font-medium text-blue-600">({booking.total_students_assigned || 0})</span>
+                      <span className="text-[9px] text-muted-foreground">Students</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
