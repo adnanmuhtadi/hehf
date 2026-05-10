@@ -178,7 +178,7 @@ const HostHelpCenter = () => {
           </Button>
           <Button asChild size="sm">
             <a
-              href="https://wa.me/447000000000?text=Hi%2C%20I%20need%20help%20with%20my%20host%20dashboard"
+              href="https://wa.me/447826541868?text=Hi%2C%20I%20need%20help%20with%20my%20host%20dashboard"
               target="_blank"
               rel="noopener noreferrer"
             >
