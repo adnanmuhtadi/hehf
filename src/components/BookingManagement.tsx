@@ -499,6 +499,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const handleStatusChange = async (bookingId: string, newStatus: "pending" | "confirmed" | "cancelled" | "completed") => {
     const restoreScroll = preserveScrollPosition();
     try {
+      const previous = bookings.find((b) => b.id === bookingId);
+      const wasCancelledBefore = previous?.status === "cancelled";
       const { error } = await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
 
       if (error) throw error;
@@ -507,6 +509,13 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         title: "Success",
         description: `Booking status updated to ${newStatus}`,
       });
+
+      // Notify hosts when an approved/confirmed booking is being cancelled
+      if (newStatus === "cancelled" && !wasCancelledBefore) {
+        supabase.functions
+          .invoke("notify-host-booking-cancelled", { body: { booking_id: bookingId } })
+          .catch((e) => console.error("notify-host-booking-cancelled failed:", e));
+      }
 
       fetchBookings(true);
     } catch (error: any) {
