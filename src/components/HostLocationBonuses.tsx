@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, MapPin, PoundSterling } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import { useLocations } from '@/hooks/useLocations';
 
 interface LocationBonus {
   id: string;
@@ -24,6 +24,7 @@ interface HostLocationBonusesProps {
 
 const HostLocationBonuses = ({ hostId, hostName }: HostLocationBonusesProps) => {
   const [bonuses, setBonuses] = useState<LocationBonus[]>([]);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newLocation, setNewLocation] = useState('');
