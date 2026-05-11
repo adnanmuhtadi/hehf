@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -70,54 +70,66 @@ const HostDashboard = () => {
       <OnboardingTour isVisible={showTour} onComplete={handleTourComplete} />
 
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+      <header className="bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 border-b border-border sticky top-0 z-40">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">Host Dashboard</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
+              <h1 className="text-base sm:text-2xl font-bold text-foreground truncate leading-tight">Host Dashboard</h1>
+              <p className="text-[11px] sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <div data-tour="notifications">
                 <NotificationDropdown />
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleRestartTour}
                 title="Take a tour"
+                className="h-9 w-9"
               >
                 <HelpCircle className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setActiveTab('profile')} className="hidden sm:flex">
-                <Settings className="h-4 w-4 sm:mr-2" />
-                <span className="hidden md:inline">Settings</span>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setActiveTab('profile')} className="sm:hidden">
-                <Settings className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="h-9 px-2 sm:px-3">
                 <LogOut className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
+
+        {/* Tabs strip — sticky under the header */}
+        <div className="container mx-auto px-3 sm:px-4 pb-2 sm:pb-3">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-muted/60">
+              <TabsTrigger value="overview" data-tour="overview-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                <span className="leading-none">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="bookings" data-tour="bookings-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+                <BookOpen className="h-4 w-4 shrink-0" />
+                <span className="leading-none">Bookings</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" data-tour="calendar-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+                <CalendarDays className="h-4 w-4 shrink-0" />
+                <span className="leading-none">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" data-tour="profile-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+                <UserIcon className="h-4 w-4 shrink-0" />
+                <span className="leading-none">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="help" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+                <LifeBuoy className="h-4 w-4 shrink-0" />
+                <span className="leading-none">Help</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </header>
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5">
-              <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap" data-tour="overview-tab">Overview</TabsTrigger>
-              <TabsTrigger value="bookings" className="text-xs sm:text-sm whitespace-nowrap" data-tour="bookings-tab">Bookings</TabsTrigger>
-              <TabsTrigger value="calendar" className="text-xs sm:text-sm whitespace-nowrap" data-tour="calendar-tab">Calendar</TabsTrigger>
-              <TabsTrigger value="profile" className="text-xs sm:text-sm whitespace-nowrap" data-tour="profile-tab">Profile</TabsTrigger>
-              <TabsTrigger value="help" className="text-xs sm:text-sm whitespace-nowrap">Help</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="overview" className="mt-4 sm:mt-6">
+          <TabsContent value="overview" className="mt-0 sm:mt-2">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Quick Stats Row - Mobile First */}
               <div className="lg:col-span-3 grid grid-cols-3 gap-2 sm:gap-4" data-tour="quick-stats">
@@ -159,7 +171,7 @@ const HostDashboard = () => {
               </div>
 
               {/* Sidebar - Shows after tiles on mobile, in sidebar on desktop */}
-              <div className="space-y-4 order-none lg:order-last" data-tour="earnings-widget">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4 order-none lg:order-last" data-tour="earnings-widget">
                 {/* Host Handbook */}
                 <Card>
                   <CardContent className="p-3 sm:p-4">
@@ -233,7 +245,7 @@ const HostDashboard = () => {
 
           </TabsContent>
 
-          <TabsContent value="bookings" className="mt-4 sm:mt-6">
+          <TabsContent value="bookings" className="mt-0 sm:mt-2">
             <Card>
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-base sm:text-lg">My Bookings</CardTitle>
@@ -247,7 +259,7 @@ const HostDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="calendar" className="mt-4 sm:mt-6">
+          <TabsContent value="calendar" className="mt-0 sm:mt-2">
             <Card>
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-base sm:text-lg">My Calendar</CardTitle>
@@ -261,7 +273,7 @@ const HostDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-4 sm:mt-6">
+          <TabsContent value="profile" className="mt-0 sm:mt-2">
             <Card>
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-base sm:text-lg">Profile Settings</CardTitle>
@@ -275,7 +287,7 @@ const HostDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="help" className="mt-4 sm:mt-6">
+          <TabsContent value="help" className="mt-0 sm:mt-2">
             <Card>
               <CardHeader className="p-3 sm:p-6">
                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">

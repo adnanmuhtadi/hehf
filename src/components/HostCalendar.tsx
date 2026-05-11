@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarDays, MapPin, Users, Bed } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -170,40 +169,41 @@ const HostCalendar = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* Calendar */}
         <Card>
-          <CardHeader className="p-3 sm:p-6">
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
             <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
               <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
               My Calendar
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              <span className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
-                {(Object.keys(stateColors) as CalState[]).map((s) => (
-                  <label
+            <CardDescription className="text-[11px] sm:text-xs">Tap a chip to show or hide a status</CardDescription>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2">
+              {(Object.keys(stateColors) as CalState[]).map((s) => {
+                const active = visibleStates[s];
+                return (
+                  <button
                     key={s}
-                    htmlFor={`cal-toggle-${s}`}
-                    className="inline-flex items-center gap-1.5 cursor-pointer select-none"
+                    type="button"
+                    onClick={() => setVisibleStates((prev) => ({ ...prev, [s]: !prev[s] }))}
+                    aria-pressed={active}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] sm:text-xs font-medium transition-all ${
+                      active
+                        ? "border-border bg-background text-foreground"
+                        : "border-border/60 bg-muted/40 text-muted-foreground/70 line-through"
+                    }`}
                   >
-                    <Checkbox
-                      id={`cal-toggle-${s}`}
-                      checked={visibleStates[s]}
-                      onCheckedChange={(checked) =>
-                        setVisibleStates((prev) => ({ ...prev, [s]: checked as boolean }))
-                      }
-                    />
                     <span
-                      className="inline-block h-3 w-3 rounded-sm"
-                      style={{ backgroundColor: stateColors[s].bg }}
+                      className="inline-block h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: stateColors[s].bg, opacity: active ? 1 : 0.4 }}
                     />
                     {stateColors[s].label}
-                  </label>
-                ))}
-              </span>
-            </CardDescription>
+                  </button>
+                );
+              })}
+            </div>
           </CardHeader>
-          <CardContent className="p-2 sm:p-6 pt-0">
+          <CardContent className="p-2 sm:p-4 pt-0 sm:pt-0">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -222,7 +222,7 @@ const HostCalendar = () => {
                 pending:   { backgroundColor: stateColors.pending.bg,   color: stateColors.pending.fg,   fontWeight: "bold" },
                 rejected:  { backgroundColor: stateColors.rejected.bg,  color: stateColors.rejected.fg,  fontWeight: "bold" },
               }}
-              className="rounded-md border w-full"
+              className="rounded-lg border w-full mx-auto"
             />
           </CardContent>
         </Card>

@@ -570,8 +570,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden sm:block">
+      {/* Desktop Table (lg+) */}
+      <div className="hidden lg:block">
         <Card>
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-sm text-primary">Your Bookings</CardTitle>
@@ -630,38 +630,44 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         </Card>
       </div>
 
-      {/* Mobile Cards */}
-      <div className="sm:hidden space-y-2">
+      {/* Mobile + Tablet Cards (<lg) */}
+      <div className="lg:hidden space-y-2.5">
         {filteredAssignments.map((assignment) => (
-          <Card key={assignment.id} className="p-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{assignment.bookings.booking_reference}</p>
-                <p className="text-xs text-muted-foreground">{assignment.bookings.location}</p>
+          <Card key={assignment.id} className="p-3 sm:p-4 hover:border-primary/30 transition-colors">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="text-sm sm:text-base font-semibold truncate">{assignment.bookings.booking_reference}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.bookings.location}</p>
+                </div>
+                <div className="shrink-0">{getHostStatusBadge(assignment)}</div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {getHostStatusBadge(assignment)}
-                {(assignment.response === "accepted" || assignment.response === "declined") &&
-                  assignment.bookings.status !== "completed" &&
-                  assignment.bookings.status !== "cancelled" && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setReinstateDialogId(assignment.id)}
-                    className="text-xs h-7 px-2 text-primary hover:text-primary"
-                  >
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                )}
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                {format(new Date(assignment.bookings.arrival_date), "dd MMM")} – {format(new Date(assignment.bookings.departure_date), "dd MMM yyyy")}
+              </div>
+              <div className="flex items-center gap-2">
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => setSelectedAssignment(assignment)}
-                  className="text-xs h-7 px-2"
+                  className="flex-1 h-9"
                 >
-                  <Eye className="h-3 w-3 mr-1" />
-                  View
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  View details
                 </Button>
+                {(assignment.response === "accepted" || assignment.response === "declined") &&
+                  assignment.bookings.status !== "completed" &&
+                  assignment.bookings.status !== "cancelled" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setReinstateDialogId(assignment.id)}
+                    className="h-9 text-primary hover:text-primary border-primary/30"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Reinstate</span>
+                  </Button>
+                )}
               </div>
             </div>
           </Card>
