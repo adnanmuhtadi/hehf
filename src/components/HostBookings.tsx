@@ -483,20 +483,20 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
-            checked={showPast}
-            onChange={(e) => setShowPast(e.target.checked)}
-            className="rounded"
-          />
-          Show past bookings
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
             checked={showCancelled}
             onChange={(e) => setShowCancelled(e.target.checked)}
             className="rounded"
           />
           Show cancelled
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showPast}
+            onChange={(e) => setShowPast(e.target.checked)}
+            className="rounded"
+          />
+          Show past bookings
         </label>
         <span className="text-xs text-muted-foreground">({filteredAssignments.length} bookings)</span>
       </div>
