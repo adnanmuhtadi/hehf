@@ -73,6 +73,7 @@ const HostBookingActions = ({
 }: HostBookingActionsProps) => {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
   const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>("preferred");
