@@ -80,6 +80,8 @@ const HostCalendar = () => {
 
   const filterBookingsForDate = (date: Date) => {
     const filteredBookings = assignments.filter((assignment) => {
+      // Hide cancelled bookings from the calendar day-detail panel
+      if (assignment.bookings.status === "cancelled") return false;
       const arrivalDate = parseISO(assignment.bookings.arrival_date);
       const departureDate = parseISO(assignment.bookings.departure_date);
 
