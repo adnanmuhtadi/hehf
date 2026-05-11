@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,6 +56,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [bedTypeFilter, setBedTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
@@ -278,6 +281,12 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       list = list.filter(a => new Date(a.bookings.departure_date).getTime() >= todayStart.getTime());
+    }
+    if (bedTypeFilter !== "all") {
+      list = list.filter(a => (a.bookings.bed_type || "single_beds_only") === bedTypeFilter);
+    }
+    if (statusFilter !== "all") {
+      list = list.filter(a => a.response === statusFilter);
     }
     return list;
   })();
