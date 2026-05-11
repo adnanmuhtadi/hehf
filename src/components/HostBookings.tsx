@@ -269,6 +269,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   const filteredAssignments = (() => {
     let list = assignments;
+    // Always hide cancelled bookings — they should disappear from the host's bookings list
+    list = list.filter(a => a.bookings.status !== "cancelled");
     if (hideDeclined) list = list.filter(a => a.response !== "declined");
     if (!showPast) {
       const todayStart = new Date();
