@@ -45,14 +45,17 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, password, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity } = body;
+    const { email, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity } = body;
 
-    if (!email || !password || !full_name) {
+    if (!email || !full_name) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: email, password, full_name' }),
+        JSON.stringify({ error: 'Missing required fields: email, full_name' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Generate a cryptographically random temporary password server-side.
+    const password = generateTempPassword();
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -103,6 +106,12 @@ Deno.serve(async (req) => {
       role: 'host',
     });
 
+    // Force password reset on first login
+    await adminClient
+      .from('profiles')
+      .update({ must_reset_password: true })
+      .eq('user_id', authData.user.id);
+
     return new Response(
       JSON.stringify({ success: true, user_id: authData.user.id, password }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -115,3 +124,12 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+function generateTempPassword(): string {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let out = "";
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return out;
+}
