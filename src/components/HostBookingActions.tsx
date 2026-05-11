@@ -565,7 +565,9 @@ const HostBookingActions = ({
               <div 
                 key={booking.id} 
                 className={`border rounded-lg overflow-hidden transition-all ${
-                  response === "accepted" && booking.booking_hosts?.[0]?.approved_at
+                  booking.status === "cancelled"
+                    ? "border-destructive border-2 bg-destructive/5 dark:bg-destructive/10"
+                    : response === "accepted" && booking.booking_hosts?.[0]?.approved_at
                     ? "border-green-600 bg-green-50 dark:bg-green-950/30 ring-1 ring-green-600/40"
                     : response === "accepted" 
                     ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
@@ -576,8 +578,21 @@ const HostBookingActions = ({
                     : "border-border hover:border-primary/30"
                 }`}
               >
-                {/* Approved banner */}
-                {response === "accepted" && booking.booking_hosts?.[0]?.approved_at && (
+                {/* Cancelled banner — takes priority over approved banner */}
+                {booking.status === "cancelled" && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-destructive text-destructive-foreground">
+                    <XCircle className="h-4 w-4" />
+                    <span className="text-xs font-semibold">
+                      {response === "accepted" && booking.booking_hosts?.[0]?.approved_at
+                        ? "This booking was cancelled — you had previously been confirmed to host it"
+                        : response === "accepted"
+                        ? "This booking was cancelled — you had accepted it"
+                        : "This booking has been cancelled"}
+                    </span>
+                  </div>
+                )}
+                {/* Approved banner — hidden when cancelled */}
+                {booking.status !== "cancelled" && response === "accepted" && booking.booking_hosts?.[0]?.approved_at && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white">
                     <CheckCircle className="h-4 w-4" />
                     <span className="text-xs font-semibold">Approved by admin — you're confirmed to host this booking</span>
