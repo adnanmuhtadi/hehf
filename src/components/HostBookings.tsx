@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
+import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw, BedDouble, Filter } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -482,87 +482,92 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   return (
     <div className="space-y-3">
-      {/* Toggle */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-2">
-          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Bed:</label>
-          <Select value={bedTypeFilter} onValueChange={setBedTypeFilter}>
-            <SelectTrigger className="w-32 sm:w-36 h-8 sm:h-9 text-xs sm:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Beds</SelectItem>
-              <SelectItem value="single_beds_only">Single Beds</SelectItem>
-              <SelectItem value="shared_beds">Shared Beds</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Filters Toolbar */}
+      <div className="rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <BedDouble className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Select value={bedTypeFilter} onValueChange={setBedTypeFilter}>
+                <SelectTrigger className="h-9 w-[140px] sm:w-[150px] pl-8 text-xs sm:text-sm bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Beds</SelectItem>
+                  <SelectItem value="single_beds_only">Single Beds</SelectItem>
+                  <SelectItem value="shared_beds">Shared Beds</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Status:</label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36 sm:w-40 h-8 sm:h-9 text-xs sm:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="accepted">Accepted</SelectItem>
-              <SelectItem value="declined">Declined</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {declinedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="hb-hide-declined"
-              checked={hideDeclined}
-              onCheckedChange={(checked) => setHideDeclined(checked as boolean)}
-            />
-            <label
-              htmlFor="hb-hide-declined"
-              className="text-xs sm:text-sm text-muted-foreground cursor-pointer flex items-center gap-1"
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-              Hide declined ({declinedCount})
-            </label>
+            <div className="relative">
+              <Filter className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-[150px] sm:w-[170px] pl-8 text-xs sm:text-sm bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
+                  <SelectItem value="declined">Declined</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        )}
 
-        {cancelledCount > 0 && (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="hb-show-cancelled"
-              checked={showCancelled}
-              onCheckedChange={(checked) => setShowCancelled(checked as boolean)}
-            />
-            <label
-              htmlFor="hb-show-cancelled"
-              className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+          <div className="hidden xl:block h-8 w-px bg-border" />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {declinedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setHideDeclined(!hideDeclined)}
+                aria-pressed={hideDeclined}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                  hideDeclined
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                <EyeOff className="h-3.5 w-3.5" />
+                Hide declined ({declinedCount})
+              </button>
+            )}
+
+            {cancelledCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowCancelled(!showCancelled)}
+                aria-pressed={showCancelled}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                  showCancelled
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                Show cancelled ({cancelledCount})
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowPast(!showPast)}
+              aria-pressed={showPast}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                showPast
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+              }`}
             >
-              Show cancelled ({cancelledCount})
-            </label>
+              Show past bookings
+            </button>
+
+            <span className="ml-auto xl:ml-2 text-xs text-muted-foreground">
+              ({filteredAssignments.length} booking{filteredAssignments.length !== 1 ? "s" : ""})
+            </span>
           </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="hb-show-past"
-            checked={showPast}
-            onCheckedChange={(checked) => setShowPast(checked as boolean)}
-          />
-          <label
-            htmlFor="hb-show-past"
-            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
-          >
-            Show past bookings
-          </label>
         </div>
-
-        <span className="ml-auto text-xs text-muted-foreground">
-          ({filteredAssignments.length} booking{filteredAssignments.length !== 1 ? "s" : ""})
-        </span>
       </div>
 
       {/* Desktop Table */}
