@@ -35,7 +35,7 @@ const BookingCalendar = () => {
     if (selectedDate) {
       filterBookingsForDate(selectedDate);
     }
-  }, [selectedDate, bookings]);
+  }, [selectedDate, bookings, locationFilter]);
 
   const fetchBookings = async () => {
     try {
@@ -62,6 +62,9 @@ const BookingCalendar = () => {
 
   const filterBookingsForDate = (date: Date) => {
     const filteredBookings = bookings.filter(booking => {
+      if (locationFilter !== 'all' && booking.location !== locationFilter) {
+        return false;
+      }
       const arrivalDate = parseISO(booking.arrival_date);
       const departureDate = parseISO(booking.departure_date);
       
