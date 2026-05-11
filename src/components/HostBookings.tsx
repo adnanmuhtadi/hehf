@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, Eye, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
+import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -467,38 +468,63 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   }
 
   // ─── TABLE VIEW ───
+  const declinedCount = assignments.filter(a => a.response === "declined" && a.bookings.status !== "cancelled").length;
+  const cancelledCount = assignments.filter(a => a.bookings.status === "cancelled").length;
+
   return (
     <div className="space-y-3">
       {/* Toggle */}
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={hideDeclined}
-            onChange={(e) => setHideDeclined(e.target.checked)}
-            className="rounded"
-          />
-          Hide declined
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showCancelled}
-            onChange={(e) => setShowCancelled(e.target.checked)}
-            className="rounded"
-          />
-          Show cancelled
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        {declinedCount > 0 && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="hb-hide-declined"
+              checked={hideDeclined}
+              onCheckedChange={(checked) => setHideDeclined(checked as boolean)}
+            />
+            <label
+              htmlFor="hb-hide-declined"
+              className="text-xs sm:text-sm text-muted-foreground cursor-pointer flex items-center gap-1"
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+              Hide declined ({declinedCount})
+            </label>
+          </div>
+        )}
+
+        {cancelledCount > 0 && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="hb-show-cancelled"
+              checked={showCancelled}
+              onCheckedChange={(checked) => setShowCancelled(checked as boolean)}
+            />
+            <label
+              htmlFor="hb-show-cancelled"
+              className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+            >
+              Show cancelled ({cancelledCount})
+            </label>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="hb-show-past"
             checked={showPast}
-            onChange={(e) => setShowPast(e.target.checked)}
-            className="rounded"
+            onCheckedChange={(checked) => setShowPast(checked as boolean)}
           />
-          Show past bookings
-        </label>
-        <span className="text-xs text-muted-foreground">({filteredAssignments.length} bookings)</span>
+          <label
+            htmlFor="hb-show-past"
+            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+          >
+            Show past bookings
+          </label>
+        </div>
+
+        <span className="ml-auto text-xs text-muted-foreground">
+          ({filteredAssignments.length} booking{filteredAssignments.length !== 1 ? "s" : ""})
+        </span>
       </div>
 
       {/* Desktop Table */}
