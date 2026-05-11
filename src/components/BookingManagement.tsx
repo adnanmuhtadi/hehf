@@ -416,7 +416,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         created_by: user.id,
       };
 
-      const { error } = await supabase.from("bookings").insert([bookingData]);
+      const { data: inserted, error } = await supabase
+        .from("bookings")
+        .insert([bookingData])
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -424,6 +428,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         title: "Success",
         description: "Booking created successfully",
       });
+
+      // Fire-and-forget host notification email. Failures are logged in
+      // email_logs by the edge function and never block booking creation.
+      if (inserted?.id) {
+        supabase.functions
+          .invoke("notify-host-new-booking", { body: { booking_id: inserted.id } })
+          .catch((err) => console.error("Host notification email failed:", err));
+      }
 
       setIsNewBookingOpen(false);
       setNewBooking({
