@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarDays, MapPin, Users, Bed } from "lucide-react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,9 @@ const HostCalendar = () => {
   const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dayBookings, setDayBookings] = useState<BookingAssignment[]>([]);
+  const [visibleStates, setVisibleStates] = useState<Record<"confirmed" | "approved" | "accepted" | "pending" | "rejected", boolean>>({
+    confirmed: true, approved: true, accepted: true, pending: true, rejected: true,
+  });
 
   useEffect(() => {
     fetchBookingAssignments();
@@ -40,7 +44,7 @@ const HostCalendar = () => {
     if (selectedDate) {
       filterBookingsForDate(selectedDate);
     }
-  }, [selectedDate, assignments]);
+  }, [selectedDate, assignments, visibleStates]);
 
   const fetchBookingAssignments = async () => {
     if (!user) return;
@@ -82,6 +86,8 @@ const HostCalendar = () => {
     const filteredBookings = assignments.filter((assignment) => {
       // Hide cancelled bookings from the calendar day-detail panel
       if (assignment.bookings.status === "cancelled") return false;
+      const state = getStateForAssignment(assignment);
+      if (!state || !visibleStates[state]) return false;
       const arrivalDate = parseISO(assignment.bookings.arrival_date);
       const departureDate = parseISO(assignment.bookings.departure_date);
 
@@ -118,6 +124,7 @@ const HostCalendar = () => {
     assignments.forEach((a) => {
       const state = getStateForAssignment(a);
       if (!state) return;
+      if (!visibleStates[state]) return;
       const start = parseISO(a.bookings.arrival_date);
       const end = parseISO(a.bookings.departure_date);
       let cur = new Date(start);
@@ -172,15 +179,26 @@ const HostCalendar = () => {
               My Calendar
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
-              <span className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
                 {(Object.keys(stateColors) as CalState[]).map((s) => (
-                  <span key={s} className="inline-flex items-center gap-1">
+                  <label
+                    key={s}
+                    htmlFor={`cal-toggle-${s}`}
+                    className="inline-flex items-center gap-1.5 cursor-pointer select-none"
+                  >
+                    <Checkbox
+                      id={`cal-toggle-${s}`}
+                      checked={visibleStates[s]}
+                      onCheckedChange={(checked) =>
+                        setVisibleStates((prev) => ({ ...prev, [s]: checked as boolean }))
+                      }
+                    />
                     <span
                       className="inline-block h-3 w-3 rounded-sm"
                       style={{ backgroundColor: stateColors[s].bg }}
                     />
                     {stateColors[s].label}
-                  </span>
+                  </label>
                 ))}
               </span>
             </CardDescription>
