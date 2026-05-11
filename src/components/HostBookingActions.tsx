@@ -487,21 +487,6 @@ const HostBookingActions = ({
           </div>
         )}
 
-        {/* Show Past Bookings Toggle */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-past"
-            checked={showPast}
-            onCheckedChange={(checked) => setShowPast(checked as boolean)}
-          />
-          <label
-            htmlFor="show-past"
-            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
-          >
-            Show past bookings
-          </label>
-        </div>
-
         {/* Show Cancelled Toggle */}
         {cancelledCount > 0 && (
           <div className="flex items-center gap-2">
@@ -518,6 +503,21 @@ const HostBookingActions = ({
             </label>
           </div>
         )}
+
+        {/* Show Past Bookings Toggle */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="show-past"
+            checked={showPast}
+            onCheckedChange={(checked) => setShowPast(checked as boolean)}
+          />
+          <label
+            htmlFor="show-past"
+            className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+          >
+            Show past bookings
+          </label>
+        </div>
       </div>
 
       {/* Bookings List */}
