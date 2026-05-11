@@ -82,6 +82,7 @@ const HostBookingActions = ({
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
   const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
@@ -141,10 +142,13 @@ const HostBookingActions = ({
     const map = new Map<string, string[]>();
     for (let i = 0; i < bookings.length; i++) {
       const a = bookings[i];
+      // Cancelled bookings can't conflict with anything
+      if (a.status === "cancelled") continue;
       const conflicts: string[] = [];
       for (let j = 0; j < bookings.length; j++) {
         if (i === j) continue;
         const b = bookings[j];
+        if (b.status === "cancelled") continue;
         if (datesOverlap(a.arrival_date, a.departure_date, b.arrival_date, b.departure_date)) {
           conflicts.push(b.id);
         }
@@ -425,13 +429,14 @@ const HostBookingActions = ({
   };
 
   // Count declined bookings
-  const declinedCount = bookings.filter(b => b.booking_hosts?.[0]?.response === "declined").length;
+  const declinedCount = bookings.filter(b => b.booking_hosts?.[0]?.response === "declined" && b.status !== "cancelled").length;
+  const cancelledCount = bookings.filter(b => b.status === "cancelled").length;
 
   // Filter bookings based on hideDeclined and showPast
   const filteredBookings = (() => {
     let list = bookings;
-    // Always hide cancelled bookings — they should disappear from the host's view
-    list = list.filter(b => b.status !== "cancelled");
+    // Hide cancelled bookings unless the host opts in via the filter
+    if (!showCancelled) list = list.filter(b => b.status !== "cancelled");
     if (hideDeclined) list = list.filter(b => b.booking_hosts?.[0]?.response !== "declined");
     if (!showPast) {
       const todayStart = new Date();
@@ -496,6 +501,23 @@ const HostBookingActions = ({
             Show past bookings
           </label>
         </div>
+
+        {/* Show Cancelled Toggle */}
+        {cancelledCount > 0 && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="show-cancelled"
+              checked={showCancelled}
+              onCheckedChange={(checked) => setShowCancelled(checked as boolean)}
+            />
+            <label
+              htmlFor="show-cancelled"
+              className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
+            >
+              Show cancelled ({cancelledCount})
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Bookings List */}
