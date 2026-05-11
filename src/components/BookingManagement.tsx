@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { useLocations } from "@/hooks/useLocations";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
@@ -86,6 +86,7 @@ interface BookingManagementProps {
 
 const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
