@@ -179,15 +179,26 @@ const HostCalendar = () => {
               My Calendar
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm">
-              <span className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-1">
                 {(Object.keys(stateColors) as CalState[]).map((s) => (
-                  <span key={s} className="inline-flex items-center gap-1">
+                  <label
+                    key={s}
+                    htmlFor={`cal-toggle-${s}`}
+                    className="inline-flex items-center gap-1.5 cursor-pointer select-none"
+                  >
+                    <Checkbox
+                      id={`cal-toggle-${s}`}
+                      checked={visibleStates[s]}
+                      onCheckedChange={(checked) =>
+                        setVisibleStates((prev) => ({ ...prev, [s]: checked as boolean }))
+                      }
+                    />
                     <span
                       className="inline-block h-3 w-3 rounded-sm"
                       style={{ backgroundColor: stateColors[s].bg }}
                     />
                     {stateColors[s].label}
-                  </span>
+                  </label>
                 ))}
               </span>
             </CardDescription>
