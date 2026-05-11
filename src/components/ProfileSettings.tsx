@@ -9,10 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import { useLocations } from '@/hooks/useLocations';
 
 const ProfileSettings = () => {
   const { profile, user, refreshProfile } = useAuth();
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     full_name: '',
