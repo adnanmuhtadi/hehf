@@ -33,7 +33,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { useLocations } from "@/hooks/useLocations";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
 
 interface Booking {
@@ -76,6 +76,7 @@ interface BookingDetailsViewProps {
 
 const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDetailsViewProps) => {
   const [booking, setBooking] = useState<Booking | null>(null);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
