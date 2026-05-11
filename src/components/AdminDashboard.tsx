@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, BookOpen, LogOut, Upload } from 'lucide-react';
+import { Users, Calendar, BookOpen, LogOut, Upload, MapPin } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -11,6 +11,7 @@ import BookingDetailsView from '@/components/BookingDetailsView';
 import BookingCalendar from '@/components/BookingCalendar';
 import HostManagement from '@/components/HostManagement';
 import BulkUserImport from '@/components/BulkUserImport';
+import LocationManagement from '@/components/LocationManagement';
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -87,10 +88,14 @@ const AdminDashboard = () => {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-4">
+            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5">
               <TabsTrigger value="bookings" className="whitespace-nowrap text-xs sm:text-sm">Bookings</TabsTrigger>
               <TabsTrigger value="calendar" className="whitespace-nowrap text-xs sm:text-sm">Calendar</TabsTrigger>
               <TabsTrigger value="hosts" className="whitespace-nowrap text-xs sm:text-sm">Hosts</TabsTrigger>
+              <TabsTrigger value="locations" className="whitespace-nowrap text-xs sm:text-sm">
+                <MapPin className="h-3 w-3 mr-1" />
+                Locations
+              </TabsTrigger>
               <TabsTrigger value="import" className="whitespace-nowrap text-xs sm:text-sm">
                 <Upload className="h-3 w-3 mr-1" />
                 Import
@@ -136,6 +141,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="hosts" className="mt-4 sm:mt-6">
             <HostManagement />
+          </TabsContent>
+
+          <TabsContent value="locations" className="mt-4 sm:mt-6">
+            <LocationManagement />
           </TabsContent>
 
           <TabsContent value="import" className="mt-4 sm:mt-6">
