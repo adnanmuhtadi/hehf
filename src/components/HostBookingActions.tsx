@@ -430,6 +430,8 @@ const HostBookingActions = ({
   // Filter bookings based on hideDeclined and showPast
   const filteredBookings = (() => {
     let list = bookings;
+    // Always hide cancelled bookings — they should disappear from the host's view
+    list = list.filter(b => b.status !== "cancelled");
     if (hideDeclined) list = list.filter(b => b.booking_hosts?.[0]?.response !== "declined");
     if (!showPast) {
       const todayStart = new Date();

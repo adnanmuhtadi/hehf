@@ -86,17 +86,19 @@ export const useHostStats = (locationFilter?: string) => {
         `)
         .eq('host_id', user.id)
         .eq('response', 'accepted')
-        .gte('bookings.arrival_date', today);
+        .gte('bookings.arrival_date', today)
+        .neq('bookings.status', 'cancelled');
 
       // Fetch accepted bookings for actual earnings calculation
       const { data: acceptedBookingsData } = await supabase
         .from('booking_hosts')
         .select(`
           students_assigned,
-          bookings!inner(number_of_nights, arrival_date, departure_date, location, bed_type)
+          bookings!inner(number_of_nights, arrival_date, departure_date, location, bed_type, status)
         `)
         .eq('host_id', user.id)
-        .eq('response', 'accepted');
+        .eq('response', 'accepted')
+        .neq('bookings.status', 'cancelled');
 
       // Calculate actual earnings from accepted bookings (using bed capacity)
       let actualEarnings = 0;
@@ -132,7 +134,8 @@ export const useHostStats = (locationFilter?: string) => {
         let bookingsQuery = supabase
           .from('bookings')
           .select('number_of_nights, arrival_date, departure_date, location, bed_type')
-          .gte('arrival_date', today);
+          .gte('arrival_date', today)
+          .neq('status', 'cancelled');
 
         if (filter === 'preferred') {
           if (preferredLocations.length === 0) {
