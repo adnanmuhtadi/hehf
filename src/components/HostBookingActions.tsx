@@ -626,7 +626,7 @@ const HostBookingActions = ({
                         </Badge>
                       )}
                     </div>
-                    {response === "accepted" && (
+                    {response === "accepted" && booking.status !== "cancelled" && (
                       <Badge className="bg-green-600 text-white text-[10px] sm:text-xs shrink-0">Accepted</Badge>
                     )}
                   </div>
@@ -702,7 +702,7 @@ const HostBookingActions = ({
                           <CheckCircle className="h-4 w-4" />
                           You can host {booking.booking_hosts?.[0]?.students_assigned || 0} student{(booking.booking_hosts?.[0]?.students_assigned || 0) !== 1 ? 's' : ''}
                         </span>
-                        {booking.booking_hosts?.[0]?.approved_at && (
+                        {booking.booking_hosts?.[0]?.approved_at && booking.status !== "cancelled" && (
                           <Badge className="bg-green-600 text-white text-[10px] w-fit">
                             ✓ Approved by admin
                           </Badge>
