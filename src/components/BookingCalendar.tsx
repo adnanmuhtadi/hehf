@@ -77,28 +77,42 @@ const BookingCalendar = () => {
     setDayBookings(filteredBookings);
   };
 
-  const getBookingDates = () => {
-    let filteredBookings = bookings;
-    
-    if (locationFilter !== 'all') {
-      filteredBookings = bookings.filter(b => b.location === locationFilter);
-    }
-    
-    const dates = new Set<string>();
-    
-    filteredBookings.forEach(booking => {
+  type BStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
+  const statusColors: Record<BStatus, { bg: string; fg: string; label: string }> = {
+    confirmed: { bg: 'hsl(217, 91%, 60%)', fg: '#ffffff', label: 'Confirmed' },
+    completed: { bg: 'hsl(142, 71%, 45%)', fg: '#ffffff', label: 'Completed' },
+    pending:   { bg: 'hsl(38, 92%, 50%)',  fg: '#ffffff', label: 'Pending' },
+    cancelled: { bg: 'hsl(0, 84%, 60%)',   fg: '#ffffff', label: 'Cancelled' },
+  };
+  const statusPriority: Record<BStatus, number> = {
+    confirmed: 4, completed: 3, pending: 2, cancelled: 1,
+  };
+
+  const buildStatusBuckets = () => {
+    const filtered = locationFilter === 'all'
+      ? bookings
+      : bookings.filter((b) => b.location === locationFilter);
+    const dayState = new Map<string, BStatus>();
+    filtered.forEach((booking) => {
+      const status = (booking.status as BStatus);
+      if (!statusColors[status]) return;
       const start = parseISO(booking.arrival_date);
       const end = parseISO(booking.departure_date);
-      
-      let currentDate = start;
-      while (currentDate <= end) {
-        dates.add(format(currentDate, 'yyyy-MM-dd'));
-        currentDate = new Date(currentDate);
-        currentDate.setDate(currentDate.getDate() + 1);
+      const cur = new Date(start);
+      while (cur <= end) {
+        const key = format(cur, 'yyyy-MM-dd');
+        const existing = dayState.get(key);
+        if (!existing || statusPriority[status] > statusPriority[existing]) {
+          dayState.set(key, status);
+        }
+        cur.setDate(cur.getDate() + 1);
       }
     });
-    
-    return Array.from(dates).map(date => parseISO(date));
+    const buckets: Record<BStatus, Date[]> = {
+      confirmed: [], completed: [], pending: [], cancelled: [],
+    };
+    dayState.forEach((status, key) => buckets[status].push(parseISO(key)));
+    return buckets;
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -111,7 +125,7 @@ const BookingCalendar = () => {
     }
   };
 
-  const bookingDates = getBookingDates();
+  const dateBuckets = buildStatusBuckets();
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -147,20 +161,33 @@ const BookingCalendar = () => {
               Tap a date to view bookings
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-2 sm:p-6 pt-0">
+          <CardContent className="p-2 sm:p-6 pt-0 space-y-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {(Object.keys(statusColors) as BStatus[]).map((s) => (
+                <span key={s} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-3 w-3 rounded-sm"
+                    style={{ backgroundColor: statusColors[s].bg }}
+                  />
+                  {statusColors[s].label}
+                </span>
+              ))}
+            </div>
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
               modifiers={{
-                booked: bookingDates,
+                confirmed: dateBuckets.confirmed,
+                completed: dateBuckets.completed,
+                pending: dateBuckets.pending,
+                cancelled: dateBuckets.cancelled,
               }}
               modifiersStyles={{
-                booked: {
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                  fontWeight: 'bold',
-                },
+                confirmed: { backgroundColor: statusColors.confirmed.bg, color: statusColors.confirmed.fg, fontWeight: 'bold' },
+                completed: { backgroundColor: statusColors.completed.bg, color: statusColors.completed.fg, fontWeight: 'bold' },
+                pending:   { backgroundColor: statusColors.pending.bg,   color: statusColors.pending.fg,   fontWeight: 'bold' },
+                cancelled: { backgroundColor: statusColors.cancelled.bg, color: statusColors.cancelled.fg, fontWeight: 'bold' },
               }}
               className="rounded-md border w-full"
             />
