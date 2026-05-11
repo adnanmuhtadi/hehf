@@ -53,6 +53,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [studentCount, setStudentCount] = useState<number>(0);
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
   const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
@@ -269,8 +270,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   const filteredAssignments = (() => {
     let list = assignments;
-    // Always hide cancelled bookings — they should disappear from the host's bookings list
-    list = list.filter(a => a.bookings.status !== "cancelled");
+    // Hide cancelled bookings unless the host opts in via the filter
+    if (!showCancelled) list = list.filter(a => a.bookings.status !== "cancelled");
     if (hideDeclined) list = list.filter(a => a.response !== "declined");
     if (!showPast) {
       const todayStart = new Date();
@@ -487,6 +488,15 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
             className="rounded"
           />
           Show past bookings
+        </label>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showCancelled}
+            onChange={(e) => setShowCancelled(e.target.checked)}
+            className="rounded"
+          />
+          Show cancelled
         </label>
         <span className="text-xs text-muted-foreground">({filteredAssignments.length} bookings)</span>
       </div>
