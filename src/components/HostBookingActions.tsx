@@ -33,7 +33,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useMemo } from "react";
-import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { useLocations } from "@/hooks/useLocations";
 import { Checkbox } from "@/components/ui/checkbox";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
 
