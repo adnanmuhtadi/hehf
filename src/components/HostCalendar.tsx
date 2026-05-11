@@ -91,44 +91,47 @@ const HostCalendar = () => {
     setDayBookings(filteredBookings);
   };
 
-  const getBookingDates = () => {
-    const dates = new Set<string>();
+  // Classify each assignment into a single calendar state.
+  // Cancelled bookings are excluded entirely from the calendar.
+  // Priority (highest wins if multiple bookings overlap on the same day):
+  // confirmed > approved > accepted > pending > rejected
+  type CalState = "confirmed" | "approved" | "accepted" | "pending" | "rejected";
 
-    assignments.forEach((assignment) => {
-      if (assignment.response === "accepted") {
-        const start = parseISO(assignment.bookings.arrival_date);
-        const end = parseISO(assignment.bookings.departure_date);
-
-        let currentDate = start;
-        while (currentDate <= end) {
-          dates.add(format(currentDate, "yyyy-MM-dd"));
-          currentDate = new Date(currentDate);
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-      }
-    });
-
-    return Array.from(dates).map((date) => parseISO(date));
+  const getStateForAssignment = (a: BookingAssignment): CalState | null => {
+    if (a.bookings.status === "cancelled") return null;
+    if (a.bookings.status === "confirmed") return "confirmed";
+    if (a.response === "accepted" && a.approved_at) return "approved";
+    if (a.response === "accepted") return "accepted";
+    if (a.response === "declined") return "rejected";
+    return "pending";
   };
 
-  const getPendingDates = () => {
-    const dates = new Set<string>();
+  const priority: Record<CalState, number> = {
+    confirmed: 5, approved: 4, accepted: 3, pending: 2, rejected: 1,
+  };
 
-    assignments.forEach((assignment) => {
-      if (assignment.response === "pending") {
-        const start = parseISO(assignment.bookings.arrival_date);
-        const end = parseISO(assignment.bookings.departure_date);
-
-        let currentDate = start;
-        while (currentDate <= end) {
-          dates.add(format(currentDate, "yyyy-MM-dd"));
-          currentDate = new Date(currentDate);
-          currentDate.setDate(currentDate.getDate() + 1);
+  const buildDateSets = () => {
+    const dayState = new Map<string, CalState>();
+    assignments.forEach((a) => {
+      const state = getStateForAssignment(a);
+      if (!state) return;
+      const start = parseISO(a.bookings.arrival_date);
+      const end = parseISO(a.bookings.departure_date);
+      let cur = new Date(start);
+      while (cur <= end) {
+        const key = format(cur, "yyyy-MM-dd");
+        const existing = dayState.get(key);
+        if (!existing || priority[state] > priority[existing]) {
+          dayState.set(key, state);
         }
+        cur.setDate(cur.getDate() + 1);
       }
     });
-
-    return Array.from(dates).map((date) => parseISO(date));
+    const buckets: Record<CalState, Date[]> = {
+      confirmed: [], approved: [], accepted: [], pending: [], rejected: [],
+    };
+    dayState.forEach((state, key) => buckets[state].push(parseISO(key)));
+    return buckets;
   };
 
   const getResponseBadgeVariant = (response: string) => {
@@ -144,8 +147,16 @@ const HostCalendar = () => {
     }
   };
 
-  const acceptedDates = getBookingDates();
-  const pendingDates = getPendingDates();
+  const dateBuckets = buildDateSets();
+
+  // Calendar colour swatches (kept inline so the calendar matches the legend exactly)
+  const stateColors: Record<CalState, { bg: string; fg: string; label: string }> = {
+    confirmed: { bg: "hsl(217, 91%, 60%)",  fg: "#ffffff", label: "Confirmed" },   // blue
+    approved:  { bg: "hsl(160, 84%, 39%)",  fg: "#ffffff", label: "Approved" },    // emerald
+    accepted:  { bg: "hsl(142, 71%, 45%)",  fg: "#ffffff", label: "Accepted" },    // green
+    pending:   { bg: "hsl(38, 92%, 50%)",   fg: "#ffffff", label: "Pending" },     // amber
+    rejected:  { bg: "hsl(0, 84%, 60%)",    fg: "#ffffff", label: "Rejected" },    // red
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -157,7 +168,19 @@ const HostCalendar = () => {
               <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
               My Calendar
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Green: Accepted | Orange: Pending</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              <span className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                {(Object.keys(stateColors) as CalState[]).map((s) => (
+                  <span key={s} className="inline-flex items-center gap-1">
+                    <span
+                      className="inline-block h-3 w-3 rounded-sm"
+                      style={{ backgroundColor: stateColors[s].bg }}
+                    />
+                    {stateColors[s].label}
+                  </span>
+                ))}
+              </span>
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-2 sm:p-6 pt-0">
             <Calendar
@@ -165,20 +188,18 @@ const HostCalendar = () => {
               selected={selectedDate}
               onSelect={setSelectedDate}
               modifiers={{
-                accepted: acceptedDates,
-                pending: pendingDates,
+                confirmed: dateBuckets.confirmed,
+                approved: dateBuckets.approved,
+                accepted: dateBuckets.accepted,
+                pending: dateBuckets.pending,
+                rejected: dateBuckets.rejected,
               }}
               modifiersStyles={{
-                accepted: {
-                  backgroundColor: "hsl(var(--success))",
-                  color: "hsl(var(--success-foreground))",
-                  fontWeight: "bold",
-                },
-                pending: {
-                  backgroundColor: "hsl(var(--warning))",
-                  color: "hsl(var(--warning-foreground))",
-                  fontWeight: "bold",
-                },
+                confirmed: { backgroundColor: stateColors.confirmed.bg, color: stateColors.confirmed.fg, fontWeight: "bold" },
+                approved:  { backgroundColor: stateColors.approved.bg,  color: stateColors.approved.fg,  fontWeight: "bold" },
+                accepted:  { backgroundColor: stateColors.accepted.bg,  color: stateColors.accepted.fg,  fontWeight: "bold" },
+                pending:   { backgroundColor: stateColors.pending.bg,   color: stateColors.pending.fg,   fontWeight: "bold" },
+                rejected:  { backgroundColor: stateColors.rejected.bg,  color: stateColors.rejected.fg,  fontWeight: "bold" },
               }}
               className="rounded-md border w-full"
             />
