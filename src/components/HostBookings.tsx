@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,6 +56,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [bedTypeFilter, setBedTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
 
   const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
@@ -279,6 +282,12 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
       todayStart.setHours(0, 0, 0, 0);
       list = list.filter(a => new Date(a.bookings.departure_date).getTime() >= todayStart.getTime());
     }
+    if (bedTypeFilter !== "all") {
+      list = list.filter(a => (a.bookings.bed_type || "single_beds_only") === bedTypeFilter);
+    }
+    if (statusFilter !== "all") {
+      list = list.filter(a => a.response === statusFilter);
+    }
     return list;
   })();
 
@@ -475,6 +484,35 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
     <div className="space-y-3">
       {/* Toggle */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Bed:</label>
+          <Select value={bedTypeFilter} onValueChange={setBedTypeFilter}>
+            <SelectTrigger className="w-32 sm:w-36 h-8 sm:h-9 text-xs sm:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Beds</SelectItem>
+              <SelectItem value="single_beds_only">Single Beds</SelectItem>
+              <SelectItem value="shared_beds">Shared Beds</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Status:</label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-36 sm:w-40 h-8 sm:h-9 text-xs sm:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {declinedCount > 0 && (
           <div className="flex items-center gap-2">
             <Checkbox

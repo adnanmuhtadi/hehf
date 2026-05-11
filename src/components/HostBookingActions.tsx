@@ -83,6 +83,8 @@ const HostBookingActions = ({
   const [hideDeclined, setHideDeclined] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [bedTypeFilter, setBedTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedDeclined, setExpandedDeclined] = useState<Set<string>>(new Set());
   const [acceptDialogBookingId, setAcceptDialogBookingId] = useState<string | null>(null);
   const [acceptDialogAction, setAcceptDialogAction] = useState<"accept" | "update">("accept");
@@ -443,6 +445,12 @@ const HostBookingActions = ({
       todayStart.setHours(0, 0, 0, 0);
       list = list.filter(b => new Date(b.departure_date).getTime() >= todayStart.getTime());
     }
+    if (bedTypeFilter !== "all") {
+      list = list.filter(b => (b.bed_type || "single_beds_only") === bedTypeFilter);
+    }
+    if (statusFilter !== "all") {
+      list = list.filter(b => (b.booking_hosts?.[0]?.response || "available") === statusFilter);
+    }
     return list;
   })();
 
@@ -465,6 +473,38 @@ const HostBookingActions = ({
                   {location}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Bed Type Filter */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Bed:</label>
+          <Select value={bedTypeFilter} onValueChange={setBedTypeFilter}>
+            <SelectTrigger className="w-32 sm:w-36 h-8 sm:h-9 text-xs sm:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Beds</SelectItem>
+              <SelectItem value="single_beds_only">Single Beds</SelectItem>
+              <SelectItem value="shared_beds">Shared Beds</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs sm:text-sm font-medium text-muted-foreground">Status:</label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-36 sm:w-40 h-8 sm:h-9 text-xs sm:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
             </SelectContent>
           </Select>
         </div>
