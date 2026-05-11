@@ -33,7 +33,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useMemo } from "react";
-import { AVAILABLE_LOCATIONS } from "@/data/locations";
+import { useLocations } from "@/hooks/useLocations";
 import { Checkbox } from "@/components/ui/checkbox";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
 
@@ -73,6 +73,7 @@ const HostBookingActions = ({
 }: HostBookingActionsProps) => {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
   const [loading, setLoading] = useState(true);
   const [uncontrolledLocationFilter, setUncontrolledLocationFilter] = useState<string>("preferred");

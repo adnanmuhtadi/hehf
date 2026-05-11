@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { AVAILABLE_LOCATIONS } from '@/data/locations';
+import { useLocations } from '@/hooks/useLocations';
 import HostLocationBonuses from './HostLocationBonuses';
 import HostBookingHistory from './HostBookingHistory';
 
@@ -40,6 +40,7 @@ interface Host {
 
 const HostManagement = () => {
   const [hosts, setHosts] = useState<Host[]>([]);
+  const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [lastSignIns, setLastSignIns] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
