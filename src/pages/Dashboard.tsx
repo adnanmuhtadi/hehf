@@ -68,12 +68,8 @@ const Dashboard = () => {
 
       if (authError) throw authError;
 
-      // Clear the must_reset_password flag via admin update (RLS blocks self-update of this field)
-      // The update_own_profile function handles this securely
-      const { error: profileError } = await supabase
-        .rpc('update_own_profile', { _must_reset_password: false });
-
-      if (profileError) throw profileError;
+      // The must_reset_password flag is cleared automatically by a database
+      // trigger when the user's auth password actually changes.
 
       toast({
         title: "Success",

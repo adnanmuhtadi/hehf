@@ -195,8 +195,6 @@ const HostManagement = () => {
     e.preventDefault();
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-      const password = "password1234";
-      
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) throw new Error('No authentication token');
@@ -204,7 +202,6 @@ const HostManagement = () => {
       const response = await supabase.functions.invoke('create-host', {
         body: {
           email: formData.email,
-          password,
           full_name: fullName,
           phone: formData.phone,
           address: formData.address,
@@ -224,7 +221,7 @@ const HostManagement = () => {
 
       toast({
         title: "Success",
-        description: `Host created successfully. Password: ${password}`,
+        description: `Host created. Temporary password: ${result.password}`,
       });
 
       setIsDialogOpen(false);
@@ -714,7 +711,7 @@ const HostManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Reset Password</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Reset password to password1234? The host will be required to change it on their next login.
+                              Generate a new random temporary password for this host? They will be required to change it on their next login.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

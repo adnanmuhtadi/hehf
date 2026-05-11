@@ -73,8 +73,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Generate new password
-    const newPassword = "password1234";
+    // Generate a cryptographically random temporary password
+    const newPassword = generateTempPassword();
 
     // Update the user's password and confirm email using admin API
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -119,3 +119,13 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
+
+function generateTempPassword(): string {
+  // 18 url-safe random chars (~108 bits of entropy)
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let out = "";
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return out;
+}

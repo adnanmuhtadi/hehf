@@ -308,7 +308,6 @@ export type Database = {
           _full_name?: string
           _handbook_downloaded?: boolean
           _has_completed_tour?: boolean
-          _must_reset_password?: boolean
           _pets?: string
           _phone?: string
           _preferred_locations?: string[]
