@@ -1,0 +1,29 @@
+# Herts & Essex Host Families
+
+> Quality homestay accommodation matching international students with vetted host families across Hertfordshire, Essex, and Greater London.
+
+Herts & Essex Host Families (HEHF) partners with language schools and summer programmes to place international students with welcoming local host families. We support hosts with onboarding, bookings, and 24/7 assistance, and we help partner schools coordinate group placements.
+
+## Pages
+
+- [Home](/): Overview of HEHF and our homestay services.
+- [About Us](/about): Who we are, our mission, and our team.
+- [Become a Host](/become-host): How to join as a host family and what's involved.
+- [Become a Partner](/become-partner): Partnership information for language schools and agencies.
+- [Summer Schools](/summer-schools): Group accommodation for summer school programmes.
+- [Travel](/travel): Travel and transfer information for students.
+- [FAQ](/faq): Common questions from hosts, students, and partners.
+- [Contact Us](/contact): Get in touch with the HEHF team.
+- [Terms & Conditions](/terms-conditions): Legal terms for using our services.
+
+## Locations
+
+- [Cheshunt](/locations/Cheshunt): Homestays in Cheshunt, Hertfordshire.
+- [Harpenden](/locations/Harpenden): Homestays in Harpenden, Hertfordshire.
+- [Stevenage](/locations/Stevenage): Homestays in Stevenage, Hertfordshire.
+- [Watford](/locations/Watford): Homestays in Watford, Hertfordshire.
+- [Elstree & Borehamwood](/locations/Elstree-and-Borehamwood): Homestays in Elstree and Borehamwood.
+- [Chingford](/locations/Chingford): Homestays in Chingford, Essex.
+- [Loughton](/locations/Loughton): Homestays in Loughton, Essex.
+- [Harrow](/locations/Harrow): Homestays in Harrow, Greater London.
+- [Hatch End](/locations/Hatch-End): Homestays in Hatch End, Greater London.
