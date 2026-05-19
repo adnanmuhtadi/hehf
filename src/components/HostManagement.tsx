@@ -228,7 +228,7 @@ const HostManagement = () => {
       });
 
       setIsDialogOpen(false);
-      setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
+      setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
       fetchHosts();
     } catch (error: any) {
       console.error('Error creating host:', error);
@@ -481,7 +481,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
+    setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
     setIsDialogOpen(true);
   };
 
@@ -499,6 +499,7 @@ const HostManagement = () => {
       address: host.address || '',
       pets: host.pets || '',
       preferred_locations: host.preferred_locations || [],
+      preferred_gender: host.preferred_gender || 'either',
       is_active: host.is_active,
       rate_per_student_per_night: host.rate_per_student_per_night || 0,
       shared_bed_capacity: host.shared_bed_capacity || 0,
