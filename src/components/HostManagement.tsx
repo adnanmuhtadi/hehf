@@ -28,6 +28,7 @@ interface Host {
   address?: string;
   pets?: string;
   preferred_locations?: string[];
+  preferred_gender?: 'boys' | 'girls' | 'either';
   is_active: boolean;
   handbook_downloaded: boolean;
   rate_per_student_per_night: number;
@@ -60,6 +61,7 @@ const HostManagement = () => {
     address: '',
     pets: '',
     preferred_locations: [] as string[],
+    preferred_gender: 'either' as 'boys' | 'girls' | 'either',
     is_active: true,
     rate_per_student_per_night: 0,
     shared_bed_capacity: 0,
