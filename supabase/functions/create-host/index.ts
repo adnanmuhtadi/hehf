@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity } = body;
+    const { email, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity, preferred_gender } = body;
 
     if (!email || !full_name) {
       return new Response(
@@ -82,6 +82,8 @@ Deno.serve(async (req) => {
     }
 
     // Update profile with all fields
+    const allowedGenders = ['boys', 'girls', 'either'];
+    const safeGender = allowedGenders.includes(preferred_gender) ? preferred_gender : 'either';
     const { error: profileError } = await adminClient
       .from('profiles')
       .update({
@@ -93,6 +95,7 @@ Deno.serve(async (req) => {
         rate_per_student_per_night: rate_per_student_per_night || 0,
         single_bed_capacity: single_bed_capacity || 0,
         shared_bed_capacity: shared_bed_capacity || 0,
+        preferred_gender: safeGender,
       })
       .eq('user_id', authData.user.id);
 
