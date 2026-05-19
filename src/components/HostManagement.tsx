@@ -705,6 +705,23 @@ const HostManagement = () => {
                       </p>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="preferred_gender_edit">Preferred Student Gender</Label>
+                      <Select
+                        value={formData.preferred_gender}
+                        onValueChange={(v) => setFormData({ ...formData, preferred_gender: v as 'boys' | 'girls' | 'either' })}
+                      >
+                        <SelectTrigger id="preferred_gender_edit">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="boys">Boys</SelectItem>
+                          <SelectItem value="girls">Girls</SelectItem>
+                          <SelectItem value="either">Either</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="flex justify-between">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
