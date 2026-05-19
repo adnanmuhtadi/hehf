@@ -902,6 +902,23 @@ const HostManagement = () => {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="preferred_gender_create">Preferred Student Gender</Label>
+                  <Select
+                    value={formData.preferred_gender}
+                    onValueChange={(v) => setFormData({ ...formData, preferred_gender: v as 'boys' | 'girls' | 'either' })}
+                  >
+                    <SelectTrigger id="preferred_gender_create">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="boys">Boys</SelectItem>
+                      <SelectItem value="girls">Girls</SelectItem>
+                      <SelectItem value="either">Either</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
