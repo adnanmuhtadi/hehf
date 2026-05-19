@@ -28,6 +28,7 @@ interface Host {
   address?: string;
   pets?: string;
   preferred_locations?: string[];
+  preferred_gender?: 'boys' | 'girls' | 'either';
   is_active: boolean;
   handbook_downloaded: boolean;
   rate_per_student_per_night: number;
@@ -60,6 +61,7 @@ const HostManagement = () => {
     address: '',
     pets: '',
     preferred_locations: [] as string[],
+    preferred_gender: 'either' as 'boys' | 'girls' | 'either',
     is_active: true,
     rate_per_student_per_night: 0,
     shared_bed_capacity: 0,
@@ -208,6 +210,7 @@ const HostManagement = () => {
           address: formData.address,
           pets: formData.pets,
           preferred_locations: formData.preferred_locations,
+          preferred_gender: formData.preferred_gender,
           is_active: formData.is_active,
           rate_per_student_per_night: formData.rate_per_student_per_night,
           single_bed_capacity: formData.single_bed_capacity,
@@ -226,7 +229,7 @@ const HostManagement = () => {
       });
 
       setIsDialogOpen(false);
-      setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
+      setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
       fetchHosts();
     } catch (error: any) {
       console.error('Error creating host:', error);
@@ -277,6 +280,7 @@ const HostManagement = () => {
           address: formData.address || null,
           pets: formData.pets || null,
           preferred_locations: formData.preferred_locations,
+          preferred_gender: formData.preferred_gender,
           is_active: formData.is_active,
           rate_per_student_per_night: formData.rate_per_student_per_night,
           shared_bed_capacity: formData.shared_bed_capacity,
@@ -479,7 +483,7 @@ const HostManagement = () => {
 
   const openCreateDialog = () => {
     setSelectedHost(null);
-    setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
+    setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
     setIsDialogOpen(true);
   };
 
@@ -497,6 +501,7 @@ const HostManagement = () => {
       address: host.address || '',
       pets: host.pets || '',
       preferred_locations: host.preferred_locations || [],
+      preferred_gender: host.preferred_gender || 'either',
       is_active: host.is_active,
       rate_per_student_per_night: host.rate_per_student_per_night || 0,
       shared_bed_capacity: host.shared_bed_capacity || 0,
@@ -700,6 +705,23 @@ const HostManagement = () => {
                       </p>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="preferred_gender_edit">Preferred Student Gender</Label>
+                      <Select
+                        value={formData.preferred_gender}
+                        onValueChange={(v) => setFormData({ ...formData, preferred_gender: v as 'boys' | 'girls' | 'either' })}
+                      >
+                        <SelectTrigger id="preferred_gender_edit">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="boys">Boys</SelectItem>
+                          <SelectItem value="girls">Girls</SelectItem>
+                          <SelectItem value="either">Either</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="flex justify-between">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -880,6 +902,23 @@ const HostManagement = () => {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="preferred_gender_create">Preferred Student Gender</Label>
+                  <Select
+                    value={formData.preferred_gender}
+                    onValueChange={(v) => setFormData({ ...formData, preferred_gender: v as 'boys' | 'girls' | 'either' })}
+                  >
+                    <SelectTrigger id="preferred_gender_create">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="boys">Boys</SelectItem>
+                      <SelectItem value="girls">Girls</SelectItem>
+                      <SelectItem value="either">Either</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
@@ -1035,6 +1074,10 @@ const HostManagement = () => {
                           <span className="text-muted-foreground mr-1">Shared:</span>
                           <span className="font-medium">{host.shared_bed_capacity || 0}</span>
                         </div>
+                        <div className="flex items-center">
+                          <span className="text-muted-foreground mr-1">Gender:</span>
+                          <span className="font-medium capitalize">{host.preferred_gender || 'either'}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -1135,6 +1178,9 @@ const HostManagement = () => {
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span>Shared: {host.shared_bed_capacity || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground col-span-2">
+                      <span className="capitalize">Prefers: {host.preferred_gender || 'either'}</span>
                     </div>
                     {host.phone && (
                       <div className="flex items-center gap-1 text-muted-foreground col-span-2">

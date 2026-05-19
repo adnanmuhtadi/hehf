@@ -260,6 +260,7 @@ export type Database = {
           must_reset_password: boolean | null
           pets: string | null
           phone: string | null
+          preferred_gender: Database["public"]["Enums"]["preferred_gender"]
           preferred_locations: string[] | null
           rate_per_student_per_night: number | null
           role: Database["public"]["Enums"]["user_role"]
@@ -281,6 +282,7 @@ export type Database = {
           must_reset_password?: boolean | null
           pets?: string | null
           phone?: string | null
+          preferred_gender?: Database["public"]["Enums"]["preferred_gender"]
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -302,6 +304,7 @@ export type Database = {
           must_reset_password?: boolean | null
           pets?: string | null
           phone?: string | null
+          preferred_gender?: Database["public"]["Enums"]["preferred_gender"]
           preferred_locations?: string[] | null
           rate_per_student_per_night?: number | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -373,6 +376,7 @@ export type Database = {
       bed_type: "single_beds_only" | "shared_beds"
       booking_response: "pending" | "accepted" | "declined"
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      preferred_gender: "boys" | "girls" | "either"
       user_role: "admin" | "host"
     }
     CompositeTypes: {
@@ -505,6 +509,7 @@ export const Constants = {
       bed_type: ["single_beds_only", "shared_beds"],
       booking_response: ["pending", "accepted", "declined"],
       booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      preferred_gender: ["boys", "girls", "either"],
       user_role: ["admin", "host"],
     },
   },

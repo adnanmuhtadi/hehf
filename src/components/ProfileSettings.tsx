@@ -306,6 +306,13 @@ const ProfileSettings = () => {
                   {profile.handbook_downloaded ? 'Downloaded' : 'Not downloaded'}
                 </p>
               </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Preferred Student Gender</Label>
+                <p className="text-sm capitalize">{(profile as any).preferred_gender || 'either'}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This preference is set by the admin
+                </p>
+              </div>
               <div className="pt-4 border-t">
                 <Label className="text-sm font-medium text-muted-foreground">Rate per Student per Night</Label>
                 <p className="text-sm font-medium">
