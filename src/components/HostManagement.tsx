@@ -1074,6 +1074,10 @@ const HostManagement = () => {
                           <span className="text-muted-foreground mr-1">Shared:</span>
                           <span className="font-medium">{host.shared_bed_capacity || 0}</span>
                         </div>
+                        <div className="flex items-center">
+                          <span className="text-muted-foreground mr-1">Gender:</span>
+                          <span className="font-medium capitalize">{host.preferred_gender || 'either'}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -1174,6 +1178,9 @@ const HostManagement = () => {
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <span>Shared: {host.shared_bed_capacity || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground col-span-2">
+                      <span className="capitalize">Prefers: {host.preferred_gender || 'either'}</span>
                     </div>
                     {host.phone && (
                       <div className="flex items-center gap-1 text-muted-foreground col-span-2">
