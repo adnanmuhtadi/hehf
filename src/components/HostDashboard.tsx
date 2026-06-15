@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
