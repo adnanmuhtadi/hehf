@@ -210,7 +210,7 @@ export const useHostStats = (locationFilter?: string) => {
         totalStudentsHosted: totalStudents,
         totalPotentialEarnings: potentialEarnings,
         totalActualEarnings: actualEarnings,
-        actionRequiredCount: (pendingCount || 0) + availableCount,
+        actionRequiredCount: pendingCount || 0,
         loading: false,
       });
     } catch (error) {
