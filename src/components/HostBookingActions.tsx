@@ -33,6 +33,7 @@ import {
   RotateCcw,
   BedDouble,
   Filter,
+  ThumbsUp,
 } from "lucide-react";
 import { useMemo } from "react";
 import { useLocations } from "@/hooks/useLocations";
