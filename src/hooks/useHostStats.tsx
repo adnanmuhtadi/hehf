@@ -72,12 +72,15 @@ export const useHostStats = (locationFilter?: string) => {
         return 0;
       };
 
-      // Fetch pending bookings (bookings where host hasn't responded yet)
-      const { count: pendingCount } = await supabase
+      // Fetch pending bookings (host hasn't responded yet) — exclude cancelled/past bookings
+      const { data: pendingRows } = await supabase
         .from('booking_hosts')
-        .select('*', { count: 'exact', head: true })
+        .select('id, bookings!inner(status, departure_date)')
         .eq('host_id', user.id)
-        .eq('response', 'pending');
+        .eq('response', 'pending')
+        .neq('bookings.status', 'cancelled')
+        .gte('bookings.departure_date', today);
+      const pendingCount = pendingRows?.length || 0;
 
       // Fetch IDs of bookings already assigned to this host
       const { data: assignedIds } = await supabase
