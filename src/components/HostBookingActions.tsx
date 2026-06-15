@@ -33,6 +33,7 @@ import {
   RotateCcw,
   BedDouble,
   Filter,
+  ThumbsUp,
 } from "lucide-react";
 import { useMemo } from "react";
 import { useLocations } from "@/hooks/useLocations";
@@ -742,24 +743,30 @@ const HostBookingActions = ({
 
                   {/* Action Buttons */}
                   {response === "pending" || response === "available" ? (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => openAcceptDialog(booking.id, booking.bed_type)}
-                        disabled={actionLoading === booking.id || isBlocked}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium h-10 sm:h-11"
-                      >
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        I Can Host
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => { setDeclineContext("pending"); setDeclineDialogBookingId(booking.id); }}
-                        disabled={actionLoading === booking.id}
-                        className="flex-1 text-muted-foreground hover:text-foreground h-10 sm:h-11"
-                      >
-                        <XCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        Can't Host
-                      </Button>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                        Action required: please confirm if you can host this booking
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => openAcceptDialog(booking.id, booking.bed_type)}
+                          disabled={actionLoading === booking.id || isBlocked}
+                          className="flex-1 font-medium h-10 sm:h-11"
+                        >
+                          <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          I Can Host
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => { setDeclineContext("pending"); setDeclineDialogBookingId(booking.id); }}
+                          disabled={actionLoading === booking.id}
+                          className="flex-1 text-muted-foreground hover:text-foreground h-10 sm:h-11"
+                        >
+                          <XCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          Can't Host
+                        </Button>
+                      </div>
                     </div>
                   ) : response === "accepted" ? (
                     <div className="flex items-center justify-between gap-2">
