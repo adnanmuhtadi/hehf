@@ -17,6 +17,33 @@ const admin = createClient(supabaseUrl, supabaseServiceKey, {
 
 const ADMIN_DASHBOARD_URL = "https://hehf.co.uk/dashboard";
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Send through Resend with retry on rate-limit (429) and transient errors.
+async function sendWithRetry(payload: any, maxRetries = 5): Promise<any> {
+  let attempt = 0;
+  let lastError: any = null;
+  while (attempt <= maxRetries) {
+    try {
+      const res: any = await resend.emails.send(payload);
+      const err = res?.error;
+      if (!err) return res;
+      const msg = String(err?.message || "");
+      const isRate = err?.statusCode === 429 || /rate limit|too many requests/i.test(msg);
+      if (!isRate) throw new Error(msg || "Resend returned error");
+      lastError = new Error(msg);
+    } catch (e: any) {
+      lastError = e;
+      const msg = String(e?.message || "");
+      if (!/rate limit|too many requests|429/i.test(msg)) throw e;
+    }
+    const wait = 600 * Math.pow(2, attempt);
+    await sleep(wait);
+    attempt++;
+  }
+  throw lastError ?? new Error("Resend send failed after retries");
+}
+
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return "";
   return text
