@@ -344,20 +344,15 @@ const HostManagement = () => {
 
   const handleDeleteHost = async (hostId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', hostId)
-        .select('id');
-
+      const { data, error } = await supabase.functions.invoke('delete-host', {
+        body: { profile_id: hostId },
+      });
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error('Delete blocked (no rows affected). Check admin permissions.');
-      }
+      if ((data as any)?.error) throw new Error((data as any).error);
 
       toast({
         title: "Success",
-        description: "Host deleted successfully",
+        description: "Host and login account deleted",
       });
 
       fetchHosts();
