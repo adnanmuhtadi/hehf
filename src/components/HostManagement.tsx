@@ -219,7 +219,24 @@ const HostManagement = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        // supabase-js hides the real error body in error.context for non-2xx
+        let detail = response.error.message;
+        try {
+          const ctx: any = (response.error as any).context;
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            if (body?.error) detail = body.error;
+          } else if (ctx && typeof ctx.text === 'function') {
+            const txt = await ctx.text();
+            if (txt) detail = txt;
+          }
+        } catch { /* keep generic message */ }
+        if (/already|exists|registered|duplicate/i.test(detail)) {
+          detail = `This email is already registered. If you previously deleted this host, the login account may still exist — please use a different email.`;
+        }
+        throw new Error(detail);
+      }
       const result = response.data as { error?: string; password?: string };
       if (result?.error) throw new Error(result.error);
 
