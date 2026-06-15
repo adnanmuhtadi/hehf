@@ -246,6 +246,32 @@ const HostDashboard = () => {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Action Required Banner */}
+              {stats.actionRequiredCount > 0 && (
+                <div className="lg:col-span-3">
+                  <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                            {stats.actionRequiredCount} booking{stats.actionRequiredCount !== 1 ? 's' : ''} waiting for your response
+                          </p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                            Please review and confirm if you can host these assignments.
+                          </p>
+                        </div>
+                        <Button size="sm" onClick={() => setActiveTab('bookings')}>
+                          Respond Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
 
           </TabsContent>
