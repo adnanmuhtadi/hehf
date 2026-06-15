@@ -13,6 +13,7 @@ interface HostStats {
   totalStudentsHosted: number;
   totalPotentialEarnings: number;
   totalActualEarnings: number;
+  actionRequiredCount: number;
   loading: boolean;
 }
 
