@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -106,9 +106,14 @@ const HostDashboard = () => {
                 <LayoutDashboard className="h-4 w-4 shrink-0" />
                 <span className="leading-none">Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="bookings" data-tour="bookings-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+              <TabsTrigger value="bookings" data-tour="bookings-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm relative">
                 <BookOpen className="h-4 w-4 shrink-0" />
                 <span className="leading-none">Bookings</span>
+                {stats.actionRequiredCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center">
+                    {stats.actionRequiredCount}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger value="calendar" data-tour="calendar-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
                 <CalendarDays className="h-4 w-4 shrink-0" />
@@ -169,6 +174,32 @@ const HostDashboard = () => {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Action Required Banner */}
+              {stats.actionRequiredCount > 0 && (
+                <div className="lg:col-span-3">
+                  <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                            {stats.actionRequiredCount} booking{stats.actionRequiredCount !== 1 ? 's' : ''} waiting for your response
+                          </p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                            Please review and confirm if you can host these assignments.
+                          </p>
+                        </div>
+                        <Button size="sm" onClick={() => setActiveTab('bookings')}>
+                          Respond Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               {/* Sidebar - Shows after tiles on mobile, in sidebar on desktop */}
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4 order-none lg:order-last" data-tour="earnings-widget">
