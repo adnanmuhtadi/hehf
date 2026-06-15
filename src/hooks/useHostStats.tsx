@@ -25,6 +25,7 @@ export const useHostStats = (locationFilter?: string) => {
     totalStudentsHosted: 0,
     totalPotentialEarnings: 0,
     totalActualEarnings: 0,
+    actionRequiredCount: 0,
     loading: true,
   });
 
