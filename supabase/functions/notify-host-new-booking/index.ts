@@ -129,8 +129,10 @@ serve(async (req) => {
 
     const results: Array<{ email: string; status: "sent" | "failed"; error?: string }> = [];
 
+    let sentCount = 0;
     for (const host of hosts ?? []) {
       if (!host.email) continue;
+      if (sentCount > 0) await sleep(250);
       const hostName = host.full_name || "Host";
       const html = `
         <p>Hi ${escapeHtml(hostName)},</p>
@@ -152,15 +154,13 @@ serve(async (req) => {
       `;
 
       try {
-        const res = await resend.emails.send({
+        await sendWithRetry({
           from: "Herts & Essex Host Families <noreply@hehf.co.uk>",
           to: [host.email],
           subject,
           html,
         });
-        if ((res as any)?.error) {
-          throw new Error((res as any).error?.message || "Resend returned error");
-        }
+        sentCount++;
         await logEmail({
           booking_id,
           recipient_email: host.email,
