@@ -106,9 +106,14 @@ const HostDashboard = () => {
                 <LayoutDashboard className="h-4 w-4 shrink-0" />
                 <span className="leading-none">Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="bookings" data-tour="bookings-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
+              <TabsTrigger value="bookings" data-tour="bookings-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm relative">
                 <BookOpen className="h-4 w-4 shrink-0" />
                 <span className="leading-none">Bookings</span>
+                {stats.actionRequiredCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center">
+                    {stats.actionRequiredCount}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger value="calendar" data-tour="calendar-tab" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-1.5 text-[11px] sm:text-sm">
                 <CalendarDays className="h-4 w-4 shrink-0" />
