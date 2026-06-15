@@ -79,6 +79,36 @@ export const useHostStats = (locationFilter?: string) => {
         .eq('host_id', user.id)
         .eq('response', 'pending');
 
+      // Fetch IDs of bookings already assigned to this host
+      const { data: assignedIds } = await supabase
+        .from('booking_hosts')
+        .select('booking_id')
+        .eq('host_id', user.id);
+
+      const assignedBookingIds = assignedIds?.map((a: any) => a.booking_id) || [];
+
+      // Count available bookings not yet assigned to this host (matching preferred locations)
+      let availableCount = 0;
+      let actionQuery = supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'cancelled')
+        .gte('departure_date', today);
+
+      if (preferredLocations.length > 0) {
+        const locationFilters = preferredLocations.map(
+          (loc: string) => `location.ilike.%${loc.trim()}%`
+        );
+        actionQuery = actionQuery.or(locationFilters.join(','));
+      }
+
+      if (assignedBookingIds.length > 0) {
+        actionQuery = actionQuery.not('id', 'in', `(${assignedBookingIds.join(',')})`);
+      }
+
+      const { count: availableBookingCount } = await actionQuery;
+      availableCount = availableBookingCount || 0;
+
       // Fetch upcoming arrivals (accepted bookings with future arrival dates)
       const { data: upcomingData } = await supabase
         .from('booking_hosts')
