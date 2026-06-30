@@ -669,8 +669,14 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   id="students"
                   type="number"
                   min="1"
-                  value={newBooking.number_of_students}
-                  onChange={(e) => setNewBooking({ ...newBooking, number_of_students: parseInt(e.target.value) || 1 })}
+                  value={newBooking.number_of_students || ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setNewBooking({ ...newBooking, number_of_students: v === '' ? 0 : parseInt(v) || 0 });
+                  }}
+                  onBlur={(e) => {
+                    if (!parseInt(e.target.value)) setNewBooking({ ...newBooking, number_of_students: 1 });
+                  }}
                   required
                 />
               </div>
