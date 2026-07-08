@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Download, Calendar, BookOpen, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon, AlertTriangle, Users, Clock, Sparkles } from 'lucide-react';
+import { Download, Calendar, BookOpen, Settings, LogOut, PoundSterling, TrendingUp, HelpCircle, LifeBuoy, LayoutDashboard, CalendarDays, User as UserIcon, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useHostStats } from '@/hooks/useHostStats';
@@ -65,7 +65,7 @@ const HostDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background">
+    <div className="min-h-screen bg-background">
       {/* Onboarding Tour */}
       <OnboardingTour isVisible={showTour} onComplete={handleTourComplete} />
 
@@ -75,7 +75,7 @@ const HostDashboard = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h1 className="text-base sm:text-2xl font-bold text-foreground truncate leading-tight">Host Dashboard</h1>
-              <p className="text-[11px] sm:text-sm text-muted-foreground truncate">Welcome back, {profile?.full_name?.split(' ')[0]}</p>
+              <p className="text-[11px] sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <div data-tour="notifications">
@@ -110,7 +110,7 @@ const HostDashboard = () => {
                 <BookOpen className="h-4 w-4 shrink-0" />
                 <span className="leading-none">Bookings</span>
                 {stats.actionRequiredCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center animate-pulse">
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center">
                     {stats.actionRequiredCount}
                   </Badge>
                 )}
@@ -135,67 +135,97 @@ const HostDashboard = () => {
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsContent value="overview" className="mt-0 sm:mt-2">
-            {/* Welcome banner */}
-            <div className="mb-4 sm:mb-6 rounded-2xl overflow-hidden relative bg-gradient-to-br from-primary to-primary/70 text-primary-foreground p-4 sm:p-6 shadow-lg">
-              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-              <div className="relative flex items-start sm:items-center justify-between gap-3 flex-col sm:flex-row">
-                <div>
-                  <div className="flex items-center gap-2 text-primary-foreground/80 text-xs sm:text-sm mb-1">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Your hosting at a glance</span>
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-bold">Hello, {profile?.full_name?.split(' ')[0]} 👋</h2>
-                  <p className="text-xs sm:text-sm text-primary-foreground/80 mt-1">
-                    {stats.actionRequiredCount > 0
-                      ? `You have ${stats.actionRequiredCount} booking${stats.actionRequiredCount !== 1 ? 's' : ''} waiting for your response.`
-                      : 'You’re all caught up — nothing needs your response right now.'}
-                  </p>
-                </div>
-                {stats.actionRequiredCount > 0 && (
-                  <Button size="sm" variant="secondary" onClick={() => setActiveTab('bookings')} className="shrink-0">
-                    Respond now
-                  </Button>
-                )}
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-              {/* Quick Stats Row */}
+              {/* Quick Stats Row - Mobile First */}
               <div className="lg:col-span-3 grid grid-cols-3 gap-2 sm:gap-4" data-tour="quick-stats">
-                {[
-                  { label: 'Pending', sub: 'bookings', value: stats.pendingBookings, Icon: Clock, tint: 'bg-amber-500/10 text-amber-600' },
-                  { label: 'Upcoming', sub: 'arrivals', value: stats.upcomingArrivals, Icon: Calendar, tint: 'bg-primary/10 text-primary' },
-                  { label: 'Hosted', sub: 'students', value: stats.totalStudentsHosted, Icon: Users, tint: 'bg-green-500/10 text-green-600' },
-                ].map(({ label, sub, value, Icon, tint }) => (
-                  <Card key={label} className="transition-all hover:shadow-md hover:-translate-y-0.5">
+                {/* Pending Bookings */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Pending</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.pendingBookings}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">bookings</p>
+                  </CardContent>
+                </Card>
+
+                {/* Upcoming Arrivals */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Upcoming</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.upcomingArrivals}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">arrivals</p>
+                  </CardContent>
+                </Card>
+
+                {/* Total Students */}
+                <Card className="col-span-1">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Hosted</span>
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">{stats.loading ? '...' : stats.totalStudentsHosted}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">students</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Required Banner */}
+              {stats.actionRequiredCount > 0 && (
+                <div className="lg:col-span-3">
+                  <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
                     <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
-                        <div className={`h-7 w-7 rounded-full flex items-center justify-center ${tint}`}>
-                          <Icon className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                            {stats.actionRequiredCount} booking{stats.actionRequiredCount !== 1 ? 's' : ''} waiting for your response
+                          </p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                            Please review and confirm if you can host these assignments.
+                          </p>
+                        </div>
+                        <Button size="sm" onClick={() => setActiveTab('bookings')}>
+                          Respond Now
+                        </Button>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-bold leading-none">{stats.loading ? '…' : value}</div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{sub}</p>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                </div>
+              )}
 
-              {/* Sidebar */}
+              {/* Sidebar - Shows after tiles on mobile, in sidebar on desktop */}
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4 order-none lg:order-last" data-tour="earnings-widget">
-                {/* Actual Earnings Widget */}
-                <Card className="overflow-hidden border-green-500/30 bg-gradient-to-br from-green-500/10 to-green-500/[0.02] relative">
-                  <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-green-500/10 -translate-y-8 translate-x-8" />
-                  <CardContent className="p-3 sm:p-4 relative">
+                {/* Host Handbook */}
+                <Card>
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="h-7 w-7 rounded-full bg-green-500/15 flex items-center justify-center">
-                        <TrendingUp className="h-3.5 w-3.5 text-green-600" />
-                      </div>
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">Host Handbook</span>
+                    </div>
+                    <Button onClick={handleDownloadHandbook} size="sm" className="w-full">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Actual Earnings Widget */}
+                <Card className="border-green-500/20 bg-green-500/5">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-green-600" />
                       <span className="text-sm font-medium">Actual Earnings</span>
                     </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-green-600 tracking-tight">
-                      £{stats.loading ? '…' : stats.totalActualEarnings.toFixed(2)}
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
+                      £{stats.loading ? '...' : stats.totalActualEarnings.toFixed(2)}
                     </div>
                     <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                       From bookings marked available
@@ -204,20 +234,17 @@ const HostDashboard = () => {
                 </Card>
 
                 {/* Potential Earnings Widget */}
-                {(profile?.rate_per_student_per_night && profile.rate_per_student_per_night > 0 &&
-                  ((profile?.single_bed_capacity && profile.single_bed_capacity > 0) ||
+                {(profile?.rate_per_student_per_night && profile.rate_per_student_per_night > 0 && 
+                  ((profile?.single_bed_capacity && profile.single_bed_capacity > 0) || 
                    (profile?.shared_bed_capacity && profile.shared_bed_capacity > 0))) && (
-                  <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 to-primary/[0.02] relative">
-                    <div className="absolute top-0 right-0 h-20 w-20 rounded-full bg-primary/10 -translate-y-8 translate-x-8" />
-                    <CardContent className="p-3 sm:p-4 relative">
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center">
-                          <PoundSterling className="h-3.5 w-3.5 text-primary" />
-                        </div>
+                        <PoundSterling className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium">Potential Earnings</span>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-                        £{stats.loading ? '…' : stats.totalPotentialEarnings.toFixed(2)}
+                      <div className="text-xl sm:text-2xl font-bold text-primary">
+                        £{stats.loading ? '...' : stats.totalPotentialEarnings.toFixed(2)}
                       </div>
                       <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                         Single: {profile?.single_bed_capacity || 0} / Shared: {profile?.shared_bed_capacity || 0} × £{profile?.rate_per_student_per_night}/night
@@ -225,38 +252,16 @@ const HostDashboard = () => {
                     </CardContent>
                   </Card>
                 )}
-
-                {/* Host Handbook */}
-                <Card className="border-dashed">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Host Handbook</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mb-2">Everything you need to know about hosting.</p>
-                    <Button onClick={handleDownloadHandbook} size="sm" variant="outline" className="w-full">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
 
               {/* Available Bookings */}
               <div className="lg:col-span-2" data-tour="available-bookings">
-                <Card className="shadow-sm">
-                  <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm">
-                          Review and respond to assignments
-                        </CardDescription>
-                      </div>
-                    </div>
+                <Card>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Available Bookings</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Review and respond to assignments
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6 pt-0">
                     <HostBookingActions
