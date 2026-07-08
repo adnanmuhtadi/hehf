@@ -669,8 +669,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   id="students"
                   type="number"
                   min="1"
-                  value={newBooking.number_of_students}
-                  onChange={(e) => setNewBooking({ ...newBooking, number_of_students: parseInt(e.target.value) || 1 })}
+                  value={newBooking.number_of_students || ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setNewBooking({ ...newBooking, number_of_students: v === '' ? 0 : parseInt(v) });
+                  }}
                   required
                 />
               </div>
@@ -1246,10 +1249,11 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
                   id="edit-students"
                   type="number"
                   min="1"
-                  value={editBookingForm.number_of_students}
-                  onChange={(e) =>
-                    setEditBookingForm({ ...editBookingForm, number_of_students: parseInt(e.target.value) || 1 })
-                  }
+                  value={editBookingForm.number_of_students || ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setEditBookingForm({ ...editBookingForm, number_of_students: v === '' ? 0 : parseInt(v) });
+                  }}
                   required
                 />
               </div>
