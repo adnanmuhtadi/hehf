@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLocations } from "@/hooks/useLocations";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import BookingHostAuditLog from "@/components/BookingHostAuditLog";
 
 interface Booking {
   id: string;
