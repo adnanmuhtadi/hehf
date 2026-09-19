@@ -79,6 +79,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const [booking, setBooking] = useState<Booking | null>(null);
   const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
+  const [auditKey, setAuditKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showAcceptedOnly, setShowAcceptedOnly] = useState(false);
