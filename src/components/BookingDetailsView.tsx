@@ -781,6 +781,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
           })()}
         </CardContent>
       </Card>
+
+      <BookingHostAuditLog bookingId={bookingId} refreshKey={auditKey} />
     </div>
   );
 };
