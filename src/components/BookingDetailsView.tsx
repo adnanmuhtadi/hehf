@@ -207,6 +207,23 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     }
   };
 
+  const handleRemoveHost = async (assignmentId: string, hostName: string) => {
+    const restoreScroll = preserveScrollPosition();
+    try {
+      const { error } = await supabase
+        .from("booking_hosts")
+        .delete()
+        .eq("id", assignmentId);
+      if (error) throw error;
+      toast({ title: "Removed", description: `${hostName} has been removed from this booking.` });
+      setBookingHosts((prev) => prev.filter((h) => h.id !== assignmentId));
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    } finally {
+      restoreScroll();
+    }
+  };
+
   const handleUpdateBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editBooking.arrival_date || !editBooking.departure_date || !booking) {
@@ -623,6 +640,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                       </TableHead>
                       <TableHead className="text-xs text-right">Can Host</TableHead>
                       <TableHead className="text-xs text-right">Approval</TableHead>
+                      <TableHead className="text-xs text-right">Remove</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
