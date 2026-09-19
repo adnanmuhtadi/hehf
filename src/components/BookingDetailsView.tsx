@@ -210,13 +210,29 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const handleRemoveHost = async (assignmentId: string, hostName: string) => {
     const restoreScroll = preserveScrollPosition();
     try {
+      const respondedAt = new Date().toISOString();
       const { error } = await supabase
         .from("booking_hosts")
-        .delete()
+        .update({
+          response: "declined",
+          responded_at: respondedAt,
+          students_assigned: 0,
+          approved_at: null,
+          approved_by: null,
+        })
         .eq("id", assignmentId);
       if (error) throw error;
-      toast({ title: "Removed", description: `${hostName} has been removed from this booking.` });
-      setBookingHosts((prev) => prev.filter((h) => h.id !== assignmentId));
+      toast({
+        title: "Removed",
+        description: `${hostName} has been removed from this booking. It will show on their dashboard as "Can't host".`,
+      });
+      setBookingHosts((prev) =>
+        prev.map((h) =>
+          h.id === assignmentId
+            ? { ...h, response: "declined", responded_at: respondedAt, students_assigned: 0, approved_at: null, approved_by: null }
+            : h,
+        ),
+      );
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {
@@ -719,7 +735,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Remove host from booking?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will remove {hostAssignment.profiles.full_name} from this booking. They will no longer see it in their dashboard. This cannot be undone.
+                                  This will remove {hostAssignment.profiles.full_name} from this booking. The booking will still appear on their dashboard, marked as "Can't host". Any approval will be revoked.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
