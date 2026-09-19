@@ -199,6 +199,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         .eq("id", assignmentId);
       if (error) throw error;
       toast({ title: "Approved", description: "Host acceptance approved. The host will be notified." });
+      setAuditKey((k) => k + 1);
       setBookingHosts((prev) =>
         prev.map((h) => (h.id === assignmentId ? { ...h, approved_at: approvedAt, approved_by: userData.user?.id } : h)),
       );
