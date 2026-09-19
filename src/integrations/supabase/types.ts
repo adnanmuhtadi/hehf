@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      booking_host_audit: {
+        Row: {
+          action: string
+          booking_id: string
+          created_at: string
+          details: string | null
+          host_id: string
+          id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          created_at?: string
+          details?: string | null
+          host_id: string
+          id?: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          created_at?: string
+          details?: string | null
+          host_id?: string
+          id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_host_audit_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_hosts: {
         Row: {
           approved_at: string | null

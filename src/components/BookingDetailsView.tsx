@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLocations } from "@/hooks/useLocations";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import BookingHostAuditLog from "@/components/BookingHostAuditLog";
 
 interface Booking {
   id: string;
@@ -78,6 +79,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
   const [booking, setBooking] = useState<Booking | null>(null);
   const { names: AVAILABLE_LOCATIONS } = useLocations();
   const [bookingHosts, setBookingHosts] = useState<BookingHost[]>([]);
+  const [auditKey, setAuditKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showAcceptedOnly, setShowAcceptedOnly] = useState(false);
@@ -197,6 +199,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
         .eq("id", assignmentId);
       if (error) throw error;
       toast({ title: "Approved", description: "Host acceptance approved. The host will be notified." });
+      setAuditKey((k) => k + 1);
       setBookingHosts((prev) =>
         prev.map((h) => (h.id === assignmentId ? { ...h, approved_at: approvedAt, approved_by: userData.user?.id } : h)),
       );
@@ -211,7 +214,7 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     const restoreScroll = preserveScrollPosition();
     try {
       const respondedAt = new Date().toISOString();
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("booking_hosts")
         .update({
           response: "declined",
@@ -220,12 +223,27 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
           approved_at: null,
           approved_by: null,
         })
-        .eq("id", assignmentId);
+        .eq("id", assignmentId)
+        .select("host_id")
+        .single();
       if (error) throw error;
+
+      if (updated?.host_id && bookingId) {
+        const { data: userData } = await supabase.auth.getUser();
+        await supabase.from("booking_host_audit").insert({
+          booking_id: bookingId,
+          host_id: updated.host_id,
+          action: "removed_by_admin",
+          details: `${hostName} was removed from this booking by an admin and marked as "Can't host"`,
+          performed_by: userData.user?.id ?? null,
+        });
+      }
+
       toast({
         title: "Removed",
         description: `${hostName} has been removed from this booking. It will show on their dashboard as "Can't host".`,
       });
+      setAuditKey((k) => k + 1);
       setBookingHosts((prev) =>
         prev.map((h) =>
           h.id === assignmentId
@@ -763,6 +781,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
           })()}
         </CardContent>
       </Card>
+
+      <BookingHostAuditLog bookingId={bookingId} refreshKey={auditKey} />
     </div>
   );
 };
