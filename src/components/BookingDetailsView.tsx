@@ -703,6 +703,37 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
                             <span className="text-xs text-muted-foreground">-</span>
                           )}
                         </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                aria-label={`Remove ${hostAssignment.profiles.full_name}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-[95vw] sm:max-w-md">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remove host from booking?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will remove {hostAssignment.profiles.full_name} from this booking. They will no longer see it in their dashboard. This cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  onClick={() => handleRemoveHost(hostAssignment.id, hostAssignment.profiles.full_name)}
+                                >
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
