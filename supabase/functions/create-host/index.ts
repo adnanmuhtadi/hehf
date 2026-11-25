@@ -45,7 +45,11 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity, preferred_gender } = body;
+    const { email: rawEmail, full_name, phone, address, pets, preferred_locations, is_active, rate_per_student_per_night, single_bed_capacity, shared_bed_capacity, preferred_gender } = body;
+
+    // Auth stores emails in lower case; keep the profile the same so the two
+    // always match.
+    const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
 
     if (!email || !full_name) {
       return new Response(
@@ -54,8 +58,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate a cryptographically random temporary password server-side.
-    const password = generateTempPassword();
+    // Standard temporary password; the host must change it on first login.
+    const password = "password1234";
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -127,12 +131,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function generateTempPassword(): string {
-  const bytes = new Uint8Array(18);
-  crypto.getRandomValues(bytes);
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  let out = "";
-  for (const b of bytes) out += alphabet[b % alphabet.length];
-  return out;
-}

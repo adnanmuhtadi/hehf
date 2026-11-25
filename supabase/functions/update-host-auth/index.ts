@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
     const updateData: { email?: string; email_confirm?: boolean } = {};
     
     if (email) {
-      updateData.email = email;
+      updateData.email = email.trim().toLowerCase();
       updateData.email_confirm = true; // Auto-confirm the new email
     }
 

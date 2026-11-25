@@ -50,6 +50,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   loading: boolean;
+  /** Signed in, but the profile couldn't be loaded (missing row or error). */
+  profileMissing: boolean;
   /** Set while an admin is signed in as a host. */
   impersonation: ImpersonationInfo | null;
   startImpersonation: (hostUserId: string) => Promise<{ error: string | null }>;
@@ -65,6 +67,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   refreshProfile: async () => {},
   loading: true,
+  profileMissing: false,
   impersonation: null,
   startImpersonation: async () => ({ error: null }),
   stopImpersonation: async () => ({ error: null }),
@@ -83,6 +86,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  // True while the signed-in user's profile is being fetched, so the
+  // dashboard can tell "still loading" apart from "couldn't load".
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileFetchedFor, setProfileFetchedFor] = useState<string | null>(null);
   const [impersonation, setImpersonation] = useState<ImpersonationInfo | null>(() => toInfo(readImpersonation()));
 
   // A stash only counts while the active session is the host it was made for.
@@ -98,18 +105,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchProfile = async (userId: string) => {
+    setProfileLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) console.error('No profile row for user', userId);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+    } finally {
+      setProfileLoading(false);
+      setProfileFetchedFor(userId);
     }
   };
 
@@ -194,31 +206,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (identifier: string, password: string) => {
-    let email = identifier;
+    // Phone keyboards often add a space after autocomplete, and people type
+    // emails with capitals. Neither should stop someone signing in.
+    const id = identifier.trim();
 
-    // Check if the identifier looks like a phone number (not an email)
-    const isEmail = identifier.includes('@');
-    
-    if (!isEmail) {
-      // Look up the email by phone number
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('phone', identifier)
-        .single();
-
-      if (profileError || !profileData) {
-        return { error: { message: 'No account found with this phone number' } };
-      }
-      
-      email = profileData.email;
+    if (id.includes('@')) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: id.toLowerCase(),
+        password,
+      });
+      return { error };
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    // Phone number: the email lookup has to happen on the server, because
+    // the profiles table can't be read before you're signed in.
+    const { data, error } = await supabase.functions.invoke('phone-login', {
+      body: { phone: id, password },
     });
-    return { error };
+    if (error) return { error: { message: await functionErrorMessage(error) } };
+    if (!data?.access_token || !data?.refresh_token) {
+      return { error: { message: data?.error || 'Could not sign in. Please try your email address.' } };
+    }
+    const { error: setErr } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    return { error: setErr };
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'host') => {
@@ -270,6 +283,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       setProfile(null);
+      setProfileFetchedFor(null);
       const { data: switched, error: setErr } = await supabase.auth.setSession({
         access_token: data.access_token,
         refresh_token: data.refresh_token,
@@ -308,6 +322,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const hostAccessToken = hostSession?.access_token ?? null;
 
     setProfile(null);
+    setProfileFetchedFor(null);
     clearImpersonation();
     setImpersonation(null);
 
@@ -361,6 +376,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
     refreshProfile,
     loading,
+    profileMissing: !!user && !profile && !profileLoading && profileFetchedFor === user.id,
     impersonation,
     startImpersonation,
     stopImpersonation,
