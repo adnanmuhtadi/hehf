@@ -18,7 +18,7 @@ import OnboardingTour from '@/components/OnboardingTour';
 import HostHelpCenter from '@/components/HostHelpCenter';
 
 const HostDashboard = () => {
-  const { user, profile, signOut, refreshProfile } = useAuth();
+  const { user, profile, signOut, refreshProfile, impersonation, stopImpersonation } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
@@ -28,15 +28,17 @@ const HostDashboard = () => {
 
   // Show tour for first-time users
   useEffect(() => {
-    if (profile && !profile.has_completed_tour && !profile.must_reset_password) {
+    // Don't pop the first-run tour for an admin viewing the account.
+    if (profile && !profile.has_completed_tour && !profile.must_reset_password && !impersonation) {
       setShowTour(true);
     }
-  }, [profile]);
+  }, [profile, impersonation]);
 
   const handleTourComplete = async (disableTour: boolean) => {
     setShowTour(false);
     
-    if (disableTour && user) {
+    // An admin replaying the tour shouldn't mark it done for the host.
+    if (disableTour && user && !impersonation) {
       try {
         await supabase
           .from('profiles')
@@ -55,6 +57,15 @@ const HostDashboard = () => {
   };
 
   const handleSignOut = async () => {
+    if (impersonation) {
+      // While viewing as a host, this button switches back instead.
+      const { error } = await stopImpersonation();
+      if (error) {
+        toast({ title: 'Signed out', description: error, variant: 'destructive' });
+        navigate('/auth');
+      }
+      return;
+    }
     await signOut();
     navigate('/');
   };
@@ -90,9 +101,9 @@ const HostDashboard = () => {
               >
                 <HelpCircle className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="h-9 px-2 sm:px-3">
+              <Button variant="outline" size="sm" onClick={handleSignOut} className={`h-9 px-2 sm:px-3 ${impersonation ? 'border-amber-500 text-amber-700 hover:bg-amber-50' : ''}`} title={impersonation ? 'Switch back to your admin account' : undefined}>
                 <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sign Out</span>
+                <span className="hidden sm:inline">{impersonation ? 'Back to admin' : 'Sign Out'}</span>
               </Button>
             </div>
           </div>

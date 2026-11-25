@@ -13,8 +13,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, MapPin, Filter, Search, Power, Users, PoundSterling, KeyRound, BookOpen, RefreshCw, ArrowUp, ArrowDown, ArrowUpDown, LogIn, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { useLocations } from '@/hooks/useLocations';
 import HostLocationBonuses from './HostLocationBonuses';
 import HostBookingHistory from './HostBookingHistory';
@@ -50,6 +52,10 @@ const HostManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
+  const [loginAsHost, setLoginAsHost] = useState<Host | null>(null);
+  const [loggingInAs, setLoggingInAs] = useState(false);
+  const { startImpersonation } = useAuth();
+  const navigate = useNavigate();
   const [syncingEmails, setSyncingEmails] = useState(false);
   const [sortField, setSortField] = useState<string>('full_name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -381,6 +387,19 @@ const HostManagement = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLoginAsHost = async () => {
+    if (!loginAsHost) return;
+    setLoggingInAs(true);
+    const { error } = await startImpersonation(loginAsHost.user_id);
+    setLoggingInAs(false);
+    if (error) {
+      toast({ title: "Couldn't sign in as host", description: error, variant: "destructive" });
+      return;
+    }
+    setLoginAsHost(null);
+    navigate('/dashboard');
   };
 
   const handleResetPassword = async (host: Host) => {
@@ -1114,6 +1133,9 @@ const HostManagement = () => {
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(host)} title="Edit">
                           <Edit className="h-4 w-4" />
                         </Button>
+                        <Button variant="outline" size="sm" onClick={() => setLoginAsHost(host)} title="Log in as this host">
+                          <LogIn className="h-4 w-4" />
+                        </Button>
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -1221,6 +1243,9 @@ const HostManagement = () => {
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => setLoginAsHost(host)} title="Log in as this host">
+                      <LogIn className="h-3 w-3" />
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant={host.is_active ? "outline" : "default"} size="sm">
@@ -1255,6 +1280,26 @@ const HostManagement = () => {
           )}
         </CardContent>
       </Card>
+      {/* Log in as host confirmation */}
+      <AlertDialog open={!!loginAsHost} onOpenChange={(open) => { if (!open && !loggingInAs) setLoginAsHost(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log in as {loginAsHost?.full_name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You'll see their dashboard exactly as they do, and anything you change is saved to their account.
+              A banner stays at the top with a button to switch back to admin. This is recorded in the audit log.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loggingInAs}>Cancel</AlertDialogCancel>
+            <Button onClick={handleLoginAsHost} disabled={loggingInAs}>
+              {loggingInAs ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <LogIn className="h-4 w-4 mr-2" />}
+              Log in as host
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Booking History Dialog */}
       <HostBookingHistory
         hostId={bookingHistoryHost?.user_id || ''}
