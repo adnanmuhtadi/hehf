@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.protect_booking_host_approval() FROM PUBLIC, anon, authenticated;
