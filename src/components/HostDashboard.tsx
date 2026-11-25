@@ -40,10 +40,9 @@ const HostDashboard = () => {
     // An admin replaying the tour shouldn't mark it done for the host.
     if (disableTour && user && !impersonation) {
       try {
-        await supabase
-          .from('profiles')
-          .update({ has_completed_tour: true })
-          .eq('user_id', user.id);
+        // Same safe RPC as the profile form; a direct update can be
+        // rejected by RLS for hosts with an empty phone or rate.
+        await supabase.rpc('update_own_profile', { _has_completed_tour: true });
         
         refreshProfile();
       } catch (error) {

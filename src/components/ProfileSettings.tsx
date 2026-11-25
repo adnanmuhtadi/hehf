@@ -57,29 +57,32 @@ const ProfileSettings = () => {
     setLoading(true);
     
     try {
-      // Build update object - hosts can edit pets and capacities
-      const updateData: any = {
-        full_name: profileData.full_name,
-        address: profileData.address,
-        preferred_locations: profileData.preferred_locations,
-      };
-      
-      // Only include phone if user is admin (hosts can't edit phone)
-      if (profile?.role !== 'host') {
-        updateData.phone = profileData.phone;
-      }
-      
-      // Hosts can edit pets and bed capacities
+      let error;
       if (profile?.role === 'host') {
-        updateData.pets = profileData.pets;
-        updateData.single_bed_capacity = profileData.single_bed_capacity;
-        updateData.shared_bed_capacity = profileData.shared_bed_capacity;
+        // Hosts save through update_own_profile, which only touches the
+        // fields hosts may edit. A direct update is checked by an RLS policy
+        // that compares phone/rate with "=", which fails for any host whose
+        // phone or rate is empty (NULL = NULL is not true in SQL).
+        ({ error } = await supabase.rpc('update_own_profile', {
+          _full_name: profileData.full_name,
+          _address: profileData.address,
+          _preferred_locations: profileData.preferred_locations,
+          _pets: profileData.pets,
+          _single_bed_capacity: profileData.single_bed_capacity,
+          _shared_bed_capacity: profileData.shared_bed_capacity,
+        }));
+      } else {
+        // Admins can edit their phone too, covered by the admin update policy.
+        ({ error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: profileData.full_name,
+            address: profileData.address,
+            preferred_locations: profileData.preferred_locations,
+            phone: profileData.phone,
+          })
+          .eq('user_id', user.id));
       }
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('user_id', user.id);
 
       if (error) throw error;
 
