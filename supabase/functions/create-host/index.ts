@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate a cryptographically random temporary password server-side.
-    const password = generateTempPassword();
+    // Standard temporary password; the host must change it on first login.
+    const password = "password1234";
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -131,15 +131,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function generateTempPassword(): string {
-  // Easy to read out and type on a phone, e.g. "hehf-k7m2-q9xa".
-  // No look-alike characters (0/o, 1/l/i). ~41 bits of randomness, which is
-  // plenty for a password the host must change on first sign in.
-  const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  let out = "";
-  for (const b of bytes) out += alphabet[b % alphabet.length];
-  return `hehf-${out.slice(0, 4)}-${out.slice(4)}`;
-}
