@@ -769,7 +769,7 @@ const HostManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Reset Password</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Generate a new random temporary password for this host? They will be required to change it on their next login.
+                              Reset this host's password to password1234? They will be required to change it on their next login.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
