@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_impersonation_log: {
+        Row: {
+          admin_user_id: string
+          ended_at: string | null
+          host_user_id: string
+          id: string
+          ip_address: string | null
+          started_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          ended_at?: string | null
+          host_user_id: string
+          id?: string
+          ip_address?: string | null
+          started_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          ended_at?: string | null
+          host_user_id?: string
+          id?: string
+          ip_address?: string | null
+          started_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       booking_host_audit: {
         Row: {
           action: string
@@ -394,6 +424,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      restore_host_last_sign_in: {
+        Args: { _last_sign_in_at: string; _user_id: string }
+        Returns: undefined
+      }
       update_own_profile: {
         Args: {
           _address?: string
