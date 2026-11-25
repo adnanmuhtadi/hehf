@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { locationOrFilter, localToday } from '@/lib/locationFilter';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -33,7 +34,7 @@ export const useHostStats = (locationFilter?: string) => {
     if (!user) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = localToday();
 
       // Get host's rate and capacities from profile
       const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
@@ -99,9 +100,7 @@ export const useHostStats = (locationFilter?: string) => {
         .gte('departure_date', today);
 
       if (preferredLocations.length > 0) {
-        const locationFilters = preferredLocations.map(
-          (loc: string) => `location.ilike.%${loc.trim()}%`
-        );
+        const locationFilters = [locationOrFilter(preferredLocations)];
         actionQuery = actionQuery.or(locationFilters.join(','));
       }
 
@@ -149,9 +148,11 @@ export const useHostStats = (locationFilter?: string) => {
                 (1000 * 60 * 60 * 24)
             );
           
-          // Use the appropriate capacity based on booking bed type
+          // Pay is for the students the host actually agreed to take. Fall back
+          // to bed capacity only for old rows that never recorded a number.
           const capacity = booking.bed_type === 'shared_beds' ? sharedBedCapacity : singleBedCapacity;
-          const baseEarnings = ratePerStudentPerNight * capacity * nights;
+          const students = item.students_assigned || capacity;
+          const baseEarnings = ratePerStudentPerNight * students * nights;
           const locationBonus = getBonusForLocation(booking.location) * nights;
           actualEarnings += baseEarnings + locationBonus;
           
@@ -176,9 +177,7 @@ export const useHostStats = (locationFilter?: string) => {
           if (preferredLocations.length === 0) {
             shouldFetch = false;
           } else {
-            const locationFilters = preferredLocations.map(
-              (loc: string) => `location.ilike.%${loc.trim()}%`
-            );
+            const locationFilters = [locationOrFilter(preferredLocations)];
             bookingsQuery = bookingsQuery.or(locationFilters.join(','));
           }
         } else if (filter !== 'all') {

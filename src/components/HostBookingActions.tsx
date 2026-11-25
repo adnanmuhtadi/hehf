@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { locationOrFilter } from "@/lib/locationFilter";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -221,7 +222,7 @@ const HostBookingActions = ({
       // Apply location filter for assigned bookings
       if (locationFilter === "preferred" && profile.preferred_locations && profile.preferred_locations.length > 0) {
         // Filter by any of the preferred locations
-        const locationFilters = profile.preferred_locations.map((loc) => `location.ilike.%${loc.trim()}%`);
+        const locationFilters = [locationOrFilter(profile.preferred_locations)];
         assignedQuery = assignedQuery.or(locationFilters.join(","));
       } else if (locationFilter !== "all" && locationFilter !== "preferred") {
         assignedQuery = assignedQuery.ilike("location", `%${locationFilter.trim()}%`);
@@ -246,7 +247,7 @@ const HostBookingActions = ({
       // Apply location filter for available bookings
       if (locationFilter === "preferred" && profile.preferred_locations && profile.preferred_locations.length > 0) {
         // Filter by any of the preferred locations
-        const locationFilters = profile.preferred_locations.map((loc) => `location.ilike.%${loc.trim()}%`);
+        const locationFilters = [locationOrFilter(profile.preferred_locations)];
         availableQuery = availableQuery.or(locationFilters.join(","));
       } else if (locationFilter !== "all" && locationFilter !== "preferred") {
         availableQuery = availableQuery.ilike("location", `%${locationFilter.trim()}%`);
