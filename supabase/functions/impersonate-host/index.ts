@@ -87,6 +87,9 @@ serve(async (req) => {
         return json({ error: "Host account not found" }, 404);
       }
 
+      // Remember the host's own last sign-in before we create a session.
+      const previousLastSignIn = target.user.last_sign_in_at ?? null;
+
       const { data: hostProfile } = await admin
         .from("profiles")
         .select("full_name, email")
@@ -132,6 +135,14 @@ serve(async (req) => {
           .update({ ended_at: new Date().toISOString() }).eq("id", logRow.id);
         throw verifyErr ?? new Error("Could not create host session");
       }
+
+      // Signing in stamps the host's last_sign_in_at. Put their real value
+      // back so the admin's visit doesn't show as a host login.
+      const { error: restoreErr } = await admin.rpc("restore_host_last_sign_in", {
+        _user_id: hostUserId,
+        _last_sign_in_at: previousLastSignIn,
+      });
+      if (restoreErr) console.error("impersonate-host: could not restore last sign-in", restoreErr);
 
       return json({
         log_id: logRow.id,
