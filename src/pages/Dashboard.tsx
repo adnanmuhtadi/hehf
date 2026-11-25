@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import AdminDashboard from '@/components/AdminDashboard';
 import HostDashboard from '@/components/HostDashboard';
+import ImpersonationBanner from '@/components/ImpersonationBanner';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const Dashboard = () => {
-  const { user, profile, loading, refreshProfile } = useAuth();
+  const { user, profile, loading, refreshProfile, impersonation } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -33,10 +34,9 @@ const Dashboard = () => {
   }, [user, loading, profile, navigate]);
 
   useEffect(() => {
-    if (profile?.must_reset_password) {
-      setShowPasswordReset(true);
-    }
-  }, [profile]);
+    // Never make an admin who is viewing a host's account set that host's password.
+    setShowPasswordReset(!!profile?.must_reset_password && !impersonation);
+  }, [profile, impersonation]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +101,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <ImpersonationBanner />
       <Dialog open={showPasswordReset} onOpenChange={() => {}}>
         <DialogContent 
           className="sm:max-w-md" 
