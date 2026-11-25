@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useLocations } from '@/hooks/useLocations';
+import { functionErrorMessage } from '@/lib/impersonation';
 import HostLocationBonuses from './HostLocationBonuses';
 import HostBookingHistory from './HostBookingHistory';
 
@@ -54,6 +55,8 @@ const HostManagement = () => {
   const [bookingHistoryHost, setBookingHistoryHost] = useState<Host | null>(null);
   const [loginAsHost, setLoginAsHost] = useState<Host | null>(null);
   const [loggingInAs, setLoggingInAs] = useState(false);
+  // Shown in a dialog (not a toast) so the admin has time to copy it.
+  const [tempPassword, setTempPassword] = useState<{ name: string; login: string; password: string; isNew: boolean } | null>(null);
   const { startImpersonation } = useAuth();
   const navigate = useNavigate();
   const [syncingEmails, setSyncingEmails] = useState(false);
@@ -246,10 +249,11 @@ const HostManagement = () => {
       const result = response.data as { error?: string; password?: string };
       if (result?.error) throw new Error(result.error);
 
-      toast({
-        title: "Success",
-        description: `Host created. Temporary password: ${result.password}`,
-      });
+      if (result?.password) {
+        setTempPassword({ name: fullName, login: formData.email.trim(), password: result.password, isNew: true });
+      } else {
+        toast({ title: "Success", description: "Host created" });
+      }
 
       setIsDialogOpen(false);
       setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
@@ -270,14 +274,17 @@ const HostManagement = () => {
 
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
+      // Auth keeps emails in lower case; store the profile the same way so
+      // sign in and the email sync always agree.
+      const email = formData.email.trim().toLowerCase();
       
       // Check if email has changed - if so, update auth user first
-      if (formData.email !== selectedHost.email) {
+      if (email !== (selectedHost.email || '').trim().toLowerCase()) {
         const { data: sessionData } = await supabase.auth.getSession();
         const response = await supabase.functions.invoke('update-host-auth', {
           body: {
             host_user_id: selectedHost.user_id,
-            email: formData.email,
+            email,
           },
           headers: {
             Authorization: `Bearer ${sessionData.session?.access_token}`,
@@ -285,7 +292,7 @@ const HostManagement = () => {
         });
 
         if (response.error) {
-          throw new Error(response.error.message || 'Failed to update auth email');
+          throw new Error(await functionErrorMessage(response.error));
         }
         
         const responseData = response.data as { error?: string };
@@ -297,7 +304,7 @@ const HostManagement = () => {
       const { data, error } = await supabase
         .from('profiles')
         .update({
-          email: formData.email,
+          email,
           full_name: fullName,
           phone: formData.phone || null,
           address: formData.address || null,
@@ -435,10 +442,7 @@ const HostManagement = () => {
         throw new Error(result.error || 'Failed to reset password');
       }
 
-      toast({
-        title: "Password Reset",
-        description: `Password reset to: ${result.password}`,
-      });
+      setTempPassword({ name: host.full_name, login: host.email, password: result.password, isNew: false });
     } catch (error: any) {
       console.error('Error resetting password:', error);
       toast({
@@ -1299,6 +1303,46 @@ const HostManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Temporary password: stays open until the admin closes it */}
+      <Dialog open={!!tempPassword} onOpenChange={(open) => { if (!open) setTempPassword(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{tempPassword?.isNew ? 'Host created' : 'Password reset'}</DialogTitle>
+            <DialogDescription>
+              Send these details to {tempPassword?.name}. They'll be asked to choose their own password the first time they sign in.
+              This password won't be shown again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Sign in with</Label>
+              <p className="font-mono text-sm break-all">{tempPassword?.login}</p>
+            </div>
+            <div>
+              <Label>Temporary password</Label>
+              <p className="font-mono text-lg tracking-wide select-all break-all">{tempPassword?.password}</p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!tempPassword) return;
+                try {
+                  await navigator.clipboard.writeText(tempPassword.password);
+                  toast({ title: "Copied", description: "Password copied to clipboard" });
+                } catch {
+                  toast({ title: "Couldn't copy", description: "Please select the password and copy it", variant: "destructive" });
+                }
+              }}
+            >
+              Copy password
+            </Button>
+            <Button onClick={() => setTempPassword(null)}>Done</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Booking History Dialog */}
       <HostBookingHistory

@@ -166,7 +166,8 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
         setSelectedAssignment(prev => prev ? { ...prev, response, students_assigned: studentsAssigned || prev.students_assigned } : null);
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to update booking response" });
+      // Show the real reason (e.g. "already accepted booking X for overlapping dates").
+      toast({ variant: "destructive", title: "Error", description: error?.message || "Failed to update booking response" });
     } finally {
       restoreScroll();
     }

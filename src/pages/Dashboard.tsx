@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const Dashboard = () => {
-  const { user, profile, loading, refreshProfile, impersonation } = useAuth();
+  const { user, profile, loading, profileMissing, refreshProfile, signOut, impersonation } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -90,6 +90,34 @@ const Dashboard = () => {
       setResetting(false);
     }
   };
+
+  if (!loading && profileMissing) {
+    // Signed in, but there's no profile we can read. Without this the page
+    // just spins forever and the host thinks login is broken.
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-sm text-center space-y-4">
+          <h1 className="text-xl font-semibold">We couldn't load your account</h1>
+          <p className="text-muted-foreground">
+            You're signed in, but your host profile didn't load. Please try again. If it keeps
+            happening, contact the HEHF office so they can check your account.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => refreshProfile()}>Try again</Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await signOut();
+                navigate('/auth');
+              }}
+            >
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !profile) {
     return (

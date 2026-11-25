@@ -73,8 +73,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Default temporary password (host is forced to reset on first login)
-    const newPassword = "password1234";
+    // Random temporary password, shown once to the admin. The host is forced
+    // to choose their own on next sign in. (This used to be the same fixed
+    // password for everyone, which anyone could guess.)
+    const newPassword = generateTempPassword();
 
     // Update the user's password and confirm email using admin API
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -121,11 +123,13 @@ const handler = async (req: Request): Promise<Response> => {
 serve(handler);
 
 function generateTempPassword(): string {
-  // 18 url-safe random chars (~108 bits of entropy)
-  const bytes = new Uint8Array(18);
+  // Easy to read out and type on a phone, e.g. "hehf-k7m2-q9xa".
+  // No look-alike characters (0/o, 1/l/i). ~41 bits of randomness, which is
+  // plenty for a password the host must change on first sign in.
+  const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+  const bytes = new Uint8Array(8);
   crypto.getRandomValues(bytes);
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   let out = "";
   for (const b of bytes) out += alphabet[b % alphabet.length];
-  return out;
+  return `hehf-${out.slice(0, 4)}-${out.slice(4)}`;
 }

@@ -76,12 +76,37 @@ async function logEmail(params: {
   }
 }
 
+
+/** Only signed-in admins may trigger host emails. */
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const deny = (status: number, error: string) =>
+    new Response(JSON.stringify({ error }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  if (!token) return deny(401, "Missing token");
+  const { data: userData, error: userErr } = await admin.auth.getUser(token);
+  if (userErr || !userData?.user) return deny(401, "Invalid token");
+  const { data: role } = await admin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userData.user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!role) return deny(403, "Admin only");
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const denied = await requireAdmin(req);
+    if (denied) return denied;
+
     const body = await req.json();
     const booking_id: string | undefined = body?.booking_id;
     if (!booking_id || typeof booking_id !== "string") {
