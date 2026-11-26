@@ -13,6 +13,7 @@ import HostManagement from '@/components/HostManagement';
 import BulkUserImport from '@/components/BulkUserImport';
 import LocationManagement from '@/components/LocationManagement';
 import EmailLogsManagement from '@/components/EmailLogsManagement';
+import NotificationDropdown from '@/components/NotificationDropdown';
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -57,10 +58,13 @@ const AdminDashboard = () => {
               <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">Admin Dashboard</h1>
               <p className="text-xs sm:text-sm text-muted-foreground truncate">Welcome, {profile?.full_name}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <NotificationDropdown />
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>

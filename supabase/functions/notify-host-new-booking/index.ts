@@ -136,8 +136,7 @@ serve(async (req) => {
       .from("profiles")
       .select("user_id, full_name, email, preferred_locations, is_active, role")
       .eq("role", "host")
-      .eq("is_active", true)
-      .contains("preferred_locations", [booking.location]);
+      .eq("is_active", true);
 
     if (hErr) {
       console.error("Host lookup failed:", hErr);
@@ -147,6 +146,13 @@ serve(async (req) => {
       );
     }
 
+    // Match locations ignoring capitals and stray spaces ("Hatch End " = "hatch end").
+    const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
+    const wantedLocation = norm(booking.location);
+    const matchingHosts = (hosts ?? []).filter((h) =>
+      (h.preferred_locations ?? []).some((loc: string) => norm(loc) === wantedLocation)
+    );
+
     const centreName = booking.location;
     const bookingDateTime = `${booking.arrival_date} → ${booking.departure_date}`;
     const customerName = `${booking.number_of_students} student(s) from ${booking.country_of_students}`;
@@ -155,8 +161,8 @@ serve(async (req) => {
     const results: Array<{ email: string; status: "sent" | "failed"; error?: string }> = [];
 
     let sentCount = 0;
-    for (const host of hosts ?? []) {
-      if (!host.email) continue;
+    for (const host of matchingHosts) {
+      if (!host.email || /@host\.local$/i.test(host.email)) continue;
       if (sentCount > 0) await sleep(250);
       const hostName = host.full_name || "Host";
       const html = `

@@ -133,6 +133,24 @@ interface ContactEmailRequest {
   partnerType?: string;
 }
 
+// Simple limits so the form can't be used to fire lots of emails at someone.
+// Kept in memory, so they reset when the function restarts; good enough to
+// stop casual abuse without adding a captcha.
+const recentByIp = new Map<string, number[]>();
+const recentByEmail = new Map<string, number[]>();
+function tooMany(map: Map<string, number[]>, key: string, max: number, windowMs: number): boolean {
+  const now = Date.now();
+  const hits = (map.get(key) ?? []).filter((t) => now - t < windowMs);
+  if (hits.length >= max) {
+    map.set(key, hits);
+    return true;
+  }
+  hits.push(now);
+  map.set(key, hits);
+  if (map.size > 5000) map.clear();
+  return false;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -156,6 +174,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const data = validation.sanitized;
+
+    const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+    if (tooMany(recentByIp, ip, 5, 10 * 60 * 1000) || tooMany(recentByEmail, data.email, 3, 60 * 60 * 1000)) {
+      return new Response(
+        JSON.stringify({ error: "Too many messages. Please try again later or email info@hehf.co.uk." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     console.log("Received validated form submission:", data.formType, data.email);
 
     let subject = "";
@@ -247,7 +273,7 @@ const handler = async (req: Request): Promise<Response> => {
       replyTo: "info@hehf.co.uk",
       subject: "Thank you for contacting Herts & Essex Host Families",
       html: `
-        <h2>Thank you for contacting us, ${data.name}!</h2>
+        <h2>Thank you for contacting us!</h2>
         <p>We have received your ${data.formType === "host" ? "host application" : data.formType === "partner" ? "partnership enquiry" : "message"} and will get back to you as soon as possible.</p>
         <p>Best regards,<br>The Herts &amp; Essex Host Families Team</p>
         <p><small>Phone: +44 7826 541868 | Email: info@hehf.co.uk</small></p>

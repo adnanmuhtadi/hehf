@@ -12,6 +12,93 @@ interface ResetPasswordRequest {
   first_name: string;
 }
 
+// ---- Emailed sign-in link -------------------------------------------------
+// Instead of a shared password, the host gets an email with a one-time link.
+// The link signs them in and takes them to /reset-password to choose their
+// own password. If the email can't be sent, the link is returned so the admin
+// can pass it on another way.
+const SITE_URL = (Deno.env.get("SITE_URL") || "https://hehf.co.uk").replace(/\/$/, "");
+
+function escapeHtmlText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function sendSignInLink(
+  adminClient: any,
+  email: string,
+  fullName: string,
+  isNew: boolean,
+): Promise<{ sent: boolean; link?: string; error?: string }> {
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${SITE_URL}/reset-password` },
+  });
+  const link: string | undefined = data?.properties?.action_link;
+  if (error || !link) {
+    return { sent: false, error: error?.message || "Could not create a sign-in link" };
+  }
+
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) return { sent: false, link, error: "Email is not set up (RESEND_API_KEY missing)" };
+
+  const subject = isNew
+    ? "Your Herts & Essex Host Families account"
+    : "Your new sign-in link for Herts & Essex Host Families";
+  const intro = isNew
+    ? "An account has been created for you on the Herts &amp; Essex Host Families host dashboard."
+    : "Here is a new link to sign in to the Herts &amp; Essex Host Families host dashboard.";
+  const html = `
+    <p>Hi ${escapeHtmlText(fullName) || "there"},</p>
+    <p>${intro}</p>
+    <p>Click the button below to sign in and choose your own password.</p>
+    <p>
+      <a href="${link}"
+         style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;
+                border-radius:6px;text-decoration:none;">Sign in and set password</a>
+    </p>
+    <p>The link works once and expires after a while. If it has expired, use
+       "Forgot password" on <a href="${SITE_URL}/auth">${SITE_URL}/auth</a> with this email address.</p>
+    <p>— Herts &amp; Essex Host Families</p>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Herts & Essex Host Families <noreply@hehf.co.uk>",
+        to: [email],
+        subject,
+        html,
+      }),
+    });
+    const ok = res.ok;
+    const detail = ok ? "" : await res.text();
+    try {
+      await adminClient.from("email_logs").insert({
+        booking_id: null,
+        recipient_email: email,
+        email_type: isNew ? "host_welcome_link" : "host_sign_in_link",
+        subject,
+        status: ok ? "sent" : "failed",
+        error_message: ok ? null : detail.slice(0, 500),
+      });
+    } catch (_) { /* logging is best effort */ }
+    if (!ok) return { sent: false, link, error: `Email failed: ${detail.slice(0, 200)}` };
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, link, error: e instanceof Error ? e.message : "Email failed" };
+  }
+}
+// ---------------------------------------------------------------------------
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -73,40 +160,59 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Default temporary password (host is forced to reset on first login)
-    const newPassword = "password1234";
+    // No shared password any more: email the host a one-time sign-in link
+    // that lets them choose their own password.
+    const { data: hostUser, error: hostErr } = await supabaseAdmin.auth.admin.getUserById(host_user_id);
+    const hostEmail = hostUser?.user?.email;
+    if (hostErr || !hostEmail) {
+      return new Response(
+        JSON.stringify({ error: "This host has no email address, so a sign-in link can't be sent." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (/@host\.local$/i.test(hostEmail)) {
+      return new Response(
+        JSON.stringify({ error: "This host has a placeholder email (@host.local). Add their real email first, then send the link." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    // Update the user's password and confirm email using admin API
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      host_user_id,
-      { 
-        password: newPassword,
-        email_confirm: true  // Confirm email when resetting password
-      }
-    );
-
+    // Make sure the email counts as confirmed so the link works, and replace
+    // the old password with a random one nobody knows, so a reset still locks
+    // out anyone who had the old one.
+    const bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    const scrambled = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(host_user_id, {
+      email_confirm: true,
+      password: scrambled,
+    });
     if (updateError) {
-      console.error("Error resetting password:", updateError);
       return new Response(
         JSON.stringify({ error: updateError.message }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+    await supabaseAdmin.from("profiles").update({ must_reset_password: true }).eq("user_id", host_user_id);
 
-    // Set must_reset_password flag to true
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .update({ must_reset_password: true })
-      .eq("user_id", host_user_id);
-
-    if (profileError) {
-      console.error("Error setting must_reset_password flag:", profileError);
+    const link = await sendSignInLink(supabaseAdmin, hostEmail, first_name, false);
+    if (!link.sent && !link.link) {
+      return new Response(
+        JSON.stringify({ error: link.error || "Could not create a sign-in link" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
-    console.log(`Password reset successfully for user ${host_user_id}`);
+    console.log(`Sign-in link ${link.sent ? "emailed" : "created"} for user ${host_user_id}`);
 
     return new Response(
-      JSON.stringify({ success: true, password: newPassword }),
+      JSON.stringify({
+        success: true,
+        email: hostEmail,
+        email_sent: link.sent,
+        email_error: link.error ?? null,
+        sign_in_link: link.sent ? null : link.link ?? null,
+      }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
@@ -119,13 +225,3 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
-
-function generateTempPassword(): string {
-  // 18 url-safe random chars (~108 bits of entropy)
-  const bytes = new Uint8Array(18);
-  crypto.getRandomValues(bytes);
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  let out = "";
-  for (const b of bytes) out += alphabet[b % alphabet.length];
-  return out;
-}

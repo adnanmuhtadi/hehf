@@ -56,7 +56,7 @@ const HostManagement = () => {
   const [loginAsHost, setLoginAsHost] = useState<Host | null>(null);
   const [loggingInAs, setLoggingInAs] = useState(false);
   // Shown in a dialog (not a toast) so the admin has time to copy it.
-  const [tempPassword, setTempPassword] = useState<{ name: string; login: string; password: string; isNew: boolean } | null>(null);
+  const [signInResult, setSignInResult] = useState<{ name: string; email: string; sent: boolean; link: string | null; error: string | null; isNew: boolean } | null>(null);
   const { startImpersonation } = useAuth();
   const navigate = useNavigate();
   const [syncingEmails, setSyncingEmails] = useState(false);
@@ -246,14 +246,17 @@ const HostManagement = () => {
         }
         throw new Error(detail);
       }
-      const result = response.data as { error?: string; password?: string };
+      const result = response.data as { error?: string; email?: string; email_sent?: boolean; email_error?: string | null; sign_in_link?: string | null };
       if (result?.error) throw new Error(result.error);
 
-      if (result?.password) {
-        setTempPassword({ name: fullName, login: formData.email.trim(), password: result.password, isNew: true });
-      } else {
-        toast({ title: "Success", description: "Host created" });
-      }
+      setSignInResult({
+        name: fullName,
+        email: result?.email || formData.email.trim().toLowerCase(),
+        sent: !!result?.email_sent,
+        link: result?.sign_in_link ?? null,
+        error: result?.email_error ?? null,
+        isNew: true,
+      });
 
       setIsDialogOpen(false);
       setFormData({ email: '', first_name: '', last_name: '', phone: '', address: '', pets: '', preferred_locations: [], preferred_gender: 'either', is_active: true, rate_per_student_per_night: 0, shared_bed_capacity: 0, single_bed_capacity: 0 });
@@ -439,15 +442,22 @@ const HostManagement = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to reset password');
+        throw new Error(result.error || 'Failed to send sign-in link');
       }
 
-      setTempPassword({ name: host.full_name, login: host.email, password: result.password, isNew: false });
+      setSignInResult({
+        name: host.full_name,
+        email: result.email || host.email,
+        sent: !!result.email_sent,
+        link: result.sign_in_link ?? null,
+        error: result.email_error ?? null,
+        isNew: false,
+      });
     } catch (error: any) {
       console.error('Error resetting password:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to reset password",
+        description: error.message || "Failed to send sign-in link",
         variant: "destructive",
       });
     }
@@ -762,20 +772,20 @@ const HostManagement = () => {
                         <AlertDialogTrigger asChild>
                           <Button type="button" variant="outline" className="text-orange-600 border-orange-300 hover:bg-orange-50">
                             <KeyRound className="h-4 w-4 mr-2" />
-                            Reset Password
+                            Send sign-in link
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                            <AlertDialogTitle>Send sign-in link</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Reset this host's password to password1234? They will be required to change it on their next login.
+                              Email this host a one-time link to sign in and choose a new password? Their current password will stop working.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={() => selectedHost && handleResetPassword(selectedHost)}>
-                              Reset Password
+                              Send link
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -1304,42 +1314,46 @@ const HostManagement = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Temporary password: stays open until the admin closes it */}
-      <Dialog open={!!tempPassword} onOpenChange={(open) => { if (!open) setTempPassword(null); }}>
+      {/* Sign-in link result: stays open until the admin closes it */}
+      <Dialog open={!!signInResult} onOpenChange={(open) => { if (!open) setSignInResult(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{tempPassword?.isNew ? 'Host created' : 'Password reset'}</DialogTitle>
+            <DialogTitle>{signInResult?.isNew ? 'Host created' : 'Sign-in link'}</DialogTitle>
             <DialogDescription>
-              Send these details to {tempPassword?.name}. They'll be asked to choose their own password the first time they sign in.
-              This password won't be shown again.
+              {signInResult?.sent
+                ? `We've emailed ${signInResult?.name} a link to sign in and choose their own password. It went to ${signInResult?.email}.`
+                : `The email to ${signInResult?.name} (${signInResult?.email}) couldn't be sent${signInResult?.error ? `: ${signInResult.error}` : ''}.`}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Sign in with</Label>
-              <p className="font-mono text-sm break-all">{tempPassword?.login}</p>
+          {!signInResult?.sent && signInResult?.link && (
+            <div className="space-y-2">
+              <Label>Send them this link another way (it works once)</Label>
+              <p className="font-mono text-xs select-all break-all bg-muted p-2 rounded">{signInResult.link}</p>
             </div>
-            <div>
-              <Label>Temporary password</Label>
-              <p className="font-mono text-lg tracking-wide select-all break-all">{tempPassword?.password}</p>
-            </div>
-          </div>
+          )}
+          {!signInResult?.sent && !signInResult?.link && (
+            <p className="text-sm text-muted-foreground">
+              Try "Send sign-in link" again from the host's details, or ask them to use "Forgot password" on the sign-in page.
+            </p>
+          )}
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                if (!tempPassword) return;
-                try {
-                  await navigator.clipboard.writeText(tempPassword.password);
-                  toast({ title: "Copied", description: "Password copied to clipboard" });
-                } catch {
-                  toast({ title: "Couldn't copy", description: "Please select the password and copy it", variant: "destructive" });
-                }
-              }}
-            >
-              Copy password
-            </Button>
-            <Button onClick={() => setTempPassword(null)}>Done</Button>
+            {!signInResult?.sent && signInResult?.link && (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!signInResult?.link) return;
+                  try {
+                    await navigator.clipboard.writeText(signInResult.link);
+                    toast({ title: "Copied", description: "Link copied to clipboard" });
+                  } catch {
+                    toast({ title: "Couldn't copy", description: "Please select the link and copy it", variant: "destructive" });
+                  }
+                }}
+              >
+                Copy link
+              </Button>
+            )}
+            <Button onClick={() => setSignInResult(null)}>Done</Button>
           </div>
         </DialogContent>
       </Dialog>

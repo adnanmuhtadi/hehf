@@ -5,6 +5,93 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ---- Emailed sign-in link -------------------------------------------------
+// Instead of a shared password, the host gets an email with a one-time link.
+// The link signs them in and takes them to /reset-password to choose their
+// own password. If the email can't be sent, the link is returned so the admin
+// can pass it on another way.
+const SITE_URL = (Deno.env.get("SITE_URL") || "https://hehf.co.uk").replace(/\/$/, "");
+
+function escapeHtmlText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function sendSignInLink(
+  adminClient: any,
+  email: string,
+  fullName: string,
+  isNew: boolean,
+): Promise<{ sent: boolean; link?: string; error?: string }> {
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${SITE_URL}/reset-password` },
+  });
+  const link: string | undefined = data?.properties?.action_link;
+  if (error || !link) {
+    return { sent: false, error: error?.message || "Could not create a sign-in link" };
+  }
+
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) return { sent: false, link, error: "Email is not set up (RESEND_API_KEY missing)" };
+
+  const subject = isNew
+    ? "Your Herts & Essex Host Families account"
+    : "Your new sign-in link for Herts & Essex Host Families";
+  const intro = isNew
+    ? "An account has been created for you on the Herts &amp; Essex Host Families host dashboard."
+    : "Here is a new link to sign in to the Herts &amp; Essex Host Families host dashboard.";
+  const html = `
+    <p>Hi ${escapeHtmlText(fullName) || "there"},</p>
+    <p>${intro}</p>
+    <p>Click the button below to sign in and choose your own password.</p>
+    <p>
+      <a href="${link}"
+         style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;
+                border-radius:6px;text-decoration:none;">Sign in and set password</a>
+    </p>
+    <p>The link works once and expires after a while. If it has expired, use
+       "Forgot password" on <a href="${SITE_URL}/auth">${SITE_URL}/auth</a> with this email address.</p>
+    <p>— Herts &amp; Essex Host Families</p>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Herts & Essex Host Families <noreply@hehf.co.uk>",
+        to: [email],
+        subject,
+        html,
+      }),
+    });
+    const ok = res.ok;
+    const detail = ok ? "" : await res.text();
+    try {
+      await adminClient.from("email_logs").insert({
+        booking_id: null,
+        recipient_email: email,
+        email_type: isNew ? "host_welcome_link" : "host_sign_in_link",
+        subject,
+        status: ok ? "sent" : "failed",
+        error_message: ok ? null : detail.slice(0, 500),
+      });
+    } catch (_) { /* logging is best effort */ }
+    if (!ok) return { sent: false, link, error: `Email failed: ${detail.slice(0, 200)}` };
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, link, error: e instanceof Error ? e.message : "Email failed" };
+  }
+}
+// ---------------------------------------------------------------------------
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -58,17 +145,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Standard temporary password; the host must change it on first login.
-    const password = "password1234";
-
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Create user via admin API (doesn't affect caller's session)
+    // Create user via admin API (doesn't affect caller's session). No password:
+    // the host sets their own from the emailed sign-in link.
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
-      password,
       email_confirm: true,
       user_metadata: { full_name, role: 'host' },
+      app_metadata: { created_by_admin: true },
     });
 
     if (authError) {
@@ -119,8 +204,18 @@ Deno.serve(async (req) => {
       .update({ must_reset_password: true })
       .eq('user_id', authData.user.id);
 
+    const link = await sendSignInLink(adminClient, email, full_name, true);
+    if (!link.sent) console.error('Sign-in email failed for new host:', link.error);
+
     return new Response(
-      JSON.stringify({ success: true, user_id: authData.user.id, password }),
+      JSON.stringify({
+        success: true,
+        user_id: authData.user.id,
+        email,
+        email_sent: link.sent,
+        email_error: link.error ?? null,
+        sign_in_link: link.sent ? null : link.link ?? null,
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

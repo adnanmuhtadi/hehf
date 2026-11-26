@@ -139,7 +139,7 @@ const Dashboard = () => {
           <DialogHeader>
             <DialogTitle>Password Reset Required</DialogTitle>
             <DialogDescription>
-              Your password has been reset by an administrator. Please create a new password to continue.
+              Please create your own password to continue.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handlePasswordReset} className="space-y-4">
@@ -174,7 +174,21 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {profile.role === 'admin' ? <AdminDashboard /> : <HostDashboard />}
+      {profile.role === 'admin' ? (
+        <AdminDashboard />
+      ) : profile.is_active === false && !impersonation ? (
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+          <div className="max-w-sm text-center space-y-4">
+            <h1 className="text-xl font-semibold text-foreground">Your account is paused</h1>
+            <p className="text-sm text-muted-foreground">
+              Please contact the HEHF team on info@hehf.co.uk if you think this is a mistake.
+            </p>
+            <Button variant="outline" onClick={() => signOut()}>Sign out</Button>
+          </div>
+        </div>
+      ) : (
+        <HostDashboard />
+      )}
     </>
   );
 };
