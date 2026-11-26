@@ -36,7 +36,7 @@ import { toast } from "@/hooks/use-toast";
 import { useLocations } from "@/hooks/useLocations";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
 import { datesProblem } from "@/lib/bookingRules";
-import { cancelAndEmailBeforeDelete } from "@/lib/bookingNotify";
+import { cancelAndEmailBeforeDelete, confirmNoDateClash } from "@/lib/bookingNotify";
 import BookingHostAuditLog from "@/components/BookingHostAuditLog";
 
 interface Booking {
@@ -273,6 +273,13 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
     const detailsDatesProblem = datesProblem(editBooking.arrival_date, editBooking.departure_date);
     if (detailsDatesProblem) {
       toast({ variant: "destructive", title: "Error", description: detailsDatesProblem });
+      return;
+    }
+
+    const newArrival = editBooking.arrival_date.toISOString().split("T")[0];
+    const newDeparture = editBooking.departure_date.toISOString().split("T")[0];
+    const datesMoved = newArrival !== booking.arrival_date || newDeparture !== booking.departure_date;
+    if (datesMoved && booking.status !== "cancelled" && !(await confirmNoDateClash(booking.id, newArrival, newDeparture))) {
       return;
     }
 

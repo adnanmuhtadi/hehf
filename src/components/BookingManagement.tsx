@@ -48,7 +48,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
 import { datesProblem, generateBookingReference } from "@/lib/bookingRules";
-import { cancelAndEmailBeforeDelete, emailHostsBookingCancelled } from "@/lib/bookingNotify";
+import { cancelAndEmailBeforeDelete, confirmNoDateClash, emailHostsBookingCancelled } from "@/lib/bookingNotify";
 
 type SortField = "booking_reference" | "location" | "arrival_date" | "country_of_students" | "status" | "hosts_available";
 type SortDirection = "asc" | "desc";
@@ -256,6 +256,13 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       return;
     }
     const becameCancelled = editBookingForm.status === "cancelled" && editingBooking.status !== "cancelled";
+
+    const newArrival = editBookingForm.arrival_date.toISOString().split("T")[0];
+    const newDeparture = editBookingForm.departure_date.toISOString().split("T")[0];
+    const datesMoved = newArrival !== editingBooking.arrival_date || newDeparture !== editingBooking.departure_date;
+    if (datesMoved && editBookingForm.status !== "cancelled" && !(await confirmNoDateClash(editingBooking.id, newArrival, newDeparture))) {
+      return;
+    }
 
     const restoreScroll = preserveScrollPosition();
     setLoading(true);
