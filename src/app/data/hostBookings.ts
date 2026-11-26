@@ -282,7 +282,7 @@ export function useRespond() {
       return { snapshots };
     },
     onError: (_e, _v, ctx) => {
-      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData<HostBooking[]>(key, data as HostBooking[]));
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: hostKey(userId) });

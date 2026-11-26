@@ -164,10 +164,10 @@ const BookingFormSheet = ({ open, editId, onClose }: { open: boolean; editId: st
       <Stepper label="Students" value={students} min={1} max={200} onChange={setStudents} />
 
       <Field label="Beds">
-        <Segmented<BedType>
+        <Segmented
           label="Beds"
           value={bed}
-          onChange={setBed}
+          onChange={(v) => setBed(v as BedType)}
           options={[
             { value: 'single_beds_only', label: 'Single only' },
             { value: 'shared_beds', label: 'Shared OK' },
