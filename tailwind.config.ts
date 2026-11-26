@@ -61,29 +61,6 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
-				// Admin and host app (dashboard) palette. Kept separate from the
-				// public site's tokens so the website's look doesn't change.
-				canvas: '#F4F6F9',
-				line: '#E3E8EF',
-				ink: {
-					DEFAULT: '#1E293B',
-					2: '#334155',
-					3: '#5B6777'
-				},
-				tone: {
-					'ok-bg': '#E3F6EA',
-					ok: '#146C37',
-					'warn-bg': '#FFF4E0',
-					warn: '#8A4B00',
-					'bad-bg': '#FDECEC',
-					bad: '#A61B1B',
-					'info-bg': '#E8F1FD',
-					info: '#0550AA',
-					'neutral-bg': '#EEF1F5',
-					neutral: '#3A4656',
-					'violet-bg': '#F3EEFD',
-					violet: '#5B2BB5'
-				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
