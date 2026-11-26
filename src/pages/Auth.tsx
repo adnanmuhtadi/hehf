@@ -1,230 +1,214 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, Link } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { AppButton, Field, fieldClass } from '@/app/ui';
+import { PasswordInput } from '@/app/password';
 import logo from '@/assets/logo.png';
+
+const RESEND_SECONDS = 45;
 
 const Auth = () => {
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [mode, setMode] = useState<'signin' | 'forgot'>('signin');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [resetEmail, setResetEmail] = useState('');
-  
-  // Sign In form state
-  const [signInData, setSignInData] = useState({
-    identifier: '',
-    password: '',
-  });
+  const [sent, setSent] = useState(false);
+  const [wait, setWait] = useState(0);
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (user && !loading) {
-      navigate('/dashboard');
-    }
+    if (user && !loading) navigate('/dashboard');
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
+    setBusy(true);
+    setError(null);
     try {
-      const { error } = await signIn(signInData.identifier, signInData.password);
-      
+      const { error } = await signIn(identifier, password);
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Sign In Failed",
-          description: error.message,
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Signed in successfully!",
-        });
+        setError(
+          /invalid|credentials|not found/i.test(error.message ?? '')
+            ? "That email or phone and password don't match. Check them, or reset your password."
+            : error.message,
+        );
       }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred",
-      });
+    } catch {
+      setError('Something went wrong. Check your connection and try again.');
     } finally {
-      setIsLoading(false);
+      setBusy(false);
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/reset-password`;
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: redirectUrl,
-      });
-      if (error) throw error;
-      toast({
-        title: 'Reset Link Sent',
-        description: 'Check your email for a password reset link.',
-      });
-      setShowForgotPassword(false);
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'Failed to send reset link.',
-      });
-    } finally {
-      setIsLoading(false);
+  const sendReset = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      setError(error.message || "We couldn't send the link. Try again.");
+      return;
     }
+    setSent(true);
+    setWait(RESEND_SECONDS);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="hehf-app flex min-h-[100dvh] items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
+      </div>
+    );
+  }
+
+  if (mode === 'forgot') {
+    return (
+      <div className="hehf-app flex min-h-[100dvh] justify-center bg-white">
+        <div className="flex w-full max-w-md flex-col">
+          <div className="px-3 pt-[max(10px,env(safe-area-inset-top))]">
+            <button
+              type="button"
+              aria-label="Back to sign in"
+              onClick={() => {
+                setMode('signin');
+                setError(null);
+              }}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-canvas"
+            >
+              <ChevronLeft className="h-[22px] w-[22px]" aria-hidden />
+            </button>
+          </div>
+          <form onSubmit={sendReset} className="flex flex-1 flex-col gap-[22px] px-6 pb-[max(34px,env(safe-area-inset-bottom))] pt-6">
+            <div className="flex flex-col gap-1.5">
+              <h1 className="text-[28px] font-bold text-ink">Reset your password</h1>
+              <p className="text-base leading-relaxed text-ink-3">We'll email you a link to choose a new one.</p>
+            </div>
+            <Field label="Email" htmlFor="reset-email">
+              <input
+                id="reset-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                className={fieldClass}
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                required
+              />
+            </Field>
+            {sent && (
+              <div role="status" className="flex gap-3.5 rounded-[14px] bg-tone-ok-bg p-4 text-[#0F5130]">
+                <Mail className="h-6 w-6 shrink-0" aria-hidden />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[15px] font-semibold">Check your inbox</span>
+                  <span className="text-sm leading-snug">
+                    If that email has an account, the link is on its way. Look in spam if it isn't there in a few minutes.
+                  </span>
+                </div>
+              </div>
+            )}
+            {error && (
+              <p role="alert" className="rounded-xl bg-tone-bad-bg px-3.5 py-3 text-sm text-tone-bad">
+                {error}
+              </p>
+            )}
+            <p className="text-sm text-ink-3">Signed up with a phone number only? Call the HEHF office and they'll reset it for you.</p>
+            <div className="mt-auto flex flex-col gap-2.5">
+              {sent ? (
+                <>
+                  <AppButton type="submit" variant="secondary" size="lg" disabled={wait > 0} loading={busy}>
+                    {wait > 0 ? `Resend in 0:${String(wait).padStart(2, '0')}` : 'Resend link'}
+                  </AppButton>
+                  <AppButton type="button" size="lg" onClick={() => setMode('signin')}>
+                    Back to sign in
+                  </AppButton>
+                </>
+              ) : (
+                <AppButton type="submit" size="lg" loading={busy}>
+                  Send reset link
+                </AppButton>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Back to Home Link */}
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Home</span>
-        </Link>
-
-        <div className="text-center mb-8">
-          <img 
-            src={logo} 
-            alt="Herts & Essex Host Families" 
-            className="h-20 mx-auto mb-4"
-          />
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Herts & Essex Host Families
-          </h1>
-          <p className="text-muted-foreground">
-            Access your portal
-          </p>
+    <div className="hehf-app flex min-h-[100dvh] justify-center bg-white">
+      <form
+        onSubmit={handleSignIn}
+        className="flex w-full max-w-md flex-col gap-6 px-6 pb-[max(34px,env(safe-area-inset-bottom))] pt-[max(48px,env(safe-area-inset-top))]"
+      >
+        <img src={logo} alt="Herts & Essex Host Families" className="h-20 w-20 self-start rounded-2xl" />
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[28px] font-bold text-ink">Welcome back</h1>
+          <p className="text-base text-ink-3">Sign in to see your HEHF bookings</p>
         </div>
-
-        {showForgotPassword ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Reset Password</CardTitle>
-              <CardDescription>
-                Enter your email address and we'll send you a link to reset your password.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email Address</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    'Send Reset Link'
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setShowForgotPassword(false)}
-                >
-                  Back to Sign In
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Sign In</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your account
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-identifier">Email or Phone Number</Label>
-                  <Input
-                    id="signin-identifier"
-                    type="text"
-                    placeholder="Enter your email or phone number"
-                    value={signInData.identifier}
-                    onChange={(e) =>
-                      setSignInData({ ...signInData, identifier: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={signInData.password}
-                    onChange={(e) =>
-                      setSignInData({ ...signInData, password: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Forgot your password?
-                  </button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+        <Field label="Email or phone number" htmlFor="signin-identifier">
+          <input
+            id="signin-identifier"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            className={fieldClass}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            required
+          />
+        </Field>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="signin-password" className="text-sm font-medium text-ink">
+              Password
+            </label>
+            <button
+              type="button"
+              className="text-sm font-medium text-primary"
+              onClick={() => {
+                setMode('forgot');
+                setError(null);
+                setSent(false);
+                if (identifier.includes('@')) setResetEmail(identifier);
+              }}
+            >
+              Forgot password?
+            </button>
+          </div>
+          <PasswordInput id="signin-password" value={password} onChange={setPassword} autoComplete="current-password" />
+        </div>
+        {error && (
+          <p role="alert" className="rounded-xl bg-tone-bad-bg px-3.5 py-3 text-sm text-tone-bad">
+            {error}
+          </p>
         )}
-      </div>
+        <AppButton type="submit" size="lg" loading={busy}>
+          Sign in
+        </AppButton>
+        <p className="mt-auto pt-6 text-center text-sm text-ink-3">
+          New hosts get an invite from HEHF. Want to host?{' '}
+          <Link to="/become-host" className="font-medium text-primary">
+            Apply here
+          </Link>
+        </p>
+        <Link to="/" className="self-center text-sm text-ink-3 hover:text-ink">
+          Back to the website
+        </Link>
+      </form>
     </div>
   );
 };

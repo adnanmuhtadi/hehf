@@ -119,3 +119,17 @@
     @apply bg-background text-foreground;
   }
 }
+/* Admin and host app (everything under /dashboard and the sign-in pages). */
+.hehf-app {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+  background: #F4F6F9;
+  color: #1E293B;
+  -webkit-tap-highlight-color: transparent;
+}
+.hehf-app :focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pt-safe { padding-top: env(safe-area-inset-top); }
