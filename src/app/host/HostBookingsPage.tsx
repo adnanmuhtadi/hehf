@@ -197,7 +197,7 @@ const HostBookingsPage = () => {
             {areaLabel}
           </button>
         </div>
-        <Segmented
+        <Segmented<Tab>
           label="Which bookings"
           value={tab}
           onChange={setTab}
