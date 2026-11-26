@@ -1,182 +1,152 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { CloudOff, Loader2, Phone } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import AdminDashboard from '@/components/AdminDashboard';
-import HostDashboard from '@/components/HostDashboard';
-import ImpersonationBanner from '@/components/ImpersonationBanner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { AppButton, btn } from '@/app/ui';
+import { PasswordInput, PasswordStrength, passwordChecks } from '@/app/password';
+import { OFFICE } from '@/app/install';
+import HostApp from '@/app/host/HostApp';
+import AdminApp from '@/app/admin/AdminApp';
 
-const Dashboard = () => {
-  const { user, profile, loading, profileMissing, refreshProfile, signOut, impersonation } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetting, setResetting] = useState(false);
+/** Full-page "choose your password", used after HEHF gives someone a temporary one. */
+const SetPasswordScreen = ({ onDone }: { onDone: () => void }) => {
+  const [pw, setPw] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const checks = passwordChecks(pw);
 
-  useEffect(() => {
-    if (!loading && !user && !profile) {
-      navigate('/auth');
-    }
-  }, [user, loading, profile, navigate]);
-
-  useEffect(() => {
-    // Never make an admin who is viewing a host's account set that host's password.
-    setShowPasswordReset(!!profile?.must_reset_password && !impersonation);
-  }, [profile, impersonation]);
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
-        variant: "destructive",
-      });
+    if (!checks.ok) {
+      setError('Choose a password with at least 8 characters that isn’t a common one.');
       return;
     }
-
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
+    setSaving(true);
+    setError(null);
+    // The must_reset_password flag is cleared by a database trigger when the
+    // auth password changes.
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    setSaving(false);
+    if (error) {
+      setError(error.message);
       return;
     }
-
-    setResetting(true);
-    try {
-      // Update password
-      const { error: authError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (authError) throw authError;
-
-      // The must_reset_password flag is cleared automatically by a database
-      // trigger when the user's auth password actually changes.
-
-      toast({
-        title: "Success",
-        description: "Password updated successfully",
-      });
-
-      setShowPasswordReset(false);
-      setNewPassword('');
-      setConfirmPassword('');
-      refreshProfile();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password",
-        variant: "destructive",
-      });
-    } finally {
-      setResetting(false);
-    }
+    toast.success('Password saved');
+    onDone();
   };
 
-  if (!loading && profileMissing) {
-    // Signed in, but there's no profile we can read. Without this the page
-    // just spins forever and the host thinks login is broken.
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="max-w-sm text-center space-y-4">
-          <h1 className="text-xl font-semibold">We couldn't load your account</h1>
-          <p className="text-muted-foreground">
-            You're signed in, but your host profile didn't load. Please try again. If it keeps
-            happening, contact the HEHF office so they can check your account.
+  return (
+    <div className="hehf-app flex min-h-[100dvh] justify-center bg-white">
+      <form
+        onSubmit={submit}
+        className="flex w-full max-w-md flex-col gap-6 px-6 pb-[max(34px,env(safe-area-inset-bottom))] pt-[max(72px,env(safe-area-inset-top))]"
+      >
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[28px] font-bold text-ink">Choose your password</h1>
+          <p className="text-base leading-relaxed text-ink-3">You'll use this to sign in from now on. Only you will know it.</p>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="new-password" className="text-sm font-medium text-ink">
+            New password
+          </label>
+          <PasswordInput id="new-password" value={pw} onChange={setPw} autoComplete="new-password" />
+        </div>
+        <PasswordStrength value={pw} />
+        {error && (
+          <p role="alert" className="rounded-xl bg-tone-bad-bg px-3.5 py-3 text-sm text-tone-bad">
+            {error}
           </p>
-          <div className="flex gap-2 justify-center">
-            <Button onClick={() => refreshProfile()}>Try again</Button>
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await signOut();
-                navigate('/auth');
-              }}
-            >
-              Sign out
-            </Button>
+        )}
+        <div className="mt-auto">
+          <AppButton type="submit" size="lg" className="w-full" loading={saving}>
+            Save and continue
+          </AppButton>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const CouldntLoadScreen = () => {
+  const { user, refreshProfile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [trying, setTrying] = useState(false);
+  return (
+    <div className="hehf-app flex min-h-[100dvh] justify-center bg-white">
+      <div className="flex w-full max-w-md flex-col px-7 pb-[max(34px,env(safe-area-inset-bottom))]">
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-tone-warn-bg text-[#B45309]">
+            <CloudOff className="h-11 w-11" aria-hidden />
           </div>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-bold text-ink">We couldn't load your account</h1>
+            <p className="text-base leading-relaxed text-ink-2">
+              You're signed in, but your profile didn't load. This is usually a weak connection. If it keeps happening, the
+              HEHF office can check your account.
+            </p>
+          </div>
+          {user?.email && (
+            <div className="w-full rounded-xl bg-canvas px-3.5 py-3 text-left text-[13px] text-ink-3">Signed in as {user.email}</div>
+          )}
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <AppButton
+            size="lg"
+            loading={trying}
+            onClick={async () => {
+              setTrying(true);
+              await refreshProfile();
+              setTrying(false);
+            }}
+          >
+            Try again
+          </AppButton>
+          <a href={`tel:${OFFICE.phone}`} className={btn('secondary', 'lg', 'no-underline')}>
+            <Phone className="h-4 w-4" aria-hidden />
+            Call the HEHF office
+          </a>
+          <button
+            type="button"
+            className="self-center p-2.5 text-[15px] font-medium text-primary"
+            onClick={async () => {
+              await signOut();
+              navigate('/auth');
+            }}
+          >
+            Sign out
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  const { user, profile, loading, profileMissing, refreshProfile, impersonation } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user && !profile) navigate('/auth');
+  }, [user, loading, profile, navigate]);
+
+  if (!loading && profileMissing) return <CouldntLoadScreen />;
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="hehf-app flex min-h-[100dvh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
       </div>
     );
   }
 
-  return (
-    <>
-      <ImpersonationBanner />
-      <Dialog open={showPasswordReset} onOpenChange={() => {}}>
-        <DialogContent 
-          className="sm:max-w-md" 
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Password Reset Required</DialogTitle>
-            <DialogDescription>
-              Your password has been reset by an administrator. Please create a new password to continue.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handlePasswordReset} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                required
-                minLength={6}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                required
-                minLength={6}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={resetting}>
-              {resetting ? 'Updating...' : 'Update Password'}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+  // Never make an admin who is viewing a host's account set that host's password.
+  if (profile.must_reset_password && !impersonation) {
+    return <SetPasswordScreen onDone={() => refreshProfile()} />;
+  }
 
-      {profile.role === 'admin' ? <AdminDashboard /> : <HostDashboard />}
-    </>
-  );
+  return profile.role === 'admin' ? <AdminApp /> : <HostApp />;
 };
 
 export default Dashboard;

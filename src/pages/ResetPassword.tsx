@@ -1,130 +1,101 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/logo.png';
+import { AppButton, btn } from '@/app/ui';
+import { PasswordInput, PasswordStrength, passwordChecks } from '@/app/password';
 
+/** Where the "reset your password" email link lands. */
 const ResetPassword = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isReady, setIsReady] = useState(false);
+  const [state, setState] = useState<'checking' | 'ready' | 'expired'>('checking');
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsReady(true);
-      }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || session) setState('ready');
     });
-
-    // Also check if we already have a session (user clicked reset link)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsReady(true);
-      }
+      if (session) setState('ready');
     });
-
-    return () => subscription.unsubscribe();
+    // If nothing turns up, the link has expired or was already used.
+    const t = setTimeout(() => setState((s) => (s === 'checking' ? 'expired' : s)), 8000);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(t);
+    };
   }, []);
 
-  const handleReset = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (newPassword.length < 6) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Password must be at least 6 characters.' });
+    if (!passwordChecks(pw).ok) {
+      setError('Choose a password with at least 8 characters that isn’t a common one.');
       return;
     }
-
-    if (newPassword !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Passwords do not match.' });
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    setBusy(false);
+    if (error) {
+      setError(error.message);
       return;
     }
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-
-      toast({ title: 'Success', description: 'Your password has been updated.' });
-      navigate('/auth');
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message || 'Failed to update password.' });
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success('Password saved');
+    navigate('/dashboard');
   };
 
-  if (!isReady) {
+  if (state !== 'ready') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted px-4">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Verifying reset link...</p>
-        </div>
+      <div className="hehf-app flex min-h-[100dvh] items-center justify-center bg-white px-6">
+        {state === 'checking' ? (
+          <div className="flex flex-col items-center gap-4 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+            <p className="text-ink-3">Checking your link…</p>
+          </div>
+        ) : (
+          <div className="flex max-w-sm flex-col items-center gap-4 text-center">
+            <h1 className="text-2xl font-bold text-ink">This link has expired</h1>
+            <p className="text-base text-ink-2">Reset links work once and only for a short time. Ask for a new one.</p>
+            <Link to="/auth" className={btn('primary', 'lg', 'w-full no-underline')}>
+              Back to sign in
+            </Link>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img src={logo} alt="Herts & Essex Host Families" className="h-20 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-foreground mb-2">Set New Password</h1>
+    <div className="hehf-app flex min-h-[100dvh] justify-center bg-white">
+      <form
+        onSubmit={submit}
+        className="flex w-full max-w-md flex-col gap-6 px-6 pb-[max(34px,env(safe-area-inset-bottom))] pt-[max(72px,env(safe-area-inset-top))]"
+      >
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[28px] font-bold text-ink">Choose a new password</h1>
+          <p className="text-base leading-relaxed text-ink-3">You'll use this to sign in from now on.</p>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>Enter your new password below.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleReset} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  'Update Password'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="new-password" className="text-sm font-medium text-ink">
+            New password
+          </label>
+          <PasswordInput id="new-password" value={pw} onChange={setPw} autoComplete="new-password" />
+        </div>
+        <PasswordStrength value={pw} />
+        {error && (
+          <p role="alert" className="rounded-xl bg-tone-bad-bg px-3.5 py-3 text-sm text-tone-bad">
+            {error}
+          </p>
+        )}
+        <AppButton type="submit" size="lg" className="mt-auto" loading={busy}>
+          Save and continue
+        </AppButton>
+      </form>
     </div>
   );
 };

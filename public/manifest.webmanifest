@@ -1,0 +1,15 @@
+{
+  "name": "HEHF Host Families",
+  "short_name": "HEHF",
+  "description": "Bookings for Herts & Essex Host Families hosts and staff.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F4F6F9",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

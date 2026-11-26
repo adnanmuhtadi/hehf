@@ -25,8 +25,11 @@ import TermsConditions from "./pages/TermsConditions";
 import Travel from "./pages/Travel";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
 import ScrollToTop from "@/components/ScrollToTop";
+import { lazy, Suspense } from "react";
+
+// The admin and host app loads separately so the public site stays light.
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 const queryClient = new QueryClient();
@@ -36,7 +39,7 @@ const App = () =>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner position="top-center" richColors closeButton />
         <BrowserRouter>
           <ScrollToTop />
           <ScrollToTopButton />
@@ -45,7 +48,14 @@ const App = () =>
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard/*"
+              element={
+                <Suspense fallback={<div className="hehf-app min-h-[100dvh]" />}>
+                  <Dashboard />
+                </Suspense>
+              }
+            />
             <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/become-partner" element={<BecomePartner />} />
             <Route path="/become-partners" element={<BecomePartner />} />
