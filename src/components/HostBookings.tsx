@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import { isBookingOpen, studentCountProblem } from "@/lib/bookingRules";
 
 interface BookingAssignment {
   id: string;
@@ -182,6 +183,12 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
 
   const confirmAccept = () => {
     if (!acceptDialogAssignmentId) return;
+    const max = assignments.find(a => a.id === acceptDialogAssignmentId)?.bookings.number_of_students;
+    const problem = studentCountProblem(studentCount, max);
+    if (problem) {
+      toast({ variant: "destructive", title: "Check the number", description: problem });
+      return;
+    }
     handleResponse(acceptDialogAssignmentId, "accepted", studentCount);
     setAcceptDialogAssignmentId(null);
     setStudentCount(0);
@@ -388,7 +395,7 @@ const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
             )}
 
             {/* Action Buttons */}
-            {selectedAssignment.response === "pending" && (
+            {selectedAssignment.response === "pending" && isBookingOpen(booking) && (
               <div className="flex gap-2 pt-2">
                 <Button
                   size="sm"

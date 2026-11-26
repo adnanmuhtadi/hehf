@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 interface UserData {
   email?: string;
-  password: string;
+  password?: string;
   full_name: string;
   phone?: string;
   address?: string;
@@ -133,7 +133,7 @@ const BulkUserImport = () => {
             user.email = value;
             break;
           case 'password':
-            user.password = value;
+            // Passwords are no longer imported; hosts get an emailed sign-in link.
             break;
           case 'full_name':
             user.full_name = value;
@@ -159,7 +159,8 @@ const BulkUserImport = () => {
         }
       });
 
-      if (user.password && user.full_name) {
+      if (user.full_name && user.email) {
+        user.email = user.email.trim().toLowerCase();
         users.push(user);
       }
     }
@@ -249,8 +250,8 @@ const BulkUserImport = () => {
   };
 
   const handleDownloadTemplate = () => {
-    const template = `password,full_name,phone,address,max_students_capacity,pets,preferred_locations,role,email
-SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hatch End",host,john.doe@example.com`;
+    const template = `full_name,email,phone,address,max_students_capacity,pets,preferred_locations
+John Doe,john.doe@example.com,07123456789,"123 Main Street, London",4,dog,"Watford,Hatch End"`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -297,8 +298,8 @@ SecurePass123!,John Doe,07123456789,"123 Main Street, London",4,dog,"Watford,Hat
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-xs sm:text-sm">
-            CSV must include: <strong>password, full_name</strong>. 
-            Optional: email, phone, address, max_students_capacity, pets, preferred_locations, role
+            CSV must include: <strong>full_name, email</strong>. Each host is emailed a sign-in link to set their own password, so no passwords go in the file.
+            Optional: phone, address, max_students_capacity, pets, preferred_locations. Rows without an email are skipped.
           </AlertDescription>
         </Alert>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isReady, setIsReady] = useState(false);
+  const [linkInvalid, setLinkInvalid] = useState(false);
+  const readyRef = useRef(false);
 
   useEffect(() => {
     // Listen for the PASSWORD_RECOVERY event
@@ -31,8 +33,23 @@ const ResetPassword = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // An expired or already-used link comes back with an error in the URL.
+    const params = new URLSearchParams(window.location.hash.slice(1) + '&' + window.location.search.slice(1));
+    if (params.get('error') || params.get('error_code')) setLinkInvalid(true);
+
+    // Give the link a few seconds to sign in; after that, say it didn't work
+    // instead of spinning forever.
+    const timer = setTimeout(() => setLinkInvalid((v) => v || !readyRef.current), 8000);
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    readyRef.current = isReady;
+  }, [isReady]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +77,20 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
+
+  if (!isReady && linkInvalid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+        <div className="max-w-sm text-center space-y-4">
+          <h1 className="text-xl font-semibold text-foreground">This link has expired</h1>
+          <p className="text-muted-foreground text-sm">
+            Sign-in links only work once and for a limited time. Request a new one from the sign-in page, or ask the HEHF team to send you another.
+          </p>
+          <Button onClick={() => navigate('/auth')}>Go to sign in</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!isReady) {
     return (

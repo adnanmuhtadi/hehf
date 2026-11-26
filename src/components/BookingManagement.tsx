@@ -47,6 +47,8 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import { datesProblem, generateBookingReference } from "@/lib/bookingRules";
+import { cancelAndEmailBeforeDelete, emailHostsBookingCancelled } from "@/lib/bookingNotify";
 
 type SortField = "booking_reference" | "location" | "arrival_date" | "country_of_students" | "status" | "hosts_available";
 type SortDirection = "asc" | "desc";
@@ -248,6 +250,12 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
       });
       return;
     }
+    const editDatesProblem = datesProblem(editBookingForm.arrival_date, editBookingForm.departure_date);
+    if (editDatesProblem) {
+      toast({ variant: "destructive", title: "Error", description: editDatesProblem });
+      return;
+    }
+    const becameCancelled = editBookingForm.status === "cancelled" && editingBooking.status !== "cancelled";
 
     const restoreScroll = preserveScrollPosition();
     setLoading(true);
@@ -269,6 +277,8 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
         .eq("id", editingBooking.id);
 
       if (error) throw error;
+
+      if (becameCancelled) emailHostsBookingCancelled(editingBooking.id);
 
       toast({
         title: "Success",
@@ -375,21 +385,15 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     }
   };
 
-  const generateBookingReference = () => {
-    const year = new Date().getFullYear();
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0");
-    return `BK${year}${random}`;
-  };
 
   const handleCreateBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBooking.arrival_date || !newBooking.departure_date) {
+    const createDatesProblem = datesProblem(newBooking.arrival_date, newBooking.departure_date);
+    if (createDatesProblem || !newBooking.arrival_date || !newBooking.departure_date) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please select both arrival and departure dates",
+        description: createDatesProblem ?? "Please select both arrival and departure dates",
       });
       return;
     }
@@ -512,9 +516,7 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
 
       // Notify hosts when an approved/confirmed booking is being cancelled
       if (newStatus === "cancelled" && !wasCancelledBefore) {
-        supabase.functions
-          .invoke("notify-host-booking-cancelled", { body: { booking_id: bookingId } })
-          .catch((e) => console.error("notify-host-booking-cancelled failed:", e));
+  emailHostsBookingCancelled(bookingId);
       }
 
       fetchBookings(true);
@@ -533,6 +535,9 @@ const BookingManagement = ({ onViewBooking }: BookingManagementProps) => {
     const restoreScroll = preserveScrollPosition();
     setDeletingBookingId(bookingId);
     try {
+      // Tell accepted hosts first, while the booking still exists.
+      await cancelAndEmailBeforeDelete(bookingId, bookings.find((b) => b.id === bookingId)?.status);
+
       // First delete related booking_hosts
       const { error: hostsError } = await supabase.from("booking_hosts").delete().eq("booking_id", bookingId);
 

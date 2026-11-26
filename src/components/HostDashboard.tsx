@@ -238,7 +238,7 @@ const HostDashboard = () => {
                       £{stats.loading ? '...' : stats.totalActualEarnings.toFixed(2)}
                     </div>
                     <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                      From bookings marked available
+                      From bookings approved by admin
                     </p>
                   </CardContent>
                 </Card>

@@ -35,6 +35,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useLocations } from "@/hooks/useLocations";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import { datesProblem } from "@/lib/bookingRules";
+import { cancelAndEmailBeforeDelete } from "@/lib/bookingNotify";
 import BookingHostAuditLog from "@/components/BookingHostAuditLog";
 
 interface Booking {
@@ -268,6 +270,11 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
       });
       return;
     }
+    const detailsDatesProblem = datesProblem(editBooking.arrival_date, editBooking.departure_date);
+    if (detailsDatesProblem) {
+      toast({ variant: "destructive", title: "Error", description: detailsDatesProblem });
+      return;
+    }
 
     setEditLoading(true);
     try {
@@ -309,6 +316,8 @@ const BookingDetailsView = ({ bookingId, onBack, onBookingUpdated }: BookingDeta
 
     const restoreScroll = preserveScrollPosition();
     try {
+      // Tell accepted hosts first, while the booking still exists.
+      await cancelAndEmailBeforeDelete(booking.id, booking.status);
       const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
 
       if (error) throw error;

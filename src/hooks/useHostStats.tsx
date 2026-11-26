@@ -123,7 +123,8 @@ export const useHostStats = (locationFilter?: string) => {
         .gte('bookings.arrival_date', today)
         .neq('bookings.status', 'cancelled');
 
-      // Fetch accepted bookings for actual earnings calculation
+      // Earnings only count bookings an admin has approved the host for.
+      // Saying "I can host" alone doesn't mean the students are coming.
       const { data: acceptedBookingsData } = await supabase
         .from('booking_hosts')
         .select(`
@@ -132,6 +133,7 @@ export const useHostStats = (locationFilter?: string) => {
         `)
         .eq('host_id', user.id)
         .eq('response', 'accepted')
+        .not('approved_at', 'is', null)
         .neq('bookings.status', 'cancelled');
 
       // Calculate actual earnings from accepted bookings (using bed capacity)

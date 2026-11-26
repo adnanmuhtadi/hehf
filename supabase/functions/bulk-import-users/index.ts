@@ -7,7 +7,7 @@ const corsHeaders = {
 
 interface UserImportData {
   email?: string;
-  password: string;
+  password?: string;
   full_name: string;
   phone?: string;
   address?: string;
@@ -21,7 +21,95 @@ interface ImportResult {
   identifier: string;
   success: boolean;
   error?: string;
+  email_sent?: boolean;
 }
+
+// ---- Emailed sign-in link -------------------------------------------------
+// Instead of a shared password, the host gets an email with a one-time link.
+// The link signs them in and takes them to /reset-password to choose their
+// own password. If the email can't be sent, the link is returned so the admin
+// can pass it on another way.
+const SITE_URL = (Deno.env.get("SITE_URL") || "https://hehf.co.uk").replace(/\/$/, "");
+
+function escapeHtmlText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function sendSignInLink(
+  adminClient: any,
+  email: string,
+  fullName: string,
+  isNew: boolean,
+): Promise<{ sent: boolean; link?: string; error?: string }> {
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${SITE_URL}/reset-password` },
+  });
+  const link: string | undefined = data?.properties?.action_link;
+  if (error || !link) {
+    return { sent: false, error: error?.message || "Could not create a sign-in link" };
+  }
+
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) return { sent: false, link, error: "Email is not set up (RESEND_API_KEY missing)" };
+
+  const subject = isNew
+    ? "Your Herts & Essex Host Families account"
+    : "Your new sign-in link for Herts & Essex Host Families";
+  const intro = isNew
+    ? "An account has been created for you on the Herts &amp; Essex Host Families host dashboard."
+    : "Here is a new link to sign in to the Herts &amp; Essex Host Families host dashboard.";
+  const html = `
+    <p>Hi ${escapeHtmlText(fullName) || "there"},</p>
+    <p>${intro}</p>
+    <p>Click the button below to sign in and choose your own password.</p>
+    <p>
+      <a href="${link}"
+         style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;
+                border-radius:6px;text-decoration:none;">Sign in and set password</a>
+    </p>
+    <p>The link works once and expires after a while. If it has expired, use
+       "Forgot password" on <a href="${SITE_URL}/auth">${SITE_URL}/auth</a> with this email address.</p>
+    <p>— Herts &amp; Essex Host Families</p>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Herts & Essex Host Families <noreply@hehf.co.uk>",
+        to: [email],
+        subject,
+        html,
+      }),
+    });
+    const ok = res.ok;
+    const detail = ok ? "" : await res.text();
+    try {
+      await adminClient.from("email_logs").insert({
+        booking_id: null,
+        recipient_email: email,
+        email_type: isNew ? "host_welcome_link" : "host_sign_in_link",
+        subject,
+        status: ok ? "sent" : "failed",
+        error_message: ok ? null : detail.slice(0, 500),
+      });
+    } catch (_) { /* logging is best effort */ }
+    if (!ok) return { sent: false, link, error: `Email failed: ${detail.slice(0, 200)}` };
+    return { sent: true };
+  } catch (e) {
+    return { sent: false, link, error: e instanceof Error ? e.message : "Email failed" };
+  }
+}
+// ---------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -82,28 +170,27 @@ Deno.serve(async (req) => {
     for (const userData of users) {
       const identifier = userData.email || userData.full_name || 'unknown';
       try {
-        // Validate required fields
-        if (!userData.password || !userData.full_name) {
+        // Validate required fields. Every host needs a real email: that's
+        // where their sign-in link goes.
+        const email = (userData.email || '').trim().toLowerCase();
+        if (!userData.full_name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           results.push({
             identifier,
             success: false,
-            error: 'Missing required fields (password, full_name)'
+            error: 'Each host needs a full_name and a valid email (the sign-in link is emailed to them)'
           });
           continue;
         }
 
-        // Generate email if not provided (using full_name as basis)
-        const email = userData.email || `${userData.full_name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@host.local`;
-
-        // Create user in Auth
+        // Create user in Auth. No password: they set their own from the email.
         const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-          email: email,
-          password: userData.password,
-          email_confirm: true, // Auto-confirm email
+          email,
+          email_confirm: true,
           user_metadata: {
             full_name: userData.full_name,
-            role: userData.role || 'host'
-          }
+            role: 'host'
+          },
+          app_metadata: { created_by_admin: true },
         });
 
         if (authError) {
@@ -133,8 +220,9 @@ Deno.serve(async (req) => {
             max_students_capacity: userData.max_students_capacity || 0,
             pets: userData.pets || null,
             preferred_locations: userData.preferred_locations || [],
-            role: userData.role || 'host',
-            is_active: true
+            role: 'host',
+            is_active: true,
+            must_reset_password: true,
           })
           .eq('user_id', authData.user.id);
 
@@ -149,23 +237,25 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Add host role to user_roles table if role is host
-        if (userData.role === 'host' || !userData.role) {
-          const { error: roleError } = await adminClient
-            .from('user_roles')
-            .insert({
-              user_id: authData.user.id,
-              role: 'host'
-            });
-
-          if (roleError) {
-            console.error('Role insert error for', identifier, ':', roleError);
-          }
+        // Imports only ever create hosts. Admins are set up by hand.
+        const { error: roleError } = await adminClient
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: 'host'
+          });
+        if (roleError) {
+          console.error('Role insert error for', identifier, ':', roleError);
         }
+
+        if (results.length > 0) await new Promise((r) => setTimeout(r, 250));
+        const link = await sendSignInLink(adminClient, email, userData.full_name, true);
 
         results.push({
           identifier,
-          success: true
+          success: true,
+          email_sent: link.sent,
+          error: link.sent ? undefined : `Account created, but the sign-in email failed (${link.error}). Use "Send sign-in link" on the Hosts page.`,
         });
 
       } catch (err) {

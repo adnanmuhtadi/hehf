@@ -40,6 +40,7 @@ import { useMemo } from "react";
 import { useLocations } from "@/hooks/useLocations";
 import { Checkbox } from "@/components/ui/checkbox";
 import { preserveScrollPosition } from "@/lib/preserveScroll";
+import { isBookingOpen, studentCountProblem } from "@/lib/bookingRules";
 
 interface Booking {
   id: string;
@@ -367,6 +368,12 @@ const HostBookingActions = ({
 
   const confirmAccept = () => {
     if (!acceptDialogBookingId) return;
+    const max = bookings.find(b => b.id === acceptDialogBookingId)?.number_of_students;
+    const problem = studentCountProblem(studentCount, max);
+    if (problem) {
+      toast({ variant: "destructive", title: "Check the number", description: problem });
+      return;
+    }
     handleBookingResponse(acceptDialogBookingId, "accepted", studentCount);
     setAcceptDialogBookingId(null);
     setAcceptDialogAction("accept");
@@ -743,7 +750,11 @@ const HostBookingActions = ({
                   )}
 
                   {/* Action Buttons */}
-                  {response === "pending" || response === "available" ? (
+                  {!isBookingOpen(booking) ? (
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      {booking.status === "cancelled" ? "This booking has been cancelled." : "This booking is closed."}
+                    </p>
+                  ) : response === "pending" || response === "available" ? (
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
                         <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
@@ -850,7 +861,7 @@ const HostBookingActions = ({
               </DialogTitle>
               <DialogDescription className="text-center">
                 {acceptDialogAction === "update"
-                  ? "Change the number of students you can accommodate for this booking."
+                  ? "Change the number of students you can accommodate. The admin will be told, and will need to approve the new number."
                   : "Please confirm how many students you can accommodate. The admin will be notified."}
               </DialogDescription>
             </DialogHeader>
