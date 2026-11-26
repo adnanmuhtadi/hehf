@@ -2,12 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "react-router-dom";
 
 const ScrollToTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);
-  // The admin and host app has its own tab bar, so the button would cover it.
-  const inApp = useLocation().pathname.startsWith("/dashboard");
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -28,7 +25,7 @@ const ScrollToTopButton = () => {
 
   return (
     <AnimatePresence>
-      {isVisible && !inApp && (
+      {isVisible && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}

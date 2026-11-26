@@ -1,0 +1,753 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Check, X, Eye, EyeOff, ArrowLeft, CheckCircle, PoundSterling, RotateCcw, BedDouble, Filter } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { preserveScrollPosition } from "@/lib/preserveScroll";
+
+interface BookingAssignment {
+  id: string;
+  response: "pending" | "accepted" | "declined";
+  students_assigned: number;
+  approved_at?: string | null;
+  bookings: {
+    id: string;
+    booking_reference: string;
+    arrival_date: string;
+    departure_date: string;
+    number_of_nights: number;
+    location: string;
+    country_of_students: string;
+    number_of_students: number;
+    status: string;
+    notes?: string;
+    bed_type?: "single_beds_only" | "shared_beds";
+  };
+}
+
+interface LocationBonus {
+  location: string;
+  bonus_per_night: number;
+}
+
+interface HostBookingsProps {
+  onResponseUpdate?: () => void;
+}
+
+const HostBookings = ({ onResponseUpdate }: HostBookingsProps) => {
+  const { user, profile } = useAuth();
+  const [assignments, setAssignments] = useState<BookingAssignment[]>([]);
+  const [locationBonuses, setLocationBonuses] = useState<LocationBonus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAssignment, setSelectedAssignment] = useState<BookingAssignment | null>(null);
+  const [acceptDialogAssignmentId, setAcceptDialogAssignmentId] = useState<string | null>(null);
+  const [acceptDialogBedType, setAcceptDialogBedType] = useState<"single_beds_only" | "shared_beds" | undefined>();
+  const [studentCount, setStudentCount] = useState<number>(0);
+  const [hideDeclined, setHideDeclined] = useState(false);
+  const [showPast, setShowPast] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
+  const [bedTypeFilter, setBedTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [reinstateDialogId, setReinstateDialogId] = useState<string | null>(null);
+
+  const ratePerStudentPerNight = profile?.rate_per_student_per_night || 0;
+  const singleBedCapacity = profile?.single_bed_capacity || 0;
+  const sharedBedCapacity = profile?.shared_bed_capacity || 0;
+
+  const getBonusForLocation = (location: string): number => {
+    const bonus = locationBonuses.find(
+      (b) =>
+        location.toLowerCase().includes(b.location.toLowerCase()) ||
+        b.location.toLowerCase().includes(location.toLowerCase()),
+    );
+    return bonus?.bonus_per_night || 0;
+  };
+
+  const getCapacityForBedType = (bedType?: "single_beds_only" | "shared_beds") => {
+    return bedType === "shared_beds" ? sharedBedCapacity : singleBedCapacity;
+  };
+
+  const calculateEarningsWithBonus = (nights: number, capacity: number, location: string) => {
+    const baseEarnings = ratePerStudentPerNight * nights * capacity;
+    const locationBonus = getBonusForLocation(location) * nights;
+    return { baseEarnings, locationBonus, total: baseEarnings + locationBonus };
+  };
+
+  const fetchLocationBonuses = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("host_location_bonuses")
+        .select("location, bonus_per_night")
+        .eq("host_id", user.id);
+      if (error) throw error;
+      setLocationBonuses(data || []);
+    } catch (error) {
+      console.error("Error fetching location bonuses:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchLocationBonuses();
+      fetchBookingAssignments();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`host-bookings-approvals-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "booking_hosts", filter: `host_id=eq.${user.id}` },
+        () => fetchBookingAssignments(true),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const fetchBookingAssignments = async (preserveScroll = false) => {
+    if (!user) return;
+    const restoreScroll = preserveScroll ? preserveScrollPosition() : undefined;
+    try {
+      const { data, error } = await supabase
+        .from("booking_hosts")
+        .select(`
+          *,
+          bookings (
+            id, booking_reference, arrival_date, departure_date,
+            number_of_nights, location, country_of_students,
+            number_of_students, status, notes, bed_type
+          )
+        `)
+        .eq("host_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setAssignments(data || []);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to fetch booking assignments" });
+    } finally {
+      setLoading(false);
+      restoreScroll?.();
+    }
+  };
+
+  const handleResponse = async (assignmentId: string, response: "accepted" | "declined" | "pending", studentsAssigned?: number) => {
+    const restoreScroll = preserveScrollPosition();
+    try {
+      const updateData: any = { response, responded_at: new Date().toISOString() };
+      if (response === "accepted" && studentsAssigned !== undefined) {
+        updateData.students_assigned = studentsAssigned;
+      }
+      if (response === "pending") {
+        updateData.responded_at = null;
+        updateData.students_assigned = 0;
+      }
+      const { error } = await supabase.from("booking_hosts").update(updateData).eq("id", assignmentId);
+      if (error) throw error;
+      toast({ title: "Success", description: `Booking ${response} successfully` });
+      fetchBookingAssignments(true);
+      onResponseUpdate?.();
+      // Refresh the selected assignment if we're in detail view
+      if (selectedAssignment?.id === assignmentId) {
+        setSelectedAssignment(prev => prev ? { ...prev, response, students_assigned: studentsAssigned || prev.students_assigned } : null);
+      }
+    } catch (error: any) {
+      // Show the real reason (e.g. "already accepted booking X for overlapping dates").
+      toast({ variant: "destructive", title: "Error", description: error?.message || "Failed to update booking response" });
+    } finally {
+      restoreScroll();
+    }
+  };
+
+  const openAcceptDialog = (assignmentId: string, bedType?: "single_beds_only" | "shared_beds") => {
+    const capacity = getCapacityForBedType(bedType);
+    setStudentCount(capacity);
+    setAcceptDialogBedType(bedType);
+    setAcceptDialogAssignmentId(assignmentId);
+  };
+
+  const confirmAccept = () => {
+    if (!acceptDialogAssignmentId) return;
+    handleResponse(acceptDialogAssignmentId, "accepted", studentCount);
+    setAcceptDialogAssignmentId(null);
+    setStudentCount(0);
+  };
+
+  const getHostStatusBadge = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return (
+        <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+          Completed
+        </Badge>
+      );
+    }
+    if (assignment.response === "accepted") {
+      if (assignment.approved_at) {
+        return (
+          <Badge className="bg-green-600 text-white text-[10px] sm:text-xs whitespace-nowrap">
+            ✓ Approved
+          </Badge>
+        );
+      }
+      return (
+        <Badge className="bg-amber-500 text-white text-[10px] sm:text-xs whitespace-nowrap">
+          Available (awaiting details)
+        </Badge>
+      );
+    }
+    if (assignment.response === "pending") {
+      return (
+        <Badge variant="outline" className="border-amber-400 text-amber-600 text-[10px] sm:text-xs whitespace-nowrap">
+          Pending availability
+        </Badge>
+      );
+    }
+    if (assignment.bookings.status === "cancelled") {
+      return (
+        <Badge variant="outline" className="border-destructive text-destructive text-[10px] sm:text-xs whitespace-nowrap">
+          Cancelled
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="destructive" className="text-[10px] sm:text-xs whitespace-nowrap">
+        Declined
+      </Badge>
+    );
+  };
+
+  const getStatusMessage = (assignment: BookingAssignment) => {
+    if (assignment.bookings.status === "completed" && assignment.response === "accepted") {
+      return {
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        text: "This booking is completed — payment details below",
+        color: "text-green-700 dark:text-green-400",
+      };
+    }
+    if (assignment.response === "accepted") {
+      if (assignment.approved_at) {
+        return {
+          icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+          text: "Admin has approved your acceptance — details will follow shortly",
+          color: "text-green-700 dark:text-green-400",
+        };
+      }
+      return {
+        icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+        text: "Your availability is confirmed, details of members will follow shortly",
+        color: "text-green-700 dark:text-green-400",
+      };
+    }
+    if (assignment.response === "pending") {
+      return {
+        icon: null,
+        text: "Awaiting your response",
+        color: "text-amber-600",
+      };
+    }
+    if (assignment.bookings.status === "cancelled") {
+      return {
+        icon: <X className="h-4 w-4 text-destructive" />,
+        text: "This booking has been cancelled",
+        color: "text-destructive",
+      };
+    }
+    return {
+      icon: <X className="h-4 w-4 text-destructive" />,
+      text: "You declined this booking",
+      color: "text-destructive",
+    };
+  };
+
+  const filteredAssignments = (() => {
+    let list = assignments;
+    // Hide cancelled bookings unless the host opts in via the filter
+    if (!showCancelled) list = list.filter(a => a.bookings.status !== "cancelled");
+    if (hideDeclined) list = list.filter(a => a.response !== "declined");
+    if (!showPast) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      list = list.filter(a => new Date(a.bookings.departure_date).getTime() >= todayStart.getTime());
+    }
+    if (bedTypeFilter !== "all") {
+      list = list.filter(a => (a.bookings.bed_type || "single_beds_only") === bedTypeFilter);
+    }
+    if (statusFilter !== "all") {
+      list = list.filter(a => a.response === statusFilter);
+    }
+    return list;
+  })();
+
+  if (loading) {
+    return <div className="text-center py-8">Loading your bookings...</div>;
+  }
+
+  if (assignments.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No booking assignments yet.</p>
+      </div>
+    );
+  }
+
+  // ─── DETAIL VIEW ───
+  if (selectedAssignment) {
+    const booking = selectedAssignment.bookings;
+    const statusMsg = getStatusMessage(selectedAssignment);
+    const capacity = selectedAssignment.response === "accepted" && selectedAssignment.students_assigned > 0
+      ? selectedAssignment.students_assigned
+      : getCapacityForBedType(booking.bed_type);
+    const earnings = calculateEarningsWithBonus(booking.number_of_nights, capacity, booking.location);
+    const bonusPerNight = getBonusForLocation(booking.location);
+
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setSelectedAssignment(null)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Bookings
+        </Button>
+
+        {/* Booking Information Card */}
+        <Card>
+          <CardHeader className="p-4 sm:p-6 pb-2">
+            <CardTitle className="text-sm sm:text-base text-primary">Booking Information</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-2 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Reference</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm font-medium">{booking.booking_reference}</div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">Nationality</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.country_of_students}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Location</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.location}</div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">Number of nights</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">{booking.number_of_nights}</div>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-primary">Bed Type</Label>
+              <div className="mt-1 p-2 bg-muted rounded text-sm">
+                {booking.bed_type === "shared_beds" ? "Shared Beds" : "Single Beds"}
+              </div>
+            </div>
+
+            {/* Status Message */}
+            <div>
+              <Label className="text-xs text-primary">Status</Label>
+              <div className={`mt-1 flex items-center gap-2 text-sm ${statusMsg.color}`}>
+                {statusMsg.icon}
+                {statusMsg.text}
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-primary">Start Date</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">
+                  {format(new Date(booking.arrival_date), "dd/MM/yyyy")}
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-primary">End Date</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm">
+                  {format(new Date(booking.departure_date), "dd/MM/yyyy")}
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {booking.notes && (
+              <div>
+                <Label className="text-xs text-primary">Notes</Label>
+                <div className="mt-1 p-2 bg-muted rounded text-sm whitespace-pre-line">{booking.notes}</div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {selectedAssignment.response === "pending" && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  size="sm"
+                  onClick={() => openAcceptDialog(selectedAssignment.id, booking.bed_type)}
+                  className="text-xs sm:text-sm"
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  I Can Host
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleResponse(selectedAssignment.id, "declined")}
+                  className="text-xs sm:text-sm"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Can't Host
+                </Button>
+              </div>
+            )}
+
+            {(selectedAssignment.response === "accepted" || selectedAssignment.response === "declined") &&
+              booking.status !== "completed" && booking.status !== "cancelled" && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setReinstateDialogId(selectedAssignment.id)}
+                  className="text-xs sm:text-sm"
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Reinstate booking
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment Details Card */}
+        {ratePerStudentPerNight > 0 && (
+          <Card className={booking.status === "completed" && selectedAssignment.response === "accepted" ? "border-green-500/30 bg-green-500/5" : ""}>
+            <CardHeader className="p-4 sm:p-6 pb-2">
+              <CardTitle className="text-sm sm:text-base text-primary">
+                {booking.status === "completed" && selectedAssignment.response === "accepted" ? "Payment Received" : "Payment Details"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-2">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Students:</span>
+                  <span>{capacity}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Rate per Student per Night:</span>
+                  <span>£{ratePerStudentPerNight.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Number of Nights:</span>
+                  <span>{booking.number_of_nights}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">Base Payment:</span>
+                  <span>£{earnings.baseEarnings.toFixed(2)}</span>
+                </div>
+                {bonusPerNight > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold">Location Bonus ({booking.location}):</span>
+                      <span>£{bonusPerNight.toFixed(2)} × {booking.number_of_nights} nights</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold">Total Bonus:</span>
+                      <span>£{earnings.locationBonus.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="border-t border-border pt-3 flex justify-between text-sm font-bold">
+                  <span>{booking.status === "completed" && selectedAssignment.response === "accepted" ? "Total Payment Received:" : "Total Payment Due:"}</span>
+                  <span className="text-green-600">£{earnings.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  // ─── TABLE VIEW ───
+  const declinedCount = assignments.filter(a => a.response === "declined" && a.bookings.status !== "cancelled").length;
+  const cancelledCount = assignments.filter(a => a.bookings.status === "cancelled").length;
+
+  return (
+    <div className="space-y-3">
+      {/* Filters Toolbar */}
+      <div className="rounded-xl border border-border bg-muted/30 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <BedDouble className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Select value={bedTypeFilter} onValueChange={setBedTypeFilter}>
+                <SelectTrigger className="h-9 w-[140px] sm:w-[150px] pl-8 text-xs sm:text-sm bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Beds</SelectItem>
+                  <SelectItem value="single_beds_only">Single Beds</SelectItem>
+                  <SelectItem value="shared_beds">Shared Beds</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative">
+              <Filter className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 w-[150px] sm:w-[170px] pl-8 text-xs sm:text-sm bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
+                  <SelectItem value="declined">Declined</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="hidden xl:block h-8 w-px bg-border" />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {declinedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setHideDeclined(!hideDeclined)}
+                aria-pressed={hideDeclined}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                  hideDeclined
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                <EyeOff className="h-3.5 w-3.5" />
+                Hide declined ({declinedCount})
+              </button>
+            )}
+
+            {cancelledCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowCancelled(!showCancelled)}
+                aria-pressed={showCancelled}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                  showCancelled
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                Show cancelled ({cancelledCount})
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowPast(!showPast)}
+              aria-pressed={showPast}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
+                showPast
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground hover:border-muted-foreground/40"
+              }`}
+            >
+              Show past bookings
+            </button>
+
+            <span className="ml-auto xl:ml-2 text-xs text-muted-foreground">
+              ({filteredAssignments.length} booking{filteredAssignments.length !== 1 ? "s" : ""})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Table (lg+) */}
+      <div className="hidden lg:block">
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm text-primary">Your Bookings</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAssignments.map((assignment) => (
+                  <TableRow key={assignment.id}>
+                    <TableCell className="font-medium">{assignment.bookings.booking_reference}</TableCell>
+                    <TableCell>{assignment.bookings.location}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(assignment.bookings.arrival_date), "dd MMM")} - {format(new Date(assignment.bookings.departure_date), "dd MMM yyyy")}
+                    </TableCell>
+                    <TableCell>{getHostStatusBadge(assignment)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {(assignment.response === "accepted" || assignment.response === "declined") &&
+                          assignment.bookings.status !== "completed" &&
+                          assignment.bookings.status !== "cancelled" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setReinstateDialogId(assignment.id)}
+                            className="text-xs text-primary hover:text-primary"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Reinstate
+                          </Button>
+                        )}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setSelectedAssignment(assignment)}
+                          className="text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mobile + Tablet Cards (<lg) */}
+      <div className="lg:hidden space-y-2.5">
+        {filteredAssignments.map((assignment) => (
+          <Card key={assignment.id} className="p-3 sm:p-4 hover:border-primary/30 transition-colors">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="text-sm sm:text-base font-semibold truncate">{assignment.bookings.booking_reference}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{assignment.bookings.location}</p>
+                </div>
+                <div className="shrink-0">{getHostStatusBadge(assignment)}</div>
+              </div>
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                {format(new Date(assignment.bookings.arrival_date), "dd MMM")} – {format(new Date(assignment.bookings.departure_date), "dd MMM yyyy")}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSelectedAssignment(assignment)}
+                  className="flex-1 h-9"
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  View details
+                </Button>
+                {(assignment.response === "accepted" || assignment.response === "declined") &&
+                  assignment.bookings.status !== "completed" &&
+                  assignment.bookings.status !== "cancelled" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setReinstateDialogId(assignment.id)}
+                    className="h-9 text-primary hover:text-primary border-primary/30"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" />
+                    <span className="hidden sm:inline">Reinstate</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Accept Dialog */}
+      <Dialog open={!!acceptDialogAssignmentId} onOpenChange={(open) => { if (!open) setAcceptDialogAssignmentId(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>How many students can you host?</DialogTitle>
+            <DialogDescription>
+              Enter the number of students you can accommodate for this booking.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="student-count-bookings">Number of Students</Label>
+              <Input
+                id="student-count-bookings"
+                type="number"
+                min={1}
+                value={studentCount}
+                onChange={(e) => setStudentCount(parseInt(e.target.value) || 0)}
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={confirmAccept}
+                disabled={studentCount < 1}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirm
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setAcceptDialogAssignmentId(null)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reinstate Confirmation Dialog */}
+      <Dialog open={!!reinstateDialogId} onOpenChange={(open) => { if (!open) setReinstateDialogId(null); }}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="bg-gradient-to-b from-primary/10 to-transparent px-6 pt-6 pb-2 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 mb-3">
+              <RotateCcw className="h-7 w-7 text-primary" />
+            </div>
+            <DialogHeader className="space-y-1.5">
+              <DialogTitle className="text-center text-xl">Reinstate this booking?</DialogTitle>
+              <DialogDescription className="text-center">
+                This resets your previous response and moves the booking back to pending so you can accept or decline again.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 flex gap-2">
+            <Button variant="outline" onClick={() => setReinstateDialogId(null)} className="flex-1 h-11">Cancel</Button>
+            <Button
+              onClick={() => {
+                if (reinstateDialogId) handleResponse(reinstateDialogId, "pending");
+                setReinstateDialogId(null);
+              }}
+              className="flex-1 h-11"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Yes, reinstate
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default HostBookings;
